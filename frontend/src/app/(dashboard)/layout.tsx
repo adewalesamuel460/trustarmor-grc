@@ -13,9 +13,21 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [authenticated, setAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [userEmail, setUserEmail] = useState('');
+  // Read token synchronously — localStorage is always available client-side.
+  // Starting authenticated=true if token exists avoids the loading flash on navigation.
+  const [authenticated, setAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return !!localStorage.getItem('access_token');
+    }
+    return false;
+  });
+  const [loading, setLoading] = useState(false); // no initial loading flash
+  const [userEmail, setUserEmail] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('user_email') || '';
+    }
+    return '';
+  });
 
   const [userRole, setUserRole] = useState('');
 
@@ -54,26 +66,18 @@ export default function DashboardLayout({
     const token = localStorage.getItem('access_token');
     const email = localStorage.getItem('user_email');
     if (!token) {
-      router.push('/login');
+      router.replace('/login');
     } else {
       setAuthenticated(true);
-      setUserEmail(email || 'admin@company.com');
+      setUserEmail(email || '');
     }
-    setLoading(false);
+    // No setLoading(false) needed — loading starts false now
   }, [router]);
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-950 text-white">
-        <p className="text-sm font-semibold tracking-wider uppercase animate-pulse">Loading GRC Platform...</p>
-      </div>
-    );
-  }
-
+  // Only block render if we know for certain the user is not authenticated
   if (!authenticated) {
     return null;
   }
-
 
 
   const navGroups = [
