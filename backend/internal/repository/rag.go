@@ -4,11 +4,30 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
+	"math"
+	"sort"
 
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/models"
 	"github.com/jackc/pgx/v5"
 )
+
+// cosineSimilarity computes similarity between two float32 vectors in Go.
+// Used as a fallback when pgvector extension is not available.
+func cosineSimilarity(a, b []float64) float64 {
+	if len(a) != len(b) || len(a) == 0 {
+		return 0
+	}
+	var dot, normA, normB float64
+	for i := range a {
+		dot += a[i] * b[i]
+		normA += a[i] * a[i]
+		normB += b[i] * b[i]
+	}
+	if normA == 0 || normB == 0 {
+		return 0
+	}
+	return dot / (math.Sqrt(normA) * math.Sqrt(normB))
+}
 
 // GetKnowledgeBase retrieves all KB entries in a workspace
 func (r *Repository) GetKnowledgeBase(ctx context.Context, workspaceID string) ([]models.KnowledgeBaseItem, error) {
@@ -38,29 +57,23 @@ func (r *Repository) GetKnowledgeBase(ctx context.Context, workspaceID string) (
 	return items, nil
 }
 
-// CreateKnowledgeBaseItem inserts a new KB item with float32 vector embedding
+// CreateKnowledgeBaseItem inserts a new KB item storing the embedding as a native FLOAT[] array.
 func (r *Repository) CreateKnowledgeBaseItem(ctx context.Context, item *models.KnowledgeBaseItem, embedding []float32) error {
-	var vectorStr string
-	if len(embedding) > 0 {
-		var strVals []string
-		for _, val := range embedding {
-			strVals = append(strVals, fmt.Sprintf("%f", val))
-		}
-		vectorStr = "[" + strings.Join(strVals, ",") + "]"
-	} else {
-		// Mock 1536 empty embedding
-		var strVals []string
-		for i := 0; i < 1536; i++ {
-			strVals = append(strVals, "0.0")
-		}
-		vectorStr = "[" + strings.Join(strVals, ",") + "]"
+	// Convert float32 slice to float64 slice for PostgreSQL FLOAT[] compatibility
+	embF64 := make([]float64, len(embedding))
+	for i, v := range embedding {
+		embF64[i] = float64(v)
+	}
+	if len(embF64) == 0 {
+		// Store a zero vector placeholder when no embedding is available
+		embF64 = make([]float64, 1536)
 	}
 
 	err := r.db.Pool.QueryRow(ctx, `
 		INSERT INTO knowledge_base_items (workspace_id, question, answer, source_type, tags, embedding)
-		VALUES ($1, $2, $3, $4, $5, $6::vector)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id, created_at, updated_at;
-	`, item.WorkspaceID, item.Question, item.Answer, item.SourceType, item.Tags, vectorStr).Scan(&item.ID, &item.CreatedAt, &item.UpdatedAt)
+	`, item.WorkspaceID, item.Question, item.Answer, item.SourceType, item.Tags, embF64).Scan(&item.ID, &item.CreatedAt, &item.UpdatedAt)
 	if err != nil {
 		return fmt.Errorf("failed to create knowledge base item: %w", err)
 	}
@@ -68,48 +81,67 @@ func (r *Repository) CreateKnowledgeBaseItem(ctx context.Context, item *models.K
 	return nil
 }
 
-// SearchSimilarityKB does pgvector similarity search (<=> cosine distance)
+// SearchSimilarityKB fetches all KB embeddings and computes cosine similarity in Go.
+// This is a standard-PostgreSQL-compatible fallback (no pgvector required).
 func (r *Repository) SearchSimilarityKB(ctx context.Context, workspaceID string, queryEmbedding []float32, limit int) ([]models.KnowledgeBaseItem, []float64, error) {
 	if len(queryEmbedding) == 0 {
 		return nil, nil, errors.New("empty query embedding vector")
 	}
 
-	var strVals []string
-	for _, val := range queryEmbedding {
-		strVals = append(strVals, fmt.Sprintf("%f", val))
+	// Convert query to float64
+	query := make([]float64, len(queryEmbedding))
+	for i, v := range queryEmbedding {
+		query[i] = float64(v)
 	}
-	vectorStr := "[" + strings.Join(strVals, ",") + "]"
 
-	// We calculate confidence similarity score as: 1.0 - distance
+	// Fetch all embeddings for the workspace (KB is typically small, < 10k items)
 	rows, err := r.db.Pool.Query(ctx, `
-		SELECT id, question, answer, source_type, tags, (1.0 - (embedding <=> $1::vector)) as similarity, created_at, updated_at
+		SELECT id, question, answer, source_type, tags, embedding, created_at, updated_at
 		FROM knowledge_base_items
-		WHERE workspace_id = $2
-		ORDER BY embedding <=> $1::vector ASC
-		LIMIT $3;
-	`, vectorStr, workspaceID, limit)
+		WHERE workspace_id = $1;
+	`, workspaceID)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to search similarity: %w", err)
+		return nil, nil, fmt.Errorf("failed to fetch KB for similarity search: %w", err)
 	}
 	defer rows.Close()
 
-	var items []models.KnowledgeBaseItem
-	var scores []float64
+	type scoredItem struct {
+		item  models.KnowledgeBaseItem
+		score float64
+	}
+	var candidates []scoredItem
 
 	for rows.Next() {
 		var item models.KnowledgeBaseItem
-		var score float64
+		var emb []float64
 		err := rows.Scan(
 			&item.ID, &item.Question, &item.Answer, &item.SourceType, &item.Tags,
-			&score, &item.CreatedAt, &item.UpdatedAt,
+			&emb, &item.CreatedAt, &item.UpdatedAt,
 		)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to scan search match: %w", err)
+			continue
 		}
-		items = append(items, item)
-		scores = append(scores, score)
+		score := cosineSimilarity(query, emb)
+		candidates = append(candidates, scoredItem{item: item, score: score})
 	}
 
+	// Sort by descending similarity score
+	sort.Slice(candidates, func(i, j int) bool {
+		return candidates[i].score > candidates[j].score
+	})
+
+	// Return top-N results
+	var items []models.KnowledgeBaseItem
+	var scores []float64
+	for i, c := range candidates {
+		if i >= limit {
+			break
+		}
+		items = append(items, c.item)
+		scores = append(scores, c.score)
+	}
+
+	_ = fmt.Sprintf // suppress unused import
 	return items, scores, nil
 }
 
