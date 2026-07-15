@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/config"
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/db"
@@ -40,7 +39,7 @@ func main() {
 	repo := repository.New(database)
 	auditSvc := service.NewAuditService(repo)
 	svc := service.New(repo, auditSvc, cfg.JWTSecret)
-	h := handler.New(svc, repo)
+	h := handler.New(svc, auditSvc, repo)
 
 	// Set up router
 	r := chi.NewRouter()

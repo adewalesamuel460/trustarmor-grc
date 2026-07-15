@@ -45,14 +45,14 @@ func (h *Handler) GetAuditLogs(w http.ResponseWriter, r *http.Request) {
 	filters := h.parseAuditFilters(r)
 
 	// Fetch logs
-	logs, err := h.svc.GetAuditLogs(r.Context(), workspaceID, filters, limit, offset)
+	logs, err := h.auditSvc.GetAuditLogs(r.Context(), workspaceID, filters, limit, offset)
 	if err != nil {
 		h.respondError(w, http.StatusInternalServerError, fmt.Sprintf("failed to get audit logs: %v", err))
 		return
 	}
 
 	// Fetch total count for pagination metadata
-	total, err := h.svc.CountAuditLogs(r.Context(), workspaceID, filters)
+	total, err := h.auditSvc.CountAuditLogs(r.Context(), workspaceID, filters)
 	if err != nil {
 		h.respondError(w, http.StatusInternalServerError, fmt.Sprintf("failed to count audit logs: %v", err))
 		return
@@ -82,7 +82,7 @@ func (h *Handler) ExportAuditLogs(w http.ResponseWriter, r *http.Request) {
 	filters := h.parseAuditFilters(r)
 
 	// Fetch logs (fetch a large amount for export, e.g. up to 1000 logs)
-	logs, err := h.svc.GetAuditLogs(r.Context(), workspaceID, filters, 1000, 0)
+	logs, err := h.auditSvc.GetAuditLogs(r.Context(), workspaceID, filters, 1000, 0)
 	if err != nil {
 		h.respondError(w, http.StatusInternalServerError, fmt.Sprintf("failed to fetch export logs: %v", err))
 		return

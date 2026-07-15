@@ -11,12 +11,13 @@ import (
 )
 
 type Handler struct {
-	svc  *service.Service
-	repo *repository.Repository
+	svc      *service.Service
+	auditSvc *service.AuditService
+	repo     *repository.Repository
 }
 
-func New(svc *service.Service, repo *repository.Repository) *Handler {
-	return &Handler{svc: svc, repo: repo}
+func New(svc *service.Service, auditSvc *service.AuditService, repo *repository.Repository) *Handler {
+	return &Handler{svc: svc, auditSvc: auditSvc, repo: repo}
 }
 
 // Helpers for reading/writing JSON
