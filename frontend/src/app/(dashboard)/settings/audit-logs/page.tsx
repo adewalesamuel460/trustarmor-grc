@@ -244,7 +244,7 @@ export default function AuditLogsPage() {
                 </td>
               </tr>
             ) : (
-              logs.map((log) => (
+              logs.map((log: AuditLog) => (
                 <tr key={log.id} className="hover:bg-white/5 transition">
                   <td className="px-6 py-4 text-gray-400 text-xs font-mono">
                     {new Date(log.created_at).toLocaleString()}
@@ -289,7 +289,7 @@ export default function AuditLogsPage() {
             <div className="flex gap-2">
               <button
                 disabled={page === 1}
-                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                onClick={() => setPage((p: number) => Math.max(p - 1, 1))}
                 className="px-3 py-1.5 border border-white/10 rounded-lg hover:bg-white/5 disabled:opacity-30 transition"
               >
                 Previous
@@ -299,7 +299,7 @@ export default function AuditLogsPage() {
               </div>
               <button
                 disabled={page === totalPages}
-                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                onClick={() => setPage((p: number) => Math.min(p + 1, totalPages))}
                 className="px-3 py-1.5 border border-white/10 rounded-lg hover:bg-white/5 disabled:opacity-30 transition"
               >
                 Next
