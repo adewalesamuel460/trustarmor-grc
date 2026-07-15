@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// In Codespaces (and production), the browser cannot reach localhost:8000 directly.
+// We use Next.js rewrites (/api/* → localhost:8000/*) so all API calls go through
+// the same origin, which Next.js then proxies to the Go backend server-side.
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -8,6 +11,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
 
 // Attach Authorization and X-Workspace-ID headers
 api.interceptors.request.use(
