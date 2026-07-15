@@ -130,9 +130,10 @@ func (r *Repository) AddWorkspaceMember(ctx context.Context, workspaceID string,
 
 func (r *Repository) GetWorkspaceMembers(ctx context.Context, workspaceID string) ([]models.WorkspaceMember, error) {
 	query := `
-		SELECT wm.workspace_id, wm.user_id, wm.role_id, r.name as role_name, wm.created_at 
+		SELECT wm.workspace_id, wm.user_id, u.email as user_email, wm.role_id, r.name as role_name, wm.created_at 
 		FROM workspace_members wm
 		JOIN roles r ON wm.role_id = r.id
+		JOIN users u ON wm.user_id = u.id
 		WHERE wm.workspace_id = $1`
 	rows, err := r.db.Pool.Query(ctx, query, workspaceID)
 	if err != nil {
@@ -143,7 +144,7 @@ func (r *Repository) GetWorkspaceMembers(ctx context.Context, workspaceID string
 	var members []models.WorkspaceMember
 	for rows.Next() {
 		var wm models.WorkspaceMember
-		if err := rows.Scan(&wm.WorkspaceID, &wm.UserID, &wm.RoleID, &wm.RoleName, &wm.CreatedAt); err != nil {
+		if err := rows.Scan(&wm.WorkspaceID, &wm.UserID, &wm.UserEmail, &wm.RoleID, &wm.RoleName, &wm.CreatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan workspace member row: %w", err)
 		}
 		members = append(members, wm)

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import WorkspaceSwitcher from '@/components/WorkspaceSwitcher';
-import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText } from 'lucide-react';
+import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -41,11 +41,27 @@ export default function DashboardLayout({
     );
   }
 
-  const navItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Compliance Controls', path: '/controls', icon: ShieldCheck },
-    { name: 'Team Settings', path: '/settings/team', icon: Users2 },
-    { name: 'Audit Logs', path: '/settings/audit-logs', icon: ScrollText },
+  const navGroups = [
+    {
+      title: 'Overview',
+      items: [
+        { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+      ]
+    },
+    {
+      title: 'Compliance',
+      items: [
+        { name: 'Frameworks', path: '/compliance/frameworks', icon: ShieldCheck },
+        { name: 'Controls', path: '/compliance/controls', icon: Sliders },
+      ]
+    },
+    {
+      title: 'Settings',
+      items: [
+        { name: 'Team Settings', path: '/settings/team', icon: Users2 },
+        { name: 'Audit Logs', path: '/settings/audit-logs', icon: ScrollText },
+      ]
+    }
   ];
 
   return (
@@ -64,25 +80,34 @@ export default function DashboardLayout({
           </div>
 
           {/* Navigation Links */}
-          <nav className="p-4 space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.path;
-              return (
-                <a
-                  key={item.name}
-                  href={item.path}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
-                    isActive
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.name}</span>
-                </a>
-              );
-            })}
+          <nav className="p-4 space-y-6">
+            {navGroups.map((group) => (
+              <div key={group.title} className="space-y-1.5">
+                <span className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
+                  {group.title}
+                </span>
+                <div className="space-y-1">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = pathname === item.path;
+                    return (
+                      <a
+                        key={item.name}
+                        href={item.path}
+                        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition ${
+                          isActive
+                            ? 'bg-indigo-600/15 border border-indigo-500/30 text-indigo-300 font-semibold shadow-lg shadow-indigo-500/5'
+                            : 'text-gray-400 border border-transparent hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{item.name}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
         </div>
 

@@ -16,6 +16,9 @@ var initSchemaSQL string
 //go:embed migrations/000002_audit_logs.up.sql
 var auditLogsSQL string
 
+//go:embed migrations/000003_grc_core.up.sql
+var grcCoreSQL string
+
 type DB struct {
 	Pool *pgxpool.Pool
 }
@@ -59,6 +62,12 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 	_, err = db.Pool.Exec(ctx, auditLogsSQL)
 	if err != nil {
 		return fmt.Errorf("failed to execute migration 000002: %w", err)
+	}
+
+	log.Println("Running database migrations (000003)...")
+	_, err = db.Pool.Exec(ctx, grcCoreSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000003: %w", err)
 	}
 
 	log.Println("Migrations executed successfully")

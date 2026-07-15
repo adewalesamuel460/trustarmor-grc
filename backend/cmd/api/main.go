@@ -84,6 +84,18 @@ func main() {
 		// Audit Logs (Requires Tenancy check)
 		r.Get("/workspaces/{id}/audit-logs", h.GetAuditLogs)
 		r.Get("/workspaces/{id}/audit-logs/export", h.ExportAuditLogs)
+
+		// Frameworks & Requirements
+		r.Get("/frameworks", h.GetFrameworks)
+		r.Get("/workspaces/{id}/frameworks", h.GetActivatedFrameworks)
+		r.Post("/workspaces/{id}/frameworks", h.ActivateFramework)
+		r.Get("/workspaces/{id}/requirements", h.GetRequirements)
+
+		// Controls & Mappings
+		r.Post("/workspaces/{id}/controls", h.CreateControl)
+		r.Get("/workspaces/{id}/controls", h.GetControls)
+		r.Post("/workspaces/{id}/controls/{control_id}/map", h.MapControl)
+		r.Get("/workspaces/{id}/frameworks/{framework_id}/posture", h.GetCompliancePosture)
 	})
 
 	// Start server

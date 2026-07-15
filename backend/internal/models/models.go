@@ -35,6 +35,7 @@ type Role struct {
 type WorkspaceMember struct {
 	WorkspaceID string    `json:"workspace_id"`
 	UserID      string    `json:"user_id"`
+	UserEmail   string    `json:"user_email"`
 	RoleID      int       `json:"role_id"`
 	RoleName    string    `json:"role_name"`
 	CreatedAt   time.Time `json:"created_at"`
@@ -52,4 +53,49 @@ type AuditLog struct {
 	NewValue     interface{} `json:"new_value"`
 	IPAddress    string      `json:"ip_address"`
 	CreatedAt    time.Time   `json:"created_at"`
+}
+
+type Framework struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Version     string    `json:"version"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+type Requirement struct {
+	ID          string    `json:"id"`
+	FrameworkID string    `json:"framework_id"`
+	Identifier  string    `json:"identifier"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+type WorkspaceFramework struct {
+	ID          string    `json:"id"`
+	WorkspaceID string    `json:"workspace_id"`
+	FrameworkID string    `json:"framework_id"`
+	Status      string    `json:"status"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+type Control struct {
+	ID                 string    `json:"id"`
+	WorkspaceID        string    `json:"workspace_id"`
+	Title              string    `json:"title"`
+	Description        string    `json:"description"`
+	Type               string    `json:"type"`
+	Frequency          string    `json:"frequency"`
+	OwnerID            *string   `json:"owner_id"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
+	MappedRequirements []string  `json:"mapped_requirements"` // e.g. ["CC6.1", "Art 2.2"]
+}
+
+type ControlMapping struct {
+	ID            string    `json:"id"`
+	ControlID     string    `json:"control_id"`
+	RequirementID string    `json:"requirement_id"`
+	CreatedAt     time.Time `json:"created_at"`
 }
