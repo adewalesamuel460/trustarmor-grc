@@ -3,7 +3,22 @@
 import React, { useEffect, useState } from 'react';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import api from '@/lib/api';
-import { ShieldAlert, ShieldCheck, CheckCircle2, UserCheck, QrCode } from 'lucide-react';
+import { 
+  ShieldAlert, ShieldCheck, CheckCircle2, UserCheck, QrCode, FileSignature, 
+  FileText, ArrowRight, AlertCircle, Check, Loader2, X, FileLock
+} from 'lucide-react';
+
+interface PolicyAcknowledgment {
+  id: string;
+  policy_version_id: string;
+  user_id: string;
+  status: string; // 'pending', 'signed'
+  signed_at: string | null;
+  ip_address: string | null;
+  policy_title: string;
+  version_number: number;
+  policy_content: string;
+}
 
 export default function DashboardOverviewPage() {
   const { activeWorkspace } = useWorkspace();
@@ -15,22 +30,46 @@ export default function DashboardOverviewPage() {
   const [mfaError, setMfaError] = useState<string | null>(null);
   const [mfaSuccess, setMfaSuccess] = useState(false);
 
+  // GRC Phase 6: E-Signatures States
+  const [pendingSignatures, setPendingSignatures] = useState<PolicyAcknowledgment[]>([]);
+  const [selectedSignature, setSelectedSignature] = useState<PolicyAcknowledgment | null>(null);
+  const [acknowledgedCheckbox, setAcknowledgedCheckbox] = useState(false);
+  const [signing, setSigning] = useState(false);
+  const [signError, setSignError] = useState<string | null>(null);
+
+  const fetchPendingSignatures = async () => {
+    if (!activeWorkspace) return;
+    try {
+      const { data } = await api.get(`/workspaces/${activeWorkspace.id}/policies/pending-signatures`);
+      setPendingSignatures(data || []);
+    } catch (err) {
+      console.error('Failed to load pending policy signatures', err);
+    }
+  };
+
   useEffect(() => {
-    // Check if MFA is enabled
     const checkMFAStatus = async () => {
       try {
         const token = localStorage.getItem('access_token');
         if (token) {
-          // We can call get workspaces or standard route to verify auth, 
-          // or just assume based on localStorage for demo. Let's check status from a profile/MFA check if we want,
-          // but let's query a dummy profile or check status. 
-          // For simplicity, let's keep mfa check.
+          // Check profile or state status here if needed
         }
       } catch (err) {
         console.error(err);
       }
     };
     checkMFAStatus();
+    fetchPendingSignatures();
+  }, [activeWorkspace]);
+
+  useEffect(() => {
+    const handleWorkspaceChange = () => {
+      setPendingSignatures([]);
+      setSelectedSignature(null);
+      fetchPendingSignatures();
+    };
+    window.addEventListener('workspace-changed', handleWorkspaceChange);
+    return () => window.removeEventListener('workspace-changed', handleWorkspaceChange);
   }, [activeWorkspace]);
 
   const handleStartMfaSetup = async () => {
@@ -61,6 +100,28 @@ export default function DashboardOverviewPage() {
     }
   };
 
+  // Submit E-Signature
+  const handleAcknowledgeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeWorkspace || !selectedSignature || !acknowledgedCheckbox) return;
+    setSigning(true);
+    setSignError(null);
+    try {
+      await api.post(`/workspaces/${activeWorkspace.id}/policies/versions/${selectedSignature.policy_version_id}/acknowledge`);
+      
+      // Clear modal
+      setSelectedSignature(null);
+      setAcknowledgedCheckbox(false);
+
+      // Refresh notifications
+      await fetchPendingSignatures();
+    } catch (err: any) {
+      setSignError(err.response?.data?.error || 'Failed to record e-signature acknowledgment');
+    } finally {
+      setSigning(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Welcome Banner */}
@@ -72,6 +133,60 @@ export default function DashboardOverviewPage() {
           Welcome to your TrustArmor dashboard. Here you can monitor your security posture, review active regulatory controls, and coordinate team compliance status.
         </p>
       </div>
+
+      {/* Warning Banner: Pending Signatures */}
+      {pendingSignatures.length > 0 && (
+        <div className="p-5 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 animate-pulse">
+          <div className="flex items-start gap-4">
+            <div className="p-2.5 bg-indigo-500/10 rounded-xl text-indigo-400 mt-0.5">
+              <FileSignature className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-indigo-300">Action Required: Policy Review</h3>
+              <p className="text-sm text-gray-400 mt-0.5">
+                You have {pendingSignatures.length} regulatory {pendingSignatures.length === 1 ? 'policy' : 'policies'} awaiting review and e-signature.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setSelectedSignature(pendingSignatures[0])}
+            className="flex items-center gap-1.5 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition text-xs flex-shrink-0"
+          >
+            <span>Review & Sign</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Action Required Widget */}
+      {pendingSignatures.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <ShieldAlert className="w-5 h-5 text-indigo-400" />
+            <span>Tasks / Action Required</span>
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {pendingSignatures.map((sig) => (
+              <div
+                key={sig.id}
+                onClick={() => {
+                  setSelectedSignature(sig);
+                  setAcknowledgedCheckbox(false);
+                  setSignError(null);
+                }}
+                className="p-5 rounded-2xl border border-white/5 bg-gray-900/20 hover:border-white/10 transition cursor-pointer flex justify-between items-center group"
+              >
+                <div className="space-y-1">
+                  <h4 className="font-bold text-white group-hover:text-indigo-300 transition text-sm">{sig.policy_title}</h4>
+                  <p className="text-xs text-gray-500 font-mono">Requires acknowledgment for Version {sig.version_number}</p>
+                </div>
+                <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-white transition" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Grid of stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -197,6 +312,89 @@ export default function DashboardOverviewPage() {
               </form>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* GRC Phase 6: Un-skippable Acknowledgment Signature Modal */}
+      {selectedSignature && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <form
+            onSubmit={handleAcknowledgeSubmit}
+            className="w-full max-w-2xl p-8 rounded-3xl border border-white/5 bg-gray-900 shadow-2xl relative space-y-6 flex flex-col max-h-[90vh]"
+          >
+            <div className="flex justify-between items-start border-b border-white/5 pb-4">
+              <div>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <FileLock className="w-5 h-5 text-indigo-400" />
+                  <span>Review & Acknowledge: {selectedSignature.policy_title}</span>
+                </h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  You are required to read, understand, and electronically sign version <span className="font-semibold text-white">V{selectedSignature.version_number}</span> of this policy.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedSignature(null)}
+                className="p-1.5 hover:bg-white/5 rounded-lg border border-white/5 text-gray-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {signError && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs">
+                {signError}
+              </div>
+            )}
+
+            {/* Read-Only Scrollable content block */}
+            <div className="flex-1 overflow-y-auto p-6 rounded-2xl bg-gray-950/60 border border-white/5 text-sm text-gray-300 leading-relaxed font-sans whitespace-pre-wrap">
+              {selectedSignature.policy_content || <span className="italic text-gray-500">No content drafted.</span>}
+            </div>
+
+            {/* Acknowledgment Agreement & Button */}
+            <div className="pt-4 border-t border-white/5 space-y-4">
+              <label className="flex items-start gap-3 cursor-pointer group text-xs text-gray-400">
+                <input
+                  type="checkbox"
+                  required
+                  checked={acknowledgedCheckbox}
+                  onChange={(e) => setAcknowledgedCheckbox(e.target.checked)}
+                  className="mt-0.5 rounded border-white/10 bg-transparent focus:ring-indigo-500 text-indigo-600 w-4 h-4"
+                />
+                <span className="group-hover:text-white transition">
+                  I hereby confirm that I have read, understood, and agree to adhere to the guidelines set forth in this policy.
+                </span>
+              </label>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSignature(null)}
+                  className="px-5 py-2.5 bg-gray-950/40 hover:bg-gray-950/60 border border-white/10 text-white font-semibold text-xs rounded-xl transition"
+                >
+                  Close & Read Later
+                </button>
+                <button
+                  type="submit"
+                  disabled={signing || !acknowledgedCheckbox}
+                  className="flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition disabled:opacity-50"
+                >
+                  {signing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Recording signature...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Sign & Acknowledge</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       )}
     </div>

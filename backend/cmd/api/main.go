@@ -167,6 +167,15 @@ func main() {
 		r.Get("/workspaces/{id}/controls/{control_id}/evidence", h.GetEvidenceLists)
 		r.Get("/workspaces/{id}/controls/{control_id}/status-logs", h.GetControlStatusLogs)
 		r.Post("/workspaces/{id}/controls/{control_id}/evaluate", h.EvaluateControl)
+
+		// Policies & E-Signatures
+		r.Get("/workspaces/{id}/policies", h.GetPolicies)
+		r.Post("/workspaces/{id}/policies", h.CreatePolicy)
+		r.Put("/workspaces/{id}/policies/{policy_id}", h.UpdatePolicy)
+		r.Post("/workspaces/{id}/policies/{policy_id}/publish", h.PublishPolicy)
+		r.Get("/workspaces/{id}/policies/pending-signatures", h.GetPendingSignatures)
+		r.Post("/workspaces/{id}/policies/versions/{version_id}/acknowledge", h.AcknowledgePolicy)
+		r.Get("/workspaces/{id}/policies/{policy_id}/tracking", h.GetPolicyTracking)
 	})
 
 	// Start server

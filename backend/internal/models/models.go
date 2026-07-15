@@ -162,3 +162,45 @@ type ControlStatusLog struct {
 	Reason         *string   `json:"reason"`
 	CreatedAt      time.Time `json:"created_at"`
 }
+
+type Policy struct {
+	ID             string    `json:"id"`
+	WorkspaceID    string    `json:"workspace_id"`
+	Title          string    `json:"title"`
+	Description    string    `json:"description"`
+	Content        *string   `json:"content"`
+	Status         string    `json:"status"`
+	CurrentVersion int       `json:"current_version"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type PolicyVersion struct {
+	ID            string    `json:"id"`
+	PolicyID      string    `json:"policy_id"`
+	VersionNumber int       `json:"version_number"`
+	Content       string    `json:"content"`
+	PublishedAt   time.Time `json:"published_at"`
+}
+
+type PolicyAcknowledgment struct {
+	ID              string     `json:"id"`
+	PolicyVersionID string     `json:"policy_version_id"`
+	UserID          string     `json:"user_id"`
+	Status          string     `json:"status"`
+	SignedAt        *time.Time `json:"signed_at"`
+	IPAddress       *string    `json:"ip_address"`
+	PolicyTitle     string     `json:"policy_title,omitempty"`
+	VersionNumber   int        `json:"version_number,omitempty"`
+	PolicyContent   string     `json:"policy_content,omitempty"`
+}
+
+type PolicyTrackingRow struct {
+	UserID        string     `json:"user_id"`
+	UserEmail     string     `json:"user_email"`
+	RoleName      string     `json:"role_name"`
+	Status        string     `json:"status"`
+	SignedAt      *time.Time `json:"signed_at"`
+	IPAddress     *string    `json:"ip_address"`
+	VersionNumber int        `json:"version_number"`
+}
