@@ -53,6 +53,7 @@ export default function DashboardLayout({
       items: [
         { name: 'Frameworks', path: '/compliance/frameworks', icon: ShieldCheck },
         { name: 'Controls', path: '/compliance/controls', icon: Sliders },
+        { name: 'Integrations', path: '/compliance/integrations', icon: Layers },
       ]
     },
     {

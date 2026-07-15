@@ -99,3 +99,36 @@ type ControlMapping struct {
 	RequirementID string    `json:"requirement_id"`
 	CreatedAt     time.Time `json:"created_at"`
 }
+
+type IntegrationProvider struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Category  string    `json:"category"`
+	AuthType  string    `json:"auth_type"`
+	LogoURL   *string   `json:"logo_url"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type WorkspaceIntegration struct {
+	ID                   string     `json:"id"`
+	WorkspaceID          string     `json:"workspace_id"`
+	ProviderID           string     `json:"provider_id"`
+	Status               string     `json:"status"`
+	EncryptedCredentials []byte     `json:"-"`
+	LastSyncAt           *time.Time `json:"last_sync_at"`
+	CreatedAt            time.Time  `json:"created_at"`
+	UpdatedAt            time.Time  `json:"updated_at"`
+	ProviderName         string     `json:"provider_name,omitempty"`
+	ProviderCategory     string     `json:"provider_category,omitempty"`
+}
+
+type SyncLog struct {
+	ID                     string    `json:"id"`
+	WorkspaceIntegrationID string    `json:"workspace_integration_id"`
+	Status                 string    `json:"status"`
+	RecordsFetched         int       `json:"records_fetched"`
+	ErrorMessage           *string   `json:"error_message"`
+	StartedAt              time.Time `json:"started_at"`
+	CompletedAt            time.Time `json:"completed_at"`
+	DurationMs             int64     `json:"duration_ms"`
+}

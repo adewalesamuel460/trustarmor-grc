@@ -7,9 +7,12 @@
     },
     "ghcr.io/devcontainers/features/postgres:1": {
       "version": "16"
+    },
+    "ghcr.io/devcontainers/features/redis:1": {
+      "version": "7"
     }
   },
-  "forwardPorts": [8000, 3000, 5432],
+  "forwardPorts": [8000, 3000, 5432, 6379],
   "portsAttributes": {
     "8000": {
       "label": "Go Backend API",
@@ -22,6 +25,10 @@
     "5432": {
       "label": "PostgreSQL Database",
       "onAutoForward": "ignore"
+    },
+    "6379": {
+      "label": "Redis Task Queue",
+      "onAutoForward": "ignore"
     }
   },
   "containerEnv": {
@@ -29,5 +36,5 @@
     "JWT_SECRET": "trustarmor_development_secret_key_1234567890",
     "PORT": "8000"
   },
-  "postCreateCommand": "echo 'Setting up project...' && (service postgresql start || true) && sleep 3 && (createdb -U postgres grc || true) && (cd backend && go mod tidy || true) && (cd frontend && npm install || true)"
+  "postCreateCommand": "echo 'Setting up project...' && (service postgresql start || true) && (service redis-server start || true) && sleep 3 && (createdb -U postgres grc || true) && (cd backend && go mod tidy || true) && (cd frontend && npm install || true)"
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/config"
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/db"
@@ -38,8 +39,31 @@ func main() {
 	// Initialize layers
 	repo := repository.New(database)
 	auditSvc := service.NewAuditService(repo)
+
+	// Encryption settings
+	encryptSecret := os.Getenv("ENCRYPTION_KEY")
+	if encryptSecret == "" {
+		encryptSecret = "trustarmor_development_secret_encryption_key_2026"
+	}
+	encryptSvc := service.NewEncryptionService(encryptSecret)
+
+	// Asynq Background worker
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		redisAddr = "localhost:6379"
+	}
+	worker := service.NewWorker(redisAddr, repo, encryptSvc)
+	defer worker.Close()
+
+	// Launch background worker server
+	go func() {
+		if err := worker.Start(); err != nil {
+			log.Printf("ERROR [AsynqWorkerServer]: server stopped: %v", err)
+		}
+	}()
+
 	svc := service.New(repo, auditSvc, cfg.JWTSecret)
-	h := handler.New(svc, auditSvc, repo)
+	h := handler.New(svc, auditSvc, encryptSvc, worker, repo)
 
 	// Set up router
 	r := chi.NewRouter()
@@ -96,6 +120,13 @@ func main() {
 		r.Get("/workspaces/{id}/controls", h.GetControls)
 		r.Post("/workspaces/{id}/controls/{control_id}/map", h.MapControl)
 		r.Get("/workspaces/{id}/frameworks/{framework_id}/posture", h.GetCompliancePosture)
+
+		// Integrations & Background Workers
+		r.Get("/integrations/providers", h.GetIntegrationProviders)
+		r.Get("/workspaces/{id}/integrations", h.GetWorkspaceIntegrations)
+		r.Post("/workspaces/{id}/integrations/connect", h.ConnectIntegration)
+		r.Post("/workspaces/{id}/integrations/{integration_id}/sync", h.SyncIntegration)
+		r.Get("/workspaces/{id}/integrations/{integration_id}/sync-logs", h.GetSyncLogs)
 	})
 
 	// Start server
