@@ -176,6 +176,14 @@ func main() {
 		r.Get("/workspaces/{id}/policies/pending-signatures", h.GetPendingSignatures)
 		r.Post("/workspaces/{id}/policies/versions/{version_id}/acknowledge", h.AcknowledgePolicy)
 		r.Get("/workspaces/{id}/policies/{policy_id}/tracking", h.GetPolicyTracking)
+
+		// Risk Register & Enterprise GRC
+		r.Get("/workspaces/{id}/risks", h.GetRisks)
+		r.Post("/workspaces/{id}/risks", h.CreateRisk)
+		r.Patch("/workspaces/{id}/risks/{risk_id}", h.UpdateRisk)
+		r.Post("/workspaces/{id}/risks/{risk_id}/treatments", h.AddTreatment)
+		r.Post("/workspaces/{id}/risks/{risk_id}/map-controls", h.MapRiskControls)
+		r.Get("/workspaces/{id}/risks/heatmap", h.GetRiskHeatmap)
 	})
 
 	// Start server

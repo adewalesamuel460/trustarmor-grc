@@ -204,3 +204,45 @@ type PolicyTrackingRow struct {
 	IPAddress     *string    `json:"ip_address"`
 	VersionNumber int        `json:"version_number"`
 }
+
+type Risk struct {
+	ID            string          `json:"id"`
+	WorkspaceID   string          `json:"workspace_id"`
+	Title         string          `json:"title"`
+	Description   string          `json:"description"`
+	Category      string          `json:"category"`
+	Likelihood    int             `json:"likelihood"`
+	Impact        int             `json:"impact"`
+	InherentScore int             `json:"inherent_score"`
+	ResidualScore *int            `json:"residual_score"`
+	Status        string          `json:"status"`
+	OwnerID       *string         `json:"owner_id"`
+	OwnerEmail    *string         `json:"owner_email,omitempty"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
+	Treatments    []RiskTreatment `json:"treatments"`
+	ControlIDs    []string        `json:"control_ids"`
+}
+
+type RiskTreatment struct {
+	ID          string     `json:"id"`
+	RiskID      string     `json:"risk_id"`
+	Strategy    string     `json:"strategy"`
+	Description string     `json:"description"`
+	TargetDate  *string    `json:"target_date"` // YYYY-MM-DD format
+	CompletedAt *time.Time `json:"completed_at"`
+	CreatedAt   time.Time  `json:"created_at"`
+}
+
+type RiskControlMapping struct {
+	ID        string    `json:"id"`
+	RiskID    string    `json:"risk_id"`
+	ControlID string    `json:"control_id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type HeatmapCell struct {
+	Likelihood int `json:"likelihood"`
+	Impact     int `json:"impact"`
+	Count      int `json:"count"`
+}

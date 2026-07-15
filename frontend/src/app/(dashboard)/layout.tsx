@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import WorkspaceSwitcher from '@/components/WorkspaceSwitcher';
-import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers } from 'lucide-react';
+import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -13,32 +13,39 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
+    const email = localStorage.getItem('user_email');
     if (!token) {
       router.push('/login');
     } else {
       setAuthenticated(true);
-      // Mock user extraction for profile view
-      setUserEmail('admin@company.com');
+      setUserEmail(email || 'admin@company.com');
     }
+    setLoading(false);
   }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('active_workspace_id');
+    localStorage.removeItem('user_email');
     router.push('/login');
   };
 
-  if (!authenticated) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-[#090d16] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
+      <div className="flex h-screen items-center justify-center bg-gray-950 text-white">
+        <p className="text-sm font-semibold tracking-wider uppercase animate-pulse">Loading GRC Platform...</p>
       </div>
     );
+  }
+
+  if (!authenticated) {
+    return null;
   }
 
   const navGroups = [
@@ -55,6 +62,12 @@ export default function DashboardLayout({
         { name: 'Controls', path: '/compliance/controls', icon: Sliders },
         { name: 'Integrations', path: '/compliance/integrations', icon: Layers },
         { name: 'Policies', path: '/compliance/policies', icon: ScrollText },
+      ]
+    },
+    {
+      title: 'Risk Management',
+      items: [
+        { name: 'Risk Register', path: '/compliance/risks', icon: AlertTriangle },
       ]
     },
     {

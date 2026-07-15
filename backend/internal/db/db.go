@@ -28,6 +28,9 @@ var evidenceSQL string
 //go:embed migrations/000006_policy_management.up.sql
 var policySQL string
 
+//go:embed migrations/000007_risk_register.up.sql
+var riskSQL string
+
 type DB struct {
 	Pool *pgxpool.Pool
 }
@@ -95,6 +98,12 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 	_, err = db.Pool.Exec(ctx, policySQL)
 	if err != nil {
 		return fmt.Errorf("failed to execute migration 000006: %w", err)
+	}
+
+	log.Println("Running database migrations (000007)...")
+	_, err = db.Pool.Exec(ctx, riskSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000007: %w", err)
 	}
 
 	log.Println("Migrations executed successfully")
