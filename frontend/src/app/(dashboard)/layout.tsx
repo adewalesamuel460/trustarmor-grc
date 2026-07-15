@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import WorkspaceSwitcher from '@/components/WorkspaceSwitcher';
 import api from '@/lib/api';
-import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle } from 'lucide-react';
+import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle, CheckSquare, Bell } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -87,6 +87,7 @@ export default function DashboardLayout({
       title: 'Overview',
       items: [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+        { name: 'Tasks', path: '/tasks', icon: CheckSquare },
       ]
     },
     {
@@ -116,6 +117,7 @@ export default function DashboardLayout({
       items: [
         { name: 'Team Settings', path: '/settings/team', icon: Users2 },
         { name: 'Knowledge Base', path: '/settings/knowledge-base', icon: Brain },
+        { name: 'Notification Rules', path: '/settings/notifications', icon: Bell },
         { name: 'Audit Logs', path: '/settings/audit-logs', icon: ScrollText },
       ]
     }

@@ -246,6 +246,20 @@ func main() {
 		r.Post("/workspaces/{id}/data-transfers", h.CreateDataTransfer)
 		r.Get("/workspaces/{id}/regulatory-filings", h.GetRegulatoryFilings)
 		r.Post("/workspaces/{id}/regulatory-filings/{filing_id}/submit", h.SubmitRegulatoryFiling)
+
+		// Tasks & Remediation Queue (Phase 14)
+		r.Get("/workspaces/{id}/tasks", h.ListTasks)
+		r.Patch("/workspaces/{id}/tasks/{task_id}", h.UpdateTaskStatus)
+
+		// Notification Alerts Setup
+		r.Get("/workspaces/{id}/notification-rules", h.ListNotificationRules)
+		r.Post("/workspaces/{id}/notification-rules", h.CreateNotificationRule)
+		r.Delete("/workspaces/{id}/notification-rules/{rule_id}", h.DeleteNotificationRule)
+
+		// Executive Reporting Metrics
+		r.Get("/workspaces/{id}/reports/posture", h.GetReportsPosture)
+		r.Get("/workspaces/{id}/reports/mttr", h.GetReportsMTTR)
+		r.Get("/workspaces/{id}/reports/summary-widgets", h.GetReportsSummaryWidgets)
 	})
 
 	// Start server

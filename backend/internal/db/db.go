@@ -49,6 +49,9 @@ var accessReviewsSQL string
 //go:embed migrations/000013_privacy_ai.up.sql
 var privacyAiSQL string
 
+//go:embed migrations/000014_tasks_notifications.up.sql
+var tasksNotificationsSQL string
+
 type DB struct {
 	Pool *pgxpool.Pool
 }
@@ -158,6 +161,12 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 	_, err = db.Pool.Exec(ctx, privacyAiSQL)
 	if err != nil {
 		return fmt.Errorf("failed to execute migration 000013: %w", err)
+	}
+
+	log.Println("Running database migrations (000014)...")
+	_, err = db.Pool.Exec(ctx, tasksNotificationsSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000014: %w", err)
 	}
 
 	log.Println("Migrations executed successfully")

@@ -151,6 +151,34 @@ func (w *Worker) EnqueueAccessReviewsTask(campaignID, workspaceID, reviewerID st
 	return nil
 }
 
+const TypeSendNotification = "task:send_notification"
+
+type SendNotificationPayload struct {
+	WorkspaceID  string `json:"workspace_id"`
+	TriggerEvent string `json:"trigger_event"`
+	EntityID     string `json:"entity_id"`
+}
+
+func (w *Worker) EnqueueSendNotification(workspaceID, triggerEvent, entityID string) error {
+	payload, err := json.Marshal(SendNotificationPayload{
+		WorkspaceID:  workspaceID,
+		TriggerEvent: triggerEvent,
+		EntityID:     entityID,
+	})
+	if err != nil {
+		return err
+	}
+
+	task := asynq.NewTask(TypeSendNotification, payload)
+	info, err := w.client.Enqueue(task)
+	if err != nil {
+		return fmt.Errorf("failed to enqueue send notification task: %w", err)
+	}
+
+	log.Printf("INFO [AsynqClient]: Enqueued task %s (ID: %s)", TypeSendNotification, info.ID)
+	return nil
+}
+
 // Start runs the Asynq worker server
 func (w *Worker) Start() error {
 	mux := asynq.NewServeMux()
@@ -159,6 +187,7 @@ func (w *Worker) Start() error {
 	mux.HandleFunc(TypeCheckVendorExpiries, w.handleCheckVendorExpiriesTask)
 	mux.HandleFunc(TypeGenerateAnswers, w.handleGenerateAnswersTask)
 	mux.HandleFunc(TypeGenerateAccessReviews, w.handleGenerateAccessReviewsTask)
+	mux.HandleFunc(TypeSendNotification, w.handleSendNotificationTask)
 
 	log.Println("INFO [AsynqServer]: Starting Asynq background worker server...")
 	if err := w.server.Run(mux); err != nil {
@@ -365,6 +394,27 @@ func (w *Worker) handleEvaluateControlTask(ctx context.Context, t *asynq.Task) e
 		if err != nil {
 			log.Printf("ERROR [AsynqWorker]: Failed to create audit log: %v", err)
 		}
+
+		// Trigger task generation and notification if control transitioned to failing
+		if newStatus == "failing" {
+			desc := fmt.Sprintf("Failing compliance control: %s. Action is required to remediate this issue.", ctrl.Title)
+			task := models.Task{
+				WorkspaceID:        ctrl.WorkspaceID,
+				Title:              "Remediate failed control: " + ctrl.Title,
+				Description:        &desc,
+				Status:             "todo",
+				Priority:           "critical",
+				AssigneeID:         ctrl.OwnerID,
+				RelatedEntityType:  ptrString("control"),
+				RelatedEntityID:    ptrString(p.ControlID),
+			}
+			err = w.repo.CreateTask(ctx, &task)
+			if err != nil {
+				log.Printf("ERROR [AsynqWorker]: Failed to create remediation task: %v", err)
+			} else {
+				_ = w.EnqueueSendNotification(ctrl.WorkspaceID, "control.failed", task.ID)
+			}
+		}
 	}
 
 	log.Printf("INFO [AsynqWorker]: Finished evaluation job for control %s in %v. New Status: %s", ctrl.Title, time.Since(startTime), newStatus)
@@ -526,4 +576,37 @@ func (w *Worker) handleGenerateAccessReviewsTask(ctx context.Context, t *asynq.T
 
 	log.Printf("INFO [AsynqWorker]: Successfully completed generating access reviews for Campaign ID: %s", payload.CampaignID)
 	return nil
+}
+
+func (w *Worker) handleSendNotificationTask(ctx context.Context, t *asynq.Task) error {
+	var payload SendNotificationPayload
+	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
+		return fmt.Errorf("failed to unmarshal notification payload: %w", err)
+	}
+
+	log.Printf("INFO [AsynqWorker]: Dispatching notifications for Trigger Event: %s", payload.TriggerEvent)
+
+	// Fetch active notification rules matching trigger event
+	rules, err := w.repo.GetActiveRulesForEvent(ctx, payload.WorkspaceID, payload.TriggerEvent)
+	if err != nil {
+		log.Printf("ERROR [AsynqWorker]: Failed to fetch active notification rules: %v", err)
+		return err
+	}
+
+	if len(rules) == 0 {
+		log.Printf("INFO [AsynqWorker]: No active notification rules configured for trigger event: %s", payload.TriggerEvent)
+		return nil
+	}
+
+	// Loop and simulate alerts
+	for _, rule := range rules {
+		log.Printf("ALERT SENT: Trigger '%s' matched rule '%s'. Simulating sending %s alert to target destination: '%s' for entity ID: %s",
+			payload.TriggerEvent, rule.ID, rule.ActionType, rule.TargetDestination, payload.EntityID)
+	}
+
+	return nil
+}
+
+func ptrString(s string) *string {
+	return &s
 }
