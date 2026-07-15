@@ -1,5 +1,5 @@
 -- AI Asset Inventory (Shadow AI Governance)
-CREATE TABLE ai_assets (
+CREATE TABLE IF NOT EXISTS ai_assets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     tool_name VARCHAR(255) NOT NULL, -- e.g., 'ChatGPT', 'GitHub Copilot', 'Custom RAG'
@@ -12,7 +12,7 @@ CREATE TABLE ai_assets (
 );
 
 -- Cross-Border Data Transfers (Crucial for NDPR/GDPR)
-CREATE TABLE data_transfers (
+CREATE TABLE IF NOT EXISTS data_transfers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     vendor_id UUID REFERENCES vendors(id) ON DELETE SET NULL,
@@ -25,7 +25,7 @@ CREATE TABLE data_transfers (
 );
 
 -- NDPR / Regulatory Audit Filings
-CREATE TABLE regulatory_filings (
+CREATE TABLE IF NOT EXISTS regulatory_filings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     regulator VARCHAR(100) NOT NULL, -- e.g., 'NITDA', 'NDPC'
@@ -39,5 +39,5 @@ CREATE TABLE regulatory_filings (
 );
 
 -- Indexes
-CREATE INDEX idx_ai_assets_workspace ON ai_assets(workspace_id);
-CREATE INDEX idx_data_transfers_workspace ON data_transfers(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_ai_assets_workspace ON ai_assets(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_data_transfers_workspace ON data_transfers(workspace_id);

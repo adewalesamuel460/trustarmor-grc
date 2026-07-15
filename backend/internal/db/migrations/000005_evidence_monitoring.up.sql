@@ -4,7 +4,7 @@ ADD COLUMN current_status VARCHAR(50) DEFAULT 'untested', -- 'passing', 'failing
 ADD COLUMN last_tested_at TIMESTAMP WITH TIME ZONE;
 
 -- Defines the automated rule tying a control to an integration
-CREATE TABLE automated_tests (
+CREATE TABLE IF NOT EXISTS automated_tests (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     control_id UUID NOT NULL REFERENCES controls(id) ON DELETE CASCADE,
     integration_provider_id UUID NOT NULL REFERENCES integration_providers(id) ON DELETE CASCADE,
@@ -13,7 +13,7 @@ CREATE TABLE automated_tests (
 );
 
 -- Stores the actual proof (both automated payloads and manual file uploads)
-CREATE TABLE evidence (
+CREATE TABLE IF NOT EXISTS evidence (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     control_id UUID NOT NULL REFERENCES controls(id) ON DELETE CASCADE,
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
@@ -25,7 +25,7 @@ CREATE TABLE evidence (
 );
 
 -- Immutable log of a control changing state (crucial for audit trails)
-CREATE TABLE control_status_logs (
+CREATE TABLE IF NOT EXISTS control_status_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     control_id UUID NOT NULL REFERENCES controls(id) ON DELETE CASCADE,
     previous_status VARCHAR(50),
@@ -35,5 +35,5 @@ CREATE TABLE control_status_logs (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_evidence_control ON evidence(control_id, collected_at DESC);
-CREATE INDEX idx_control_status_logs ON control_status_logs(control_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_evidence_control ON evidence(control_id, collected_at DESC);
+CREATE INDEX IF NOT EXISTS idx_control_status_logs ON control_status_logs(control_id, created_at DESC);

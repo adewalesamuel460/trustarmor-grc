@@ -1,5 +1,5 @@
 -- Represents a quarterly/annual review event
-CREATE TABLE access_review_campaigns (
+CREATE TABLE IF NOT EXISTS access_review_campaigns (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL, -- e.g., "Q3 2026 Engineering Access Review"
@@ -10,7 +10,7 @@ CREATE TABLE access_review_campaigns (
 );
 
 -- Individual access rights that need to be reviewed
-CREATE TABLE access_review_items (
+CREATE TABLE IF NOT EXISTS access_review_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     campaign_id UUID NOT NULL REFERENCES access_review_campaigns(id) ON DELETE CASCADE,
     account_email VARCHAR(255) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE access_review_items (
 );
 
 -- Tracks completion of mandatory security training
-CREATE TABLE training_records (
+CREATE TABLE IF NOT EXISTS training_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -36,5 +36,5 @@ CREATE TABLE training_records (
 );
 
 -- Indexes for querying pending reviews by manager
-CREATE INDEX idx_access_items_reviewer ON access_review_items(reviewer_id, decision);
-CREATE INDEX idx_training_records_user ON training_records(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_access_items_reviewer ON access_review_items(reviewer_id, decision);
+CREATE INDEX IF NOT EXISTS idx_training_records_user ON training_records(user_id, status);

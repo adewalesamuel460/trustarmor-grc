@@ -1,5 +1,5 @@
 -- Global Task/Remediation Queue
-CREATE TABLE tasks (
+CREATE TABLE IF NOT EXISTS tasks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE tasks (
 );
 
 -- Rules for automated alerting
-CREATE TABLE notification_rules (
+CREATE TABLE IF NOT EXISTS notification_rules (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     trigger_event VARCHAR(100) NOT NULL, -- e.g., 'control.failed', 'vendor.document_expiring', 'task.overdue'
@@ -27,6 +27,6 @@ CREATE TABLE notification_rules (
 );
 
 -- Indexes
-CREATE INDEX idx_tasks_workspace ON tasks(workspace_id, status);
-CREATE INDEX idx_tasks_assignee ON tasks(assignee_id, status);
-CREATE INDEX idx_notification_rules_trigger ON notification_rules(workspace_id, trigger_event);
+CREATE INDEX IF NOT EXISTS idx_tasks_workspace ON tasks(workspace_id, status);
+CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee_id, status);
+CREATE INDEX IF NOT EXISTS idx_notification_rules_trigger ON notification_rules(workspace_id, trigger_event);

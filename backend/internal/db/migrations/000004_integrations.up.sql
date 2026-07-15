@@ -1,5 +1,5 @@
 -- Global catalogue of available integrations (e.g., AWS, GitHub)
-CREATE TABLE integration_providers (
+CREATE TABLE IF NOT EXISTS integration_providers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL UNIQUE,
     category VARCHAR(50) NOT NULL, -- 'Cloud', 'Identity', 'VCS', 'HRIS'
@@ -9,7 +9,7 @@ CREATE TABLE integration_providers (
 );
 
 -- Tenant-specific integration connections
-CREATE TABLE workspace_integrations (
+CREATE TABLE IF NOT EXISTS workspace_integrations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     provider_id UUID NOT NULL REFERENCES integration_providers(id) ON DELETE CASCADE,
@@ -22,7 +22,7 @@ CREATE TABLE workspace_integrations (
 );
 
 -- Audit trail for background sync jobs
-CREATE TABLE sync_logs (
+CREATE TABLE IF NOT EXISTS sync_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_integration_id UUID NOT NULL REFERENCES workspace_integrations(id) ON DELETE CASCADE,
     status VARCHAR(50) NOT NULL, -- 'success', 'failed'
@@ -33,8 +33,8 @@ CREATE TABLE sync_logs (
 );
 
 -- Indexes for worker queries
-CREATE INDEX idx_workspace_integrations_workspace ON workspace_integrations(workspace_id);
-CREATE INDEX idx_sync_logs_integration ON sync_logs(workspace_integration_id, started_at DESC);
+CREATE INDEX IF NOT EXISTS idx_workspace_integrations_workspace ON workspace_integrations(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_sync_logs_integration ON sync_logs(workspace_integration_id, started_at DESC);
 
 -- Seed Data for Global Integration Providers
 INSERT INTO integration_providers (id, name, category, auth_type, logo_url) VALUES

@@ -1,5 +1,5 @@
 -- Core Risk Register
-CREATE TABLE risks (
+CREATE TABLE IF NOT EXISTS risks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE risks (
 );
 
 -- Treatment plans for a specific risk
-CREATE TABLE risk_treatments (
+CREATE TABLE IF NOT EXISTS risk_treatments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     risk_id UUID NOT NULL REFERENCES risks(id) ON DELETE CASCADE,
     strategy VARCHAR(50) NOT NULL, -- 'Mitigate', 'Accept', 'Transfer', 'Avoid'
@@ -27,7 +27,7 @@ CREATE TABLE risk_treatments (
 );
 
 -- Junction table linking Risks to mitigating Controls
-CREATE TABLE risk_control_mappings (
+CREATE TABLE IF NOT EXISTS risk_control_mappings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     risk_id UUID NOT NULL REFERENCES risks(id) ON DELETE CASCADE,
     control_id UUID NOT NULL REFERENCES controls(id) ON DELETE CASCADE,
@@ -36,5 +36,5 @@ CREATE TABLE risk_control_mappings (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_risks_workspace ON risks(workspace_id);
-CREATE INDEX idx_risk_mappings_control ON risk_control_mappings(control_id);
+CREATE INDEX IF NOT EXISTS idx_risks_workspace ON risks(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_risk_mappings_control ON risk_control_mappings(control_id);

@@ -1,5 +1,5 @@
 -- Vendor Inventory
-CREATE TABLE vendors (
+CREATE TABLE IF NOT EXISTS vendors (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE vendors (
 );
 
 -- Vendor Artifacts (SOC 2, ISO certs, DPAs)
-CREATE TABLE vendor_documents (
+CREATE TABLE IF NOT EXISTS vendor_documents (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id UUID NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
     document_type VARCHAR(100) NOT NULL, -- 'SOC2', 'ISO27001', 'DPA', 'MSA', 'PEN_TEST', 'OTHER'
@@ -25,5 +25,5 @@ CREATE TABLE vendor_documents (
 );
 
 -- Indexes for performance and expiry querying
-CREATE INDEX idx_vendors_workspace ON vendors(workspace_id);
-CREATE INDEX idx_vendor_docs_expiry ON vendor_documents(expires_at) WHERE expires_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_vendors_workspace ON vendors(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_vendor_docs_expiry ON vendor_documents(expires_at) WHERE expires_at IS NOT NULL;

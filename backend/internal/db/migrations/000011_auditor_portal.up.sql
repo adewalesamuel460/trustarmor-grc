@@ -1,5 +1,5 @@
 -- Represents a specific audit event (e.g., "SOC 2 Type II - 2026")
-CREATE TABLE audit_runs (
+CREATE TABLE IF NOT EXISTS audit_runs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE audit_runs (
 );
 
 -- Scopes external auditors to specific audit runs
-CREATE TABLE audit_run_auditors (
+CREATE TABLE IF NOT EXISTS audit_run_auditors (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     audit_run_id UUID NOT NULL REFERENCES audit_runs(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -22,7 +22,7 @@ CREATE TABLE audit_run_auditors (
 );
 
 -- Ticketing system for auditors to request specific proof for a control
-CREATE TABLE evidence_requests (
+CREATE TABLE IF NOT EXISTS evidence_requests (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     audit_run_id UUID NOT NULL REFERENCES audit_runs(id) ON DELETE CASCADE,
     control_id UUID NOT NULL REFERENCES controls(id),
@@ -35,7 +35,7 @@ CREATE TABLE evidence_requests (
 );
 
 -- Threaded communication on a specific request to eliminate email ping-pong
-CREATE TABLE audit_comments (
+CREATE TABLE IF NOT EXISTS audit_comments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     evidence_request_id UUID NOT NULL REFERENCES evidence_requests(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -44,5 +44,5 @@ CREATE TABLE audit_comments (
 );
 
 -- Indexes
-CREATE INDEX idx_audit_runs_workspace ON audit_runs(workspace_id);
-CREATE INDEX idx_evidence_requests_audit ON evidence_requests(audit_run_id, status);
+CREATE INDEX IF NOT EXISTS idx_audit_runs_workspace ON audit_runs(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_evidence_requests_audit ON evidence_requests(audit_run_id, status);

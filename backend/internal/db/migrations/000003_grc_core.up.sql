@@ -1,5 +1,5 @@
 -- Global Frameworks (e.g., SOC 2, NDPR) - Read-only for tenants
-CREATE TABLE frameworks (
+CREATE TABLE IF NOT EXISTS frameworks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     version VARCHAR(50) NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE frameworks (
 );
 
 -- Specific clauses within a framework (e.g., SOC 2 CC6.1, NDPR Art 2.1(a))
-CREATE TABLE framework_requirements (
+CREATE TABLE IF NOT EXISTS framework_requirements (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     framework_id UUID NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
     identifier VARCHAR(100) NOT NULL, -- e.g., 'CC6.1'
@@ -18,7 +18,7 @@ CREATE TABLE framework_requirements (
 );
 
 -- Tracks which frameworks a specific workspace has activated
-CREATE TABLE workspace_frameworks (
+CREATE TABLE IF NOT EXISTS workspace_frameworks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     framework_id UUID NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
@@ -28,7 +28,7 @@ CREATE TABLE workspace_frameworks (
 );
 
 -- Internal Controls defined by the tenant
-CREATE TABLE controls (
+CREATE TABLE IF NOT EXISTS controls (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE controls (
 );
 
 -- The mapping linking one control to multiple framework requirements
-CREATE TABLE control_mappings (
+CREATE TABLE IF NOT EXISTS control_mappings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     control_id UUID NOT NULL REFERENCES controls(id) ON DELETE CASCADE,
     requirement_id UUID NOT NULL REFERENCES framework_requirements(id) ON DELETE CASCADE,
@@ -50,8 +50,8 @@ CREATE TABLE control_mappings (
 );
 
 -- Indexes for fast dashboard posture calculations
-CREATE INDEX idx_controls_workspace ON controls(workspace_id);
-CREATE INDEX idx_control_mappings_req ON control_mappings(requirement_id);
+CREATE INDEX IF NOT EXISTS idx_controls_workspace ON controls(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_control_mappings_req ON control_mappings(requirement_id);
 
 -- Seed Data for Global Frameworks
 INSERT INTO frameworks (id, name, version, description) VALUES
