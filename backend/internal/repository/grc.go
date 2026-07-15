@@ -7,6 +7,19 @@ import (
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/models"
 )
 
+// CreateFramework inserts a new compliance framework
+func (r *Repository) CreateFramework(ctx context.Context, f *models.Framework) error {
+	err := r.db.Pool.QueryRow(ctx, `
+		INSERT INTO frameworks (name, version, description)
+		VALUES ($1, $2, $3)
+		RETURNING id, created_at;
+	`, f.Name, f.Version, f.Description).Scan(&f.ID, &f.CreatedAt)
+	if err != nil {
+		return fmt.Errorf("failed to insert framework: %w", err)
+	}
+	return nil
+}
+
 // GetFrameworks retrieves all globally available compliance frameworks
 func (r *Repository) GetFrameworks(ctx context.Context) ([]models.Framework, error) {
 	rows, err := r.db.Pool.Query(ctx, `

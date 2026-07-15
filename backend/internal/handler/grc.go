@@ -9,6 +9,38 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// CreateFramework handles POST /frameworks to create a custom global framework
+func (h *Handler) CreateFramework(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Name        string `json:"name"`
+		Version     string `json:"version"`
+		Description string `json:"description"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.respondError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	if req.Name == "" || req.Version == "" {
+		h.respondError(w, http.StatusBadRequest, "Name and Version are required fields")
+		return
+	}
+
+	f := models.Framework{
+		Name:        req.Name,
+		Version:     req.Version,
+		Description: req.Description,
+	}
+
+	err := h.svc.CreateFramework(r.Context(), &f)
+	if err != nil {
+		h.respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.respondJSON(w, http.StatusCreated, f)
+}
+
 // GetFrameworks lists all globally available frameworks
 func (h *Handler) GetFrameworks(w http.ResponseWriter, r *http.Request) {
 	frameworks, err := h.svc.GetFrameworks(r.Context())

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import api from '@/lib/api';
-import { ShieldCheck, CheckCircle2, AlertCircle, Play, Loader2 } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, AlertCircle, Play, Loader2, Plus, X } from 'lucide-react';
 
 interface Framework {
   id: string;
@@ -25,6 +25,14 @@ export default function FrameworksPage() {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Custom Framework Creation State
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newVersion, setNewVersion] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [createLoading, setCreateLoading] = useState(false);
+
 
   const fetchFrameworksAndPosture = async () => {
     if (!activeWorkspace) return;
@@ -90,17 +98,49 @@ export default function FrameworksPage() {
     }
   };
 
+  const handleCreateFramework = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName || !newVersion) return;
+    setCreateLoading(true);
+    setError(null);
+    try {
+      await api.post('/frameworks', {
+        name: newName,
+        version: newVersion,
+        description: newDescription,
+      });
+      setNewName('');
+      setNewVersion('');
+      setNewDescription('');
+      setShowCreateModal(false);
+      await fetchFrameworksAndPosture();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to create framework');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-          <ShieldCheck className="w-6 h-6 text-indigo-400" />
-          <span>Compliance Frameworks</span>
-        </h2>
-        <p className="text-gray-400 text-sm">
-          Browse globally supported security standards, activate them for your workspace, and track posture coverage.
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+            <ShieldCheck className="w-6 h-6 text-indigo-400" />
+            <span>Compliance Frameworks</span>
+          </h2>
+          <p className="text-gray-400 text-sm">
+            Browse globally supported security standards, activate them for your workspace, and track posture coverage.
+          </p>
+        </div>
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition text-sm shadow-lg shadow-indigo-500/10"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Custom Framework</span>
+        </button>
       </div>
 
       {error && (
@@ -200,6 +240,95 @@ export default function FrameworksPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Create Custom Framework Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-gray-900 border border-white/5 rounded-2xl p-6 shadow-2xl relative">
+            <button
+              onClick={() => setShowCreateModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-indigo-400" />
+              <span>Add Custom Framework</span>
+            </h3>
+            <p className="text-xs text-gray-400 mb-6">
+              Create a new compliance framework standard to map your controls against.
+            </p>
+
+            <form onSubmit={handleCreateFramework} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                  Framework Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="e.g., ISO 27001"
+                  className="w-full px-4 py-3 bg-gray-950/50 border border-white/10 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white outline-none text-sm transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                  Version
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newVersion}
+                  onChange={(e) => setNewVersion(e.target.value)}
+                  placeholder="e.g., 2022"
+                  className="w-full px-4 py-3 bg-gray-950/50 border border-white/10 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white outline-none text-sm transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  placeholder="Describe the framework scope and security goals..."
+                  rows={4}
+                  className="w-full px-4 py-3 bg-gray-950/50 border border-white/10 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white outline-none text-sm transition resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4 border-t border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 font-semibold rounded-xl text-sm transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createLoading}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold rounded-xl text-sm transition"
+                >
+                  {createLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <span>Create Framework</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

@@ -157,6 +157,7 @@ func main() {
 
 		// Frameworks & Requirements
 		r.Get("/frameworks", h.GetFrameworks)
+		r.Post("/frameworks", h.CreateFramework)
 		r.Get("/workspaces/{id}/frameworks", h.GetActivatedFrameworks)
 		r.Post("/workspaces/{id}/frameworks", h.ActivateFramework)
 		r.Get("/workspaces/{id}/requirements", h.GetRequirements)

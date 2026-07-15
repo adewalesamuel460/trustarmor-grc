@@ -6,6 +6,11 @@ import (
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/models"
 )
 
+// CreateFramework creates a new global compliance framework
+func (s *Service) CreateFramework(ctx context.Context, f *models.Framework) error {
+	return s.repo.CreateFramework(ctx, f)
+}
+
 // GetFrameworks retrieves all available global frameworks
 func (s *Service) GetFrameworks(ctx context.Context) ([]models.Framework, error) {
 	return s.repo.GetFrameworks(ctx)
