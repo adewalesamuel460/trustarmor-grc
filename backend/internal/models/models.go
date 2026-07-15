@@ -434,3 +434,42 @@ type TrainingRecord struct {
 	CertificateUrl *string    `json:"certificate_url,omitempty"`
 	CreatedAt      time.Time  `json:"created_at"`
 }
+
+type AIAsset struct {
+	ID                 string    `json:"id"`
+	WorkspaceID        string    `json:"workspace_id"`
+	ToolName           string    `json:"tool_name"`
+	VendorID           *string   `json:"vendor_id"`
+	VendorName         string    `json:"vendor_name,omitempty"`
+	BusinessPurpose    *string   `json:"business_purpose"`
+	DataClassification string    `json:"data_classification"`
+	ApprovalStatus     string    `json:"approval_status"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
+}
+
+type DataTransfer struct {
+	ID                 string    `json:"id"`
+	WorkspaceID        string    `json:"workspace_id"`
+	VendorID           *string   `json:"vendor_id"`
+	VendorName         string    `json:"vendor_name,omitempty"`
+	OriginCountry      string    `json:"origin_country"`
+	DestinationCountry string    `json:"destination_country"`
+	DataCategories     []string  `json:"data_categories"`
+	LegalBasis         *string   `json:"legal_basis"`
+	Status             string    `json:"status"`
+	CreatedAt          time.Time `json:"created_at"`
+}
+
+type RegulatoryFiling struct {
+	ID          string     `json:"id"`
+	WorkspaceID string     `json:"workspace_id"`
+	Regulator   string     `json:"regulator"`
+	FilingYear  int        `json:"filing_year"`
+	DueDate     string     `json:"due_date"`
+	Status      string     `json:"status"`
+	SubmittedAt *time.Time `json:"submitted_at,omitempty"`
+	DPOName     *string    `json:"dpo_name"`
+	EvidenceID  *string    `json:"evidence_id"`
+	CreatedAt   time.Time  `json:"created_at"`
+}

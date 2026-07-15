@@ -101,6 +101,8 @@ export default function DashboardLayout({
         { name: 'Trust Center', path: '/compliance/trust-center', icon: Shield },
         { name: 'Audit Hub', path: '/compliance/audits', icon: ScrollText },
         { name: 'Access Reviews', path: '/compliance/access-reviews', icon: Users2 },
+        { name: 'AI Governance', path: '/compliance/ai-governance', icon: Brain },
+        { name: 'Privacy & NDPR', path: '/compliance/privacy', icon: Shield },
       ]
     },
     {

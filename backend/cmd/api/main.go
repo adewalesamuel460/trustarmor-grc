@@ -235,6 +235,17 @@ func main() {
 		// Security Training Records
 		r.Get("/workspaces/{id}/training", h.ListTrainingRecords)
 		r.Post("/workspaces/{id}/training/{record_id}/complete", h.CompleteTrainingRecord)
+
+		// AI Governance (ISO 42001)
+		r.Get("/workspaces/{id}/ai-assets", h.GetAIAssets)
+		r.Post("/workspaces/{id}/ai-assets", h.CreateAIAsset)
+		r.Patch("/workspaces/{id}/ai-assets/{asset_id}", h.UpdateAIAssetApproval)
+
+		// NDPR & Privacy Center
+		r.Get("/workspaces/{id}/data-transfers", h.GetDataTransfers)
+		r.Post("/workspaces/{id}/data-transfers", h.CreateDataTransfer)
+		r.Get("/workspaces/{id}/regulatory-filings", h.GetRegulatoryFilings)
+		r.Post("/workspaces/{id}/regulatory-filings/{filing_id}/submit", h.SubmitRegulatoryFiling)
 	})
 
 	// Start server
