@@ -16,6 +16,7 @@ const (
 	WorkspaceIDKey    contextKey = "workspace_id"
 	OrganizationIDKey contextKey = "organization_id"
 	PermissionsKey    contextKey = "role_permissions"
+	RoleNameKey       contextKey = "role_name"
 )
 
 func Auth(svc *service.Service) func(http.Handler) http.Handler {
@@ -94,6 +95,7 @@ func Tenant(repo *repository.Repository) func(http.Handler) http.Handler {
 			ctx := context.WithValue(r.Context(), WorkspaceIDKey, workspaceID)
 			ctx = context.WithValue(ctx, OrganizationIDKey, orgID)
 			ctx = context.WithValue(ctx, PermissionsKey, role.Permissions)
+			ctx = context.WithValue(ctx, RoleNameKey, role.Name)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
@@ -157,3 +159,49 @@ func GetOrganizationID(ctx context.Context) string {
 	val, _ := ctx.Value(OrganizationIDKey).(string)
 	return val
 }
+
+func GetRoleName(ctx context.Context) string {
+	val, _ := ctx.Value(RoleNameKey).(string)
+	return val
+}
+
+// RequireAuditorScoping blocks auditors from global resource URLs,
+// and ensures they are assigned to any requested audit run.
+func RequireAuditorScoping(repo *repository.Repository) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			roleName := GetRoleName(r.Context())
+			if roleName != "Auditor" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			path := r.URL.Path
+			// 1. Block global catalogs
+			if strings.Contains(path, "/controls") || strings.Contains(path, "/integrations") {
+				http.Error(w, "Forbidden: External Auditors are restricted from global catalogs", http.StatusForbidden)
+				return
+			}
+
+			// 2. Restrict to assigned audit runs
+			parts := strings.Split(path, "/")
+			for i, p := range parts {
+				if p == "audits" && i+1 < len(parts) {
+					auditID := parts[i+1]
+					// Skip sub-actions like /audits/requests/...
+					if auditID != "" && auditID != "requests" {
+						userID := GetUserID(r.Context())
+						assigned, err := repo.IsAuditorAssignedToRun(r.Context(), auditID, userID)
+						if err != nil || !assigned {
+							http.Error(w, "Forbidden: Auditor is not assigned to this audit run", http.StatusForbidden)
+							return
+						}
+					}
+				}
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+

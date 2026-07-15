@@ -40,6 +40,9 @@ var questionnaireSQL string
 //go:embed migrations/000010_trust_center.up.sql
 var trustCenterSQL string
 
+//go:embed migrations/000011_auditor_portal.up.sql
+var auditorSQL string
+
 type DB struct {
 	Pool *pgxpool.Pool
 }
@@ -131,6 +134,12 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 	_, err = db.Pool.Exec(ctx, trustCenterSQL)
 	if err != nil {
 		return fmt.Errorf("failed to execute migration 000010: %w", err)
+	}
+
+	log.Println("Running database migrations (000011)...")
+	_, err = db.Pool.Exec(ctx, auditorSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000011: %w", err)
 	}
 
 	log.Println("Migrations executed successfully")

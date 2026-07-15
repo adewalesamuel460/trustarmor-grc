@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import WorkspaceSwitcher from '@/components/WorkspaceSwitcher';
+import api from '@/lib/api';
 import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -48,6 +49,39 @@ export default function DashboardLayout({
     return null;
   }
 
+  const [userRole, setUserRole] = useState('');
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const activeWorkspaceId = localStorage.getItem('active_workspace_id');
+      const email = localStorage.getItem('user_email');
+      const token = localStorage.getItem('access_token');
+      if (!activeWorkspaceId || !email || !token) return;
+
+      try {
+        const { data } = await api.get(`/workspaces/${activeWorkspaceId}/members`);
+        const me = data.find((m: any) => m.user_email === email);
+        if (me) {
+          setUserRole(me.role_name);
+        }
+      } catch (err) {
+        console.error('Failed to fetch user role:', err);
+      }
+    };
+
+    fetchUserRole();
+    window.addEventListener('workspace-changed', fetchUserRole);
+    return () => window.removeEventListener('workspace-changed', fetchUserRole);
+  }, []);
+
+  useEffect(() => {
+    if (userRole === 'Auditor') {
+      if (pathname !== '/compliance/audits' && pathname !== '/login' && pathname !== '/register') {
+        router.push('/compliance/audits');
+      }
+    }
+  }, [userRole, pathname, router]);
+
   const navGroups = [
     {
       title: 'Overview',
@@ -65,6 +99,7 @@ export default function DashboardLayout({
         { name: 'Vendors / TPRM', path: '/compliance/vendors', icon: Building },
         { name: 'Questionnaires', path: '/compliance/questionnaires', icon: HelpCircle },
         { name: 'Trust Center', path: '/compliance/trust-center', icon: Shield },
+        { name: 'Audit Hub', path: '/compliance/audits', icon: ScrollText },
       ]
     },
     {
@@ -83,6 +118,18 @@ export default function DashboardLayout({
     }
   ];
 
+  const isAuditor = userRole === 'Auditor';
+  const filteredNavGroups = isAuditor
+    ? [
+        {
+          title: 'Auditor Portal',
+          items: [
+            { name: 'Assigned Audits', path: '/compliance/audits', icon: Shield },
+          ]
+        }
+      ]
+    : navGroups;
+
   return (
     <div className="min-h-screen bg-[#090d16] text-white flex">
       {/* Sidebar */}
@@ -100,7 +147,7 @@ export default function DashboardLayout({
 
           {/* Navigation Links */}
           <nav className="p-4 space-y-6">
-            {navGroups.map((group) => (
+            {filteredNavGroups.map((group) => (
               <div key={group.title} className="space-y-1.5">
                 <span className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
                   {group.title}

@@ -128,6 +128,7 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Auth(svc))
 		r.Use(middleware.Tenant(repo)) // Tenancy validation runs if X-Workspace-ID is provided
+		r.Use(middleware.RequireAuditorScoping(repo))
 
 		// MFA management
 		r.Post("/auth/mfa/setup", h.SetupMFA)
@@ -212,6 +213,17 @@ func main() {
 		r.Delete("/workspaces/{id}/trust-center/resources/{resource_id}", h.RemoveTrustCenterResource)
 		r.Get("/workspaces/{id}/trust-center/nda-requests", h.GetNDARequests)
 		r.Post("/workspaces/{id}/trust-center/nda-requests/{req_id}/approve", h.ApproveNDARequest)
+
+		// GRC Audit Hub & Evidence Ticketing
+		r.Post("/workspaces/{id}/audits", h.CreateAuditRun)
+		r.Get("/workspaces/{id}/audits", h.ListAuditRuns)
+		r.Post("/workspaces/{id}/audits/{id}/auditors", h.AddAuditor)
+		r.Get("/workspaces/{id}/audits/{id}", h.GetAuditRunDetails)
+		r.Post("/workspaces/{id}/audits/{id}/requests", h.CreateEvidenceRequest)
+		r.Post("/workspaces/{id}/audits/requests/{req_id}/submit", h.SubmitEvidence)
+		r.Post("/workspaces/{id}/audits/requests/{req_id}/review", h.ReviewEvidenceRequest)
+		r.Post("/workspaces/{id}/audits/requests/{req_id}/comments", h.AddAuditComment)
+		r.Get("/workspaces/{id}/audits/requests/{req_id}/comments", h.GetAuditComments)
 	})
 
 	// Start server

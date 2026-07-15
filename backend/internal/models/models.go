@@ -345,3 +345,55 @@ type NDARequest struct {
 	DocumentTitle    string     `json:"document_title,omitempty"`
 	SecureLink       *string    `json:"secure_link,omitempty"`
 }
+
+type AuditRun struct {
+	ID                 string            `json:"id"`
+	WorkspaceID        string            `json:"workspace_id"`
+	Name               string            `json:"name"`
+	FrameworkID        string            `json:"framework_id"`
+	AuditorFirm        string            `json:"auditor_firm"`
+	StartDate          string            `json:"start_date"`
+	EndDate            string            `json:"end_date"`
+	Status             string            `json:"status"`
+	CreatedAt          time.Time         `json:"created_at"`
+	UpdatedAt          time.Time         `json:"updated_at"`
+	FrameworkName      string            `json:"framework_name,omitempty"`
+	RequestsCount      int               `json:"requests_count,omitempty"`
+	AcceptedPercentage float64           `json:"accepted_percentage,omitempty"`
+	Auditors           []User            `json:"auditors,omitempty"`
+	EvidenceRequests   []EvidenceRequest `json:"evidence_requests,omitempty"`
+	FrameworkControls  []Control         `json:"framework_controls,omitempty"`
+}
+
+type AuditRunAuditor struct {
+	ID         string    `json:"id"`
+	AuditRunID string    `json:"audit_run_id"`
+	UserID     string    `json:"user_id"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+type EvidenceRequest struct {
+	ID               string         `json:"id"`
+	AuditRunID       string         `json:"audit_run_id"`
+	ControlID        string         `json:"control_id"`
+	Title            string         `json:"title"`
+	Description      string         `json:"description"`
+	Status           string         `json:"status"`
+	LinkedEvidenceID *string        `json:"linked_evidence_id"`
+	CreatedAt        time.Time      `json:"created_at"`
+	UpdatedAt        time.Time      `json:"updated_at"`
+	ControlName      string         `json:"control_name,omitempty"`
+	ControlDesc      string         `json:"control_desc,omitempty"`
+	LinkedFileUrl    *string        `json:"linked_file_url,omitempty"`
+	Comments         []AuditComment `json:"comments,omitempty"`
+}
+
+type AuditComment struct {
+	ID                string    `json:"id"`
+	EvidenceRequestID string    `json:"evidence_request_id"`
+	UserID            string    `json:"user_id"`
+	UserEmail         string    `json:"user_email,omitempty"`
+	UserRole          string    `json:"user_role,omitempty"`
+	Comment           string    `json:"comment"`
+	CreatedAt         time.Time `json:"created_at"`
+}
