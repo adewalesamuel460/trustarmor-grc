@@ -114,9 +114,9 @@ func (h *Handler) ListAuditRuns(w http.ResponseWriter, r *http.Request) {
 	h.respondJSON(w, http.StatusOK, runs)
 }
 
-// AddAuditor handles POST /workspaces/:workspace_id/audits/:id/auditors
+// AddAuditor handles POST /workspaces/:workspace_id/audits/:audit_id/auditors
 func (h *Handler) AddAuditor(w http.ResponseWriter, r *http.Request) {
-	runID := chi.URLParam(r, "id")
+	runID := chi.URLParam(r, "audit_id")
 	var req struct {
 		Email string `json:"email"`
 	}
@@ -146,9 +146,9 @@ func (h *Handler) AddAuditor(w http.ResponseWriter, r *http.Request) {
 	h.respondJSON(w, http.StatusOK, map[string]string{"message": "Auditor assigned successfully"})
 }
 
-// GetAuditRunDetails handles GET /workspaces/:workspace_id/audits/:id
+// GetAuditRunDetails handles GET /workspaces/:workspace_id/audits/:audit_id
 func (h *Handler) GetAuditRunDetails(w http.ResponseWriter, r *http.Request) {
-	runID := chi.URLParam(r, "id")
+	runID := chi.URLParam(r, "audit_id")
 	if runID == "" {
 		h.respondError(w, http.StatusBadRequest, "Audit Run ID is required")
 		return
@@ -195,9 +195,9 @@ func (h *Handler) GetAuditRunDetails(w http.ResponseWriter, r *http.Request) {
 	h.respondJSON(w, http.StatusOK, run)
 }
 
-// CreateEvidenceRequest handles POST /workspaces/:workspace_id/audits/:id/requests
+// CreateEvidenceRequest handles POST /workspaces/:workspace_id/audits/:audit_id/requests
 func (h *Handler) CreateEvidenceRequest(w http.ResponseWriter, r *http.Request) {
-	runID := chi.URLParam(r, "id")
+	runID := chi.URLParam(r, "audit_id")
 	var req struct {
 		ControlID   string `json:"control_id"`
 		Title       string `json:"title"`

@@ -217,9 +217,9 @@ func main() {
 		// GRC Audit Hub & Evidence Ticketing
 		r.Post("/workspaces/{id}/audits", h.CreateAuditRun)
 		r.Get("/workspaces/{id}/audits", h.ListAuditRuns)
-		r.Post("/workspaces/{id}/audits/{id}/auditors", h.AddAuditor)
-		r.Get("/workspaces/{id}/audits/{id}", h.GetAuditRunDetails)
-		r.Post("/workspaces/{id}/audits/{id}/requests", h.CreateEvidenceRequest)
+		r.Post("/workspaces/{id}/audits/{audit_id}/auditors", h.AddAuditor)
+		r.Get("/workspaces/{id}/audits/{audit_id}", h.GetAuditRunDetails)
+		r.Post("/workspaces/{id}/audits/{audit_id}/requests", h.CreateEvidenceRequest)
 		r.Post("/workspaces/{id}/audits/requests/{req_id}/submit", h.SubmitEvidence)
 		r.Post("/workspaces/{id}/audits/requests/{req_id}/review", h.ReviewEvidenceRequest)
 		r.Post("/workspaces/{id}/audits/requests/{req_id}/comments", h.AddAuditComment)
