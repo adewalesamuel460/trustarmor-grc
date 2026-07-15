@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -15,6 +17,7 @@ import (
 
 type StorageService interface {
 	Upload(ctx context.Context, filename string, file io.Reader) (string, error)
+	Presign(ctx context.Context, fileURL string, expiration time.Duration) (string, error)
 }
 
 type LocalStorage struct {
@@ -49,6 +52,11 @@ func (l *LocalStorage) Upload(ctx context.Context, filename string, file io.Read
 	return fmt.Sprintf("%s/uploads/%s", l.baseURL, filename), nil
 }
 
+func (l *LocalStorage) Presign(ctx context.Context, fileURL string, expiration time.Duration) (string, error) {
+	// For local mockup, just return the direct HTTP url which is always downloadable.
+	return fileURL, nil
+}
+
 type S3Storage struct {
 	client *s3.Client
 	bucket string
@@ -81,4 +89,21 @@ func (s *S3Storage) Upload(ctx context.Context, filename string, file io.Reader)
 	}
 
 	return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", s.bucket, filename), nil
+}
+
+func (s *S3Storage) Presign(ctx context.Context, fileURL string, expiration time.Duration) (string, error) {
+	// Extract key from URL
+	parts := strings.Split(fileURL, "/")
+	key := parts[len(parts)-1]
+
+	presignClient := s3.NewPresignClient(s.client)
+	presignedReq, err := presignClient.PresignGetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(key),
+	}, s3.WithPresignExpires(expiration))
+	if err != nil {
+		return "", fmt.Errorf("failed to generate presigned S3 url: %w", err)
+	}
+
+	return presignedReq.URL, nil
 }

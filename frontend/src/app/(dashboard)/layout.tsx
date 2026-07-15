@@ -64,6 +64,7 @@ export default function DashboardLayout({
         { name: 'Policies', path: '/compliance/policies', icon: ScrollText },
         { name: 'Vendors / TPRM', path: '/compliance/vendors', icon: Building },
         { name: 'Questionnaires', path: '/compliance/questionnaires', icon: HelpCircle },
+        { name: 'Trust Center', path: '/compliance/trust-center', icon: Shield },
       ]
     },
     {

@@ -120,6 +120,10 @@ func main() {
 	r.Post("/auth/verify-mfa", h.VerifyMFA)
 	r.Post("/auth/refresh", h.RefreshToken)
 
+	// Public Trust Center routes (unauthenticated)
+	r.Get("/public/trust-center/{slug}", h.PublicGetTrustCenter)
+	r.Post("/public/trust-center/{slug}/nda-requests", h.PublicCreateNDARequest)
+
 	// Authenticated routes
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Auth(svc))
@@ -200,6 +204,14 @@ func main() {
 		r.Post("/workspaces/{id}/questionnaires/upload", h.UploadQuestionnaire)
 		r.Get("/workspaces/{id}/questionnaires/{project_id}/pairs", h.GetQuestionnairePairs)
 		r.Post("/workspaces/{id}/questionnaires/pairs/{pair_id}/approve", h.ApproveQuestionnairePair)
+
+		// Trust Center Configuration & NDA requests (RBACTenancy)
+		r.Get("/workspaces/{id}/trust-center", h.GetTrustCenter)
+		r.Put("/workspaces/{id}/trust-center", h.UpdateTrustCenter)
+		r.Post("/workspaces/{id}/trust-center/resources", h.AddTrustCenterResource)
+		r.Delete("/workspaces/{id}/trust-center/resources/{resource_id}", h.RemoveTrustCenterResource)
+		r.Get("/workspaces/{id}/trust-center/nda-requests", h.GetNDARequests)
+		r.Post("/workspaces/{id}/trust-center/nda-requests/{req_id}/approve", h.ApproveNDARequest)
 	})
 
 	// Start server

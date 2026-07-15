@@ -307,3 +307,41 @@ type QuestionnairePair struct {
 	ReviewerEmail    *string   `json:"reviewer_email,omitempty"`
 	CreatedAt        time.Time `json:"created_at"`
 }
+
+type TrustCenter struct {
+	ID              string    `json:"id"`
+	WorkspaceID     string    `json:"workspace_id"`
+	URLSlug         string    `json:"url_slug"`
+	HeroTitle       string    `json:"hero_title"`
+	HeroDescription string    `json:"hero_description"`
+	PrimaryColor    string    `json:"primary_color"`
+	IsPublished     bool      `json:"is_published"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+}
+
+type TrustCenterResource struct {
+	ID              string    `json:"id"`
+	TrustCenterID   string    `json:"trust_center_id"`
+	ResourceType    string    `json:"resource_type"`
+	ResourceID      string    `json:"resource_id"`
+	Visibility      string    `json:"visibility"`
+	DisplayOrder    int       `json:"display_order"`
+	CreatedAt       time.Time `json:"created_at"`
+	ResourceName    string    `json:"resource_name,omitempty"`
+	ResourceDetails string    `json:"resource_details,omitempty"`
+}
+
+type NDARequest struct {
+	ID               string     `json:"id"`
+	TrustCenterID    string     `json:"trust_center_id"`
+	ResourceID       string     `json:"resource_id"`
+	RequesterEmail   string     `json:"requester_email"`
+	RequesterCompany string     `json:"requester_company"`
+	Reason           string     `json:"reason"`
+	Status           string     `json:"status"`
+	ExpiresAt        *time.Time `json:"expires_at,omitempty"`
+	CreatedAt        time.Time  `json:"created_at"`
+	DocumentTitle    string     `json:"document_title,omitempty"`
+	SecureLink       *string    `json:"secure_link,omitempty"`
+}
