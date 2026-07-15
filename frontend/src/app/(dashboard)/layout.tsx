@@ -13,24 +13,29 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  // Read token synchronously — localStorage is always available client-side.
-  // Starting authenticated=true if token exists avoids the loading flash on navigation.
-  const [authenticated, setAuthenticated] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return !!localStorage.getItem('access_token');
-    }
-    return false;
-  });
-  const [loading, setLoading] = useState(false); // no initial loading flash
-  const [userEmail, setUserEmail] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('user_email') || '';
-    }
-    return '';
-  });
 
+  // IMPORTANT: Do NOT read localStorage during render — it causes hydration errors
+  // because Next.js server-renders with no localStorage, then client hydrates with it.
+  // All localStorage access must happen inside useEffect (client-only).
+  const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState('');
   const [userRole, setUserRole] = useState('');
 
+  // Runs ONCE on mount (not on every navigation — layouts persist in App Router)
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    const email = localStorage.getItem('user_email');
+    if (!token) {
+      router.replace('/login');
+    } else {
+      setAuthenticated(true);
+      setUserEmail(email || '');
+    }
+    setLoading(false);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch role once we know the workspace — also runs once on mount
   useEffect(() => {
     const fetchUserRole = async () => {
       const activeWorkspaceId = localStorage.getItem('active_workspace_id');
@@ -52,7 +57,7 @@ export default function DashboardLayout({
     fetchUserRole();
     window.addEventListener('workspace-changed', fetchUserRole);
     return () => window.removeEventListener('workspace-changed', fetchUserRole);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (userRole === 'Auditor') {
@@ -62,19 +67,14 @@ export default function DashboardLayout({
     }
   }, [userRole, pathname, router]);
 
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    const email = localStorage.getItem('user_email');
-    if (!token) {
-      router.replace('/login');
-    } else {
-      setAuthenticated(true);
-      setUserEmail(email || '');
-    }
-    // No setLoading(false) needed — loading starts false now
-  }, [router]);
+  // Show minimal loader only on the very first page load — not on navigation
+  // (layout doesn't re-mount during client-side navigation in Next.js App Router)
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#090d16]" />
+    );
+  }
 
-  // Only block render if we know for certain the user is not authenticated
   if (!authenticated) {
     return null;
   }
