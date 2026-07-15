@@ -5,10 +5,10 @@
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
     },
-    "ghcr.io/devcontainers/features/postgres:1": {
+    "ghcr.io/devcontainers-contrib/features/postgresql-local-pv:1": {
       "version": "16"
     },
-    "ghcr.io/devcontainers/features/redis:1": {
+    "ghcr.io/devcontainers-contrib/features/redis-local-pv:1": {
       "version": "7"
     }
   },
