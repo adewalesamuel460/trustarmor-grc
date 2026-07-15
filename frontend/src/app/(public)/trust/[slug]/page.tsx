@@ -43,8 +43,8 @@ export default function PublicTrustCenter({ params }: { params: { slug: string }
     setLoading(true);
     setError(null);
     try {
-      // Direct call to unauthenticated API endpoint
-      const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+      // Direct call to unauthenticated API endpoint using the Next.js rewrite proxy path
+      const baseURL = process.env.NEXT_PUBLIC_API_URL || '/api';
       const { data } = await axios.get(`${baseURL}/public/trust-center/${params.slug}`);
       setProfile(data.profile);
       setResources(data.resources || []);
@@ -65,8 +65,9 @@ export default function PublicTrustCenter({ params }: { params: { slug: string }
     setFormLoading(true);
     setError(null);
     try {
-      const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+      const baseURL = process.env.NEXT_PUBLIC_API_URL || '/api';
       await axios.post(`${baseURL}/public/trust-center/${params.slug}/nda-requests`, {
+
         resource_id: requestDoc.id,
         requester_email: email,
         requester_company: company,
