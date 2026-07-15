@@ -81,16 +81,18 @@ type WorkspaceFramework struct {
 }
 
 type Control struct {
-	ID                 string    `json:"id"`
-	WorkspaceID        string    `json:"workspace_id"`
-	Title              string    `json:"title"`
-	Description        string    `json:"description"`
-	Type               string    `json:"type"`
-	Frequency          string    `json:"frequency"`
-	OwnerID            *string   `json:"owner_id"`
-	CreatedAt          time.Time `json:"created_at"`
-	UpdatedAt          time.Time `json:"updated_at"`
-	MappedRequirements []string  `json:"mapped_requirements"` // e.g. ["CC6.1", "Art 2.2"]
+	ID                 string     `json:"id"`
+	WorkspaceID        string     `json:"workspace_id"`
+	Title              string     `json:"title"`
+	Description        string     `json:"description"`
+	Type               string     `json:"type"`
+	Frequency          string     `json:"frequency"`
+	OwnerID            *string    `json:"owner_id"`
+	CurrentStatus      string     `json:"current_status"`
+	LastTestedAt       *time.Time `json:"last_tested_at"`
+	CreatedAt          time.Time  `json:"created_at"`
+	UpdatedAt          time.Time  `json:"updated_at"`
+	MappedRequirements []string   `json:"mapped_requirements"` // e.g. ["CC6.1", "Art 2.2"]
 }
 
 type ControlMapping struct {
@@ -131,4 +133,32 @@ type SyncLog struct {
 	StartedAt              time.Time `json:"started_at"`
 	CompletedAt            time.Time `json:"completed_at"`
 	DurationMs             int64     `json:"duration_ms"`
+}
+
+type AutomatedTest struct {
+	ID                    string                 `json:"id"`
+	ControlID             string                 `json:"control_id"`
+	IntegrationProviderID string                 `json:"integration_provider_id"`
+	QueryLogic            map[string]interface{} `json:"query_logic"`
+	CreatedAt             time.Time              `json:"created_at"`
+}
+
+type Evidence struct {
+	ID          string                 `json:"id"`
+	ControlID   string                 `json:"control_id"`
+	WorkspaceID string                 `json:"workspace_id"`
+	Type        string                 `json:"type"` // 'automated', 'manual'
+	FileURL     *string                `json:"file_url"`
+	Payload     map[string]interface{} `json:"payload"`
+	CollectedAt time.Time              `json:"collected_at"`
+	ExpiresAt   *time.Time             `json:"expires_at"`
+}
+
+type ControlStatusLog struct {
+	ID             string    `json:"id"`
+	ControlID      string    `json:"control_id"`
+	PreviousStatus *string   `json:"previous_status"`
+	NewStatus      string    `json:"new_status"`
+	Reason         *string   `json:"reason"`
+	CreatedAt      time.Time `json:"created_at"`
 }

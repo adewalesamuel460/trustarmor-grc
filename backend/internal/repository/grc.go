@@ -89,13 +89,13 @@ func (r *Repository) CreateControl(ctx context.Context, c *models.Control) error
 // GetControls retrieves controls for a workspace, including mapped requirement identifiers
 func (r *Repository) GetControls(ctx context.Context, workspaceID string) ([]models.Control, error) {
 	rows, err := r.db.Pool.Query(ctx, `
-		SELECT c.id, c.workspace_id, c.title, c.description, c.type, c.frequency, c.owner_id, c.created_at, c.updated_at,
+		SELECT c.id, c.workspace_id, c.title, c.description, c.type, c.frequency, c.owner_id, c.current_status, c.last_tested_at, c.created_at, c.updated_at,
 		       COALESCE(array_agg(fr.identifier) FILTER (WHERE fr.identifier IS NOT NULL), '{}') as mapped_requirements
 		FROM controls c
 		LEFT JOIN control_mappings cm ON c.id = cm.control_id
 		LEFT JOIN framework_requirements fr ON cm.requirement_id = fr.id
 		WHERE c.workspace_id = $1
-		GROUP BY c.id, c.workspace_id, c.title, c.description, c.type, c.frequency, c.owner_id, c.created_at, c.updated_at
+		GROUP BY c.id, c.workspace_id, c.title, c.description, c.type, c.frequency, c.owner_id, c.current_status, c.last_tested_at, c.created_at, c.updated_at
 		ORDER BY c.created_at DESC;
 	`, workspaceID)
 	if err != nil {
@@ -108,7 +108,7 @@ func (r *Repository) GetControls(ctx context.Context, workspaceID string) ([]mod
 		var c models.Control
 		err := rows.Scan(
 			&c.ID, &c.WorkspaceID, &c.Title, &c.Description, &c.Type, &c.Frequency, &c.OwnerID, 
-			&c.CreatedAt, &c.UpdatedAt, &c.MappedRequirements,
+			&c.CurrentStatus, &c.LastTestedAt, &c.CreatedAt, &c.UpdatedAt, &c.MappedRequirements,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan control: %w", err)
@@ -123,10 +123,13 @@ func (r *Repository) GetControls(ctx context.Context, workspaceID string) ([]mod
 func (r *Repository) GetControlByID(ctx context.Context, controlID string) (*models.Control, error) {
 	var c models.Control
 	err := r.db.Pool.QueryRow(ctx, `
-		SELECT id, workspace_id, title, description, type, frequency, owner_id, created_at, updated_at
+		SELECT id, workspace_id, title, description, type, frequency, owner_id, current_status, last_tested_at, created_at, updated_at
 		FROM controls
 		WHERE id = $1;
-	`, controlID).Scan(&c.ID, &c.WorkspaceID, &c.Title, &c.Description, &c.Type, &c.Frequency, &c.OwnerID, &c.CreatedAt, &c.UpdatedAt)
+	`, controlID).Scan(
+		&c.ID, &c.WorkspaceID, &c.Title, &c.Description, &c.Type, &c.Frequency, &c.OwnerID, 
+		&c.CurrentStatus, &c.LastTestedAt, &c.CreatedAt, &c.UpdatedAt,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get control by id: %w", err)
 	}

@@ -62,8 +62,39 @@ func main() {
 		}
 	}()
 
+	// Storage Service configuration (S3 with local fallback)
+	var storageSvc service.StorageService
+	s3Bucket := os.Getenv("AWS_S3_BUCKET")
+	s3Region := os.Getenv("AWS_REGION")
+	s3AccessKey := os.Getenv("AWS_ACCESS_KEY_ID")
+	s3SecretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
+
+	if s3Bucket != "" && s3Region != "" && s3AccessKey != "" && s3SecretKey != "" {
+		var err error
+		storageSvc, err = service.NewS3Storage(ctx, s3Bucket, s3Region, s3AccessKey, s3SecretKey)
+		if err != nil {
+			log.Printf("WARNING [Storage]: Failed to configure S3 storage: %v. Falling back to local storage.", err)
+			storageSvc = nil
+		} else {
+			log.Println("INFO [Storage]: Configured AWS S3 Storage Service successfully.")
+		}
+	}
+
+	if storageSvc == nil {
+		apiURL := os.Getenv("API_URL")
+		if apiURL == "" {
+			apiURL = "http://localhost:" + cfg.Port
+		}
+		var err error
+		storageSvc, err = service.NewLocalStorage("./uploads", apiURL)
+		if err != nil {
+			log.Fatalf("Fatal [Storage]: Failed to initialize local storage fallback: %v", err)
+		}
+		log.Println("INFO [Storage]: Configured Local Storage Service (fallback) under './uploads'.")
+	}
+
 	svc := service.New(repo, auditSvc, cfg.JWTSecret)
-	h := handler.New(svc, auditSvc, encryptSvc, worker, repo)
+	h := handler.New(svc, auditSvc, encryptSvc, worker, storageSvc, repo)
 
 	// Set up router
 	r := chi.NewRouter()
@@ -72,6 +103,9 @@ func main() {
 	r.Use(middleware.CORS)
 	r.Use(chiMiddleware.Logger)
 	r.Use(chiMiddleware.Recoverer)
+
+	// Serve local uploaded files statically
+	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
 	// Health check
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -127,6 +161,12 @@ func main() {
 		r.Post("/workspaces/{id}/integrations/connect", h.ConnectIntegration)
 		r.Post("/workspaces/{id}/integrations/{integration_id}/sync", h.SyncIntegration)
 		r.Get("/workspaces/{id}/integrations/{integration_id}/sync-logs", h.GetSyncLogs)
+
+		// Evidence & Continuous Monitoring
+		r.Post("/workspaces/{id}/controls/{control_id}/evidence/upload", h.UploadEvidence)
+		r.Get("/workspaces/{id}/controls/{control_id}/evidence", h.GetEvidenceLists)
+		r.Get("/workspaces/{id}/controls/{control_id}/status-logs", h.GetControlStatusLogs)
+		r.Post("/workspaces/{id}/controls/{control_id}/evaluate", h.EvaluateControl)
 	})
 
 	// Start server

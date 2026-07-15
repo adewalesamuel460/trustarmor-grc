@@ -22,6 +22,9 @@ var grcCoreSQL string
 //go:embed migrations/000004_integrations.up.sql
 var integrationsSQL string
 
+//go:embed migrations/000005_evidence_monitoring.up.sql
+var evidenceSQL string
+
 type DB struct {
 	Pool *pgxpool.Pool
 }
@@ -77,6 +80,12 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 	_, err = db.Pool.Exec(ctx, integrationsSQL)
 	if err != nil {
 		return fmt.Errorf("failed to execute migration 000004: %w", err)
+	}
+
+	log.Println("Running database migrations (000005)...")
+	_, err = db.Pool.Exec(ctx, evidenceSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000005: %w", err)
 	}
 
 	log.Println("Migrations executed successfully")

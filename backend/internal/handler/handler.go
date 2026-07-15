@@ -15,6 +15,7 @@ type Handler struct {
 	auditSvc   *service.AuditService
 	encryptSvc *service.EncryptionService
 	worker     *service.Worker
+	storageSvc service.StorageService
 	repo       *repository.Repository
 }
 
@@ -23,6 +24,7 @@ func New(
 	auditSvc *service.AuditService,
 	encryptSvc *service.EncryptionService,
 	worker *service.Worker,
+	storageSvc service.StorageService,
 	repo *repository.Repository,
 ) *Handler {
 	return &Handler{
@@ -30,6 +32,7 @@ func New(
 		auditSvc:   auditSvc,
 		encryptSvc: encryptSvc,
 		worker:     worker,
+		storageSvc: storageSvc,
 		repo:       repo,
 	}
 }
