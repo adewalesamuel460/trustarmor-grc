@@ -224,6 +224,17 @@ func main() {
 		r.Post("/workspaces/{id}/audits/requests/{req_id}/review", h.ReviewEvidenceRequest)
 		r.Post("/workspaces/{id}/audits/requests/{req_id}/comments", h.AddAuditComment)
 		r.Get("/workspaces/{id}/audits/requests/{req_id}/comments", h.GetAuditComments)
+
+		// User Access Reviews (UAR) Campaigns & Manager decisions
+		r.Post("/workspaces/{id}/access-reviews", h.CreateAccessReviewCampaign)
+		r.Get("/workspaces/{id}/access-reviews", h.ListAccessReviewCampaigns)
+		r.Get("/workspaces/{id}/access-reviews/pending", h.ListPendingAccessReviewItems)
+		r.Post("/workspaces/{id}/access-reviews/items/{item_id}/decide", h.UpdateAccessReviewItemDecision)
+		r.Post("/workspaces/{id}/access-reviews/{campaign_id}/finalize", h.FinalizeAccessReviewCampaign)
+
+		// Security Training Records
+		r.Get("/workspaces/{id}/training", h.ListTrainingRecords)
+		r.Post("/workspaces/{id}/training/{record_id}/complete", h.CompleteTrainingRecord)
 	})
 
 	// Start server

@@ -100,6 +100,7 @@ export default function DashboardLayout({
         { name: 'Questionnaires', path: '/compliance/questionnaires', icon: HelpCircle },
         { name: 'Trust Center', path: '/compliance/trust-center', icon: Shield },
         { name: 'Audit Hub', path: '/compliance/audits', icon: ScrollText },
+        { name: 'Access Reviews', path: '/compliance/access-reviews', icon: Users2 },
       ]
     },
     {

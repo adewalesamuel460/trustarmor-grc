@@ -397,3 +397,40 @@ type AuditComment struct {
 	Comment           string    `json:"comment"`
 	CreatedAt         time.Time `json:"created_at"`
 }
+
+type AccessReviewCampaign struct {
+	ID                 string             `json:"id"`
+	WorkspaceID        string             `json:"workspace_id"`
+	Name               string             `json:"name"`
+	Status             string             `json:"status"`
+	Deadline           string             `json:"deadline"`
+	CreatedAt          time.Time          `json:"created_at"`
+	UpdatedAt          time.Time          `json:"updated_at"`
+	CompletedItems     int                `json:"completed_items,omitempty"`
+	TotalItems         int                `json:"total_items,omitempty"`
+	ReviewItems        []AccessReviewItem `json:"review_items,omitempty"`
+}
+
+type AccessReviewItem struct {
+	ID           string     `json:"id"`
+	CampaignID   string     `json:"campaign_id"`
+	AccountEmail string     `json:"account_email"`
+	SystemName   string     `json:"system_name"`
+	ReviewerID   *string    `json:"reviewer_id"`
+	Decision     string     `json:"decision"`
+	DecidedAt    *time.Time `json:"decided_at,omitempty"`
+	Notes        *string    `json:"notes,omitempty"`
+	CampaignName string     `json:"campaign_name,omitempty"`
+}
+
+type TrainingRecord struct {
+	ID             string     `json:"id"`
+	WorkspaceID    string     `json:"workspace_id"`
+	UserID         string     `json:"user_id"`
+	UserEmail      string     `json:"user_email,omitempty"`
+	ModuleName     string     `json:"module_name"`
+	Status         string     `json:"status"`
+	CompletedAt    *time.Time `json:"completed_at,omitempty"`
+	CertificateUrl *string    `json:"certificate_url,omitempty"`
+	CreatedAt      time.Time  `json:"created_at"`
+}

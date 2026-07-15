@@ -123,6 +123,34 @@ func (w *Worker) EnqueueGenerateAnswers(projectID string) error {
 	return nil
 }
 
+const TypeGenerateAccessReviews = "task:generate_access_reviews"
+
+type AccessReviewsPayload struct {
+	CampaignID  string `json:"campaign_id"`
+	WorkspaceID string `json:"workspace_id"`
+	ReviewerID  string `json:"reviewer_id"`
+}
+
+func (w *Worker) EnqueueAccessReviewsTask(campaignID, workspaceID, reviewerID string) error {
+	payload, err := json.Marshal(AccessReviewsPayload{
+		CampaignID:  campaignID,
+		WorkspaceID: workspaceID,
+		ReviewerID:  reviewerID,
+	})
+	if err != nil {
+		return err
+	}
+
+	task := asynq.NewTask(TypeGenerateAccessReviews, payload)
+	info, err := w.client.Enqueue(task)
+	if err != nil {
+		return fmt.Errorf("failed to enqueue generate access reviews task: %w", err)
+	}
+
+	log.Printf("INFO [AsynqClient]: Enqueued task %s (ID: %s)", TypeGenerateAccessReviews, info.ID)
+	return nil
+}
+
 // Start runs the Asynq worker server
 func (w *Worker) Start() error {
 	mux := asynq.NewServeMux()
@@ -130,6 +158,7 @@ func (w *Worker) Start() error {
 	mux.HandleFunc(TypeEvaluateControl, w.handleEvaluateControlTask)
 	mux.HandleFunc(TypeCheckVendorExpiries, w.handleCheckVendorExpiriesTask)
 	mux.HandleFunc(TypeGenerateAnswers, w.handleGenerateAnswersTask)
+	mux.HandleFunc(TypeGenerateAccessReviews, w.handleGenerateAccessReviewsTask)
 
 	log.Println("INFO [AsynqServer]: Starting Asynq background worker server...")
 	if err := w.server.Run(mux); err != nil {
@@ -449,5 +478,52 @@ func (w *Worker) handleGenerateAnswersTask(ctx context.Context, t *asynq.Task) e
 	// 3. Mark project status as 'in_review' when worker finishes drafting
 	_ = w.repo.UpdateProjectStatus(ctx, p.ProjectID, "in_review")
 	log.Printf("INFO [AsynqWorker]: Completed drafting questions for Project ID: %s", p.ProjectID)
+	return nil
+}
+
+func (w *Worker) handleGenerateAccessReviewsTask(ctx context.Context, t *asynq.Task) error {
+	var payload AccessReviewsPayload
+	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
+		return fmt.Errorf("failed to unmarshal access reviews payload: %w", err)
+	}
+
+	log.Printf("INFO [AsynqWorker]: Generating access items for Campaign ID: %s", payload.CampaignID)
+
+	// 1. Fetch workspace members
+	members, err := w.repo.GetWorkspaceMembers(ctx, payload.WorkspaceID)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve workspace members for campaign review: %w", err)
+	}
+
+	// 2. Resolve systems list (fallback to defaults if no integrations connect yet)
+	systems := []string{"AWS", "GitHub", "Salesforce"}
+	integrations, err := w.repo.GetWorkspaceIntegrations(ctx, payload.WorkspaceID)
+	if err == nil && len(integrations) > 0 {
+		systems = nil
+		for _, integration := range integrations {
+			systems = append(systems, integration.ProviderName)
+		}
+	}
+
+	// 3. Create items in DB mapping each user/system combination
+	for _, member := range members {
+		for _, sys := range systems {
+			item := models.AccessReviewItem{
+				CampaignID:   payload.CampaignID,
+				AccountEmail: member.UserEmail,
+				SystemName:   sys,
+				ReviewerID:   &payload.ReviewerID, // Triggering manager reviews them
+			}
+			_ = w.repo.CreateAccessReviewItem(ctx, &item)
+		}
+	}
+
+	// 4. Update campaign status to in_progress
+	err = w.repo.UpdateCampaignStatus(ctx, payload.CampaignID, "in_progress")
+	if err != nil {
+		return fmt.Errorf("failed to transition campaign status: %w", err)
+	}
+
+	log.Printf("INFO [AsynqWorker]: Successfully completed generating access reviews for Campaign ID: %s", payload.CampaignID)
 	return nil
 }
