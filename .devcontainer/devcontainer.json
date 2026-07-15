@@ -1,35 +1,33 @@
 {
-  "name": "TrustArmor GRC Dev Container",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "app",
-  "workspaceFolder": "/workspaces/trustarmor-grc",
-  "forwardPorts": [8000, 3000, 5432, 6379],
+  "name": "TrustArmor GRC",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "forwardPorts": [3000, 8000, 5432, 6379],
   "portsAttributes": {
-    "8000": {
-      "label": "Go Backend API",
-      "onAutoForward": "notify"
-    },
     "3000": {
       "label": "Next.js Frontend",
       "onAutoForward": "openBrowser"
     },
+    "8000": {
+      "label": "Go Backend API",
+      "onAutoForward": "notify"
+    },
     "5432": {
-      "label": "PostgreSQL Database",
+      "label": "PostgreSQL",
       "onAutoForward": "ignore"
     },
     "6379": {
-      "label": "Redis Task Queue",
+      "label": "Redis",
       "onAutoForward": "ignore"
     }
   },
-  "remoteEnv": {
+  "containerEnv": {
     "DATABASE_URL": "postgres://postgres:postgres@localhost:5432/grc?sslmode=disable",
     "JWT_SECRET": "trustarmor_development_secret_key_1234567890",
     "REDIS_URL": "redis://localhost:6379",
     "PORT": "8000"
   },
-  "postCreateCommand": "echo '✅ Setting up TrustArmor GRC...' && sleep 3 && (createdb -h localhost -U postgres grc 2>/dev/null || echo 'Database already exists') && (cd backend && go mod tidy) && (cd frontend && npm install) && echo '🚀 Setup complete! Run: cd backend && go run ./cmd/api/main.go'",
-  "remoteUser": "vscode",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "remoteUser": "codespace",
   "customizations": {
     "vscode": {
       "extensions": [
