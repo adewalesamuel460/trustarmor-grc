@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/models"
@@ -23,6 +24,7 @@ type Worker struct {
 	server *asynq.Server
 	repo   *repository.Repository
 	crypt  *EncryptionService
+	ai     *AIService
 }
 
 func NewWorker(redisAddr string, repo *repository.Repository, crypt *EncryptionService) *Worker {
@@ -42,7 +44,13 @@ func NewWorker(redisAddr string, repo *repository.Repository, crypt *EncryptionS
 		server: server,
 		repo:   repo,
 		crypt:  crypt,
+		ai:     NewAIService(),
 	}
+}
+
+// AI returns the OpenAI service wrapper
+func (w *Worker) AI() *AIService {
+	return w.ai
 }
 
 const TypeEvaluateControl = "task:evaluate_control"
@@ -92,12 +100,36 @@ func (w *Worker) EnqueueEvaluateControl(controlID string) error {
 	return nil
 }
 
+const TypeGenerateAnswers = "task:generate_answers"
+
+type GenerateAnswersPayload struct {
+	ProjectID string `json:"project_id"`
+}
+
+// EnqueueGenerateAnswers enqueues a response generation RAG job
+func (w *Worker) EnqueueGenerateAnswers(projectID string) error {
+	payload, err := json.Marshal(GenerateAnswersPayload{ProjectID: projectID})
+	if err != nil {
+		return err
+	}
+
+	task := asynq.NewTask(TypeGenerateAnswers, payload)
+	info, err := w.client.Enqueue(task)
+	if err != nil {
+		return fmt.Errorf("failed to enqueue generate answers task: %w", err)
+	}
+
+	log.Printf("INFO [AsynqClient]: Enqueued task %s (ID: %s)", TypeGenerateAnswers, info.ID)
+	return nil
+}
+
 // Start runs the Asynq worker server
 func (w *Worker) Start() error {
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(TypeSyncIntegration, w.handleSyncIntegrationTask)
 	mux.HandleFunc(TypeEvaluateControl, w.handleEvaluateControlTask)
 	mux.HandleFunc(TypeCheckVendorExpiries, w.handleCheckVendorExpiriesTask)
+	mux.HandleFunc(TypeGenerateAnswers, w.handleGenerateAnswersTask)
 
 	log.Println("INFO [AsynqServer]: Starting Asynq background worker server...")
 	if err := w.server.Run(mux); err != nil {
@@ -326,5 +358,96 @@ func (w *Worker) handleCheckVendorExpiriesTask(ctx context.Context, t *asynq.Tas
 	}
 
 	log.Printf("INFO [AsynqWorker]: Completed check_vendor_expiries task. Found %d expiring items.", len(docs))
+	return nil
+}
+
+func (w *Worker) handleGenerateAnswersTask(ctx context.Context, t *asynq.Task) error {
+	var p GenerateAnswersPayload
+	if err := json.Unmarshal(t.Payload(), &p); err != nil {
+		return fmt.Errorf("failed to unmarshal generate answers payload: %w", err)
+	}
+
+	log.Printf("INFO [AsynqWorker]: Started RAG answers generation for Project ID: %s", p.ProjectID)
+
+	// 1. Fetch project to verify details and set status to 'generating'
+	proj, err := w.repo.GetQuestionnaireProjectByID(ctx, p.ProjectID)
+	if err != nil {
+		return fmt.Errorf("failed to get project: %w", err)
+	}
+	_ = w.repo.UpdateProjectStatus(ctx, p.ProjectID, "generating")
+
+	// 2. Fetch all nested pairs for the project
+	pairs, err := w.repo.GetQuestionnairePairs(ctx, p.ProjectID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch project questions: %w", err)
+	}
+
+	for _, pair := range pairs {
+		if pair.Status != "pending" {
+			continue // Skip already drafted or approved items
+		}
+
+		// A. Generate embedding for original question
+		emb, err := w.ai.GetEmbedding(ctx, pair.OriginalQuestion)
+		if err != nil {
+			log.Printf("ERROR [AsynqWorker]: Failed to embed question '%s': %v", pair.OriginalQuestion, err)
+			continue
+		}
+
+		// B. Query database for top 3 matching KB items
+		kbMatches, scores, err := w.repo.SearchSimilarityKB(ctx, proj.WorkspaceID, emb, 3)
+		if err != nil {
+			log.Printf("ERROR [AsynqWorker]: Similarity search failed: %v", err)
+		}
+
+		// C. Build RAG Context prompt
+		var contextTexts []string
+		for idx, match := range kbMatches {
+			contextTexts = append(contextTexts, fmt.Sprintf("[%d] Question: %s\nAnswer: %s", idx+1, match.Question, match.Answer))
+		}
+		
+		var prompt string
+		if len(contextTexts) > 0 {
+			prompt = fmt.Sprintf(
+				"You are a security compliance expert. Use the following approved company knowledge to answer the question. If the knowledge does not cover it, say 'Requires manual review'.\n\nKnowledge:\n%s\n\nQuestion: %s",
+				strings.Join(contextTexts, "\n\n"),
+				pair.OriginalQuestion,
+			)
+		} else {
+			prompt = fmt.Sprintf(
+				"You are a security compliance expert. Answer the following question. If you do not have sufficient information, say 'Requires manual review'.\n\nQuestion: %s",
+				pair.OriginalQuestion,
+			)
+		}
+
+		// D. Generate answer using OpenAI Chat Completion API
+		draftAnswer, err := w.ai.GenerateAnswer(ctx, prompt)
+		if err != nil {
+			log.Printf("ERROR [AsynqWorker]: Failed to generate answer: %v", err)
+			draftAnswer = "Requires manual review"
+		}
+
+		// E. Determine confidence score based on closest context similarity
+		confidence := 0.0
+		if len(scores) > 0 {
+			confidence = scores[0]
+			if confidence < 0.0 {
+				confidence = 0.0
+			}
+			if confidence > 1.0 {
+				confidence = 1.0
+			}
+		}
+
+		// F. Save drafted answer
+		err = w.repo.SavePairDraft(ctx, pair.ID, draftAnswer, confidence)
+		if err != nil {
+			log.Printf("ERROR [AsynqWorker]: Failed to save draft answer: %v", err)
+		}
+	}
+
+	// 3. Mark project status as 'in_review' when worker finishes drafting
+	_ = w.repo.UpdateProjectStatus(ctx, p.ProjectID, "in_review")
+	log.Printf("INFO [AsynqWorker]: Completed drafting questions for Project ID: %s", p.ProjectID)
 	return nil
 }

@@ -192,6 +192,14 @@ func main() {
 		r.Patch("/workspaces/{id}/vendors/{vendor_id}", h.UpdateVendor)
 		r.Post("/workspaces/{id}/vendors/{vendor_id}/documents", h.AddVendorDocument)
 		r.Delete("/workspaces/{id}/vendors/{vendor_id}/documents/{doc_id}", h.DeleteVendorDocument)
+
+		// AI-Powered Security Questionnaires & RAG
+		r.Get("/workspaces/{id}/knowledge-base", h.GetKnowledgeBase)
+		r.Post("/workspaces/{id}/knowledge-base", h.CreateKnowledgeBaseItem)
+		r.Get("/workspaces/{id}/questionnaires", h.GetQuestionnaireProjects)
+		r.Post("/workspaces/{id}/questionnaires/upload", h.UploadQuestionnaire)
+		r.Get("/workspaces/{id}/questionnaires/{project_id}/pairs", h.GetQuestionnairePairs)
+		r.Post("/workspaces/{id}/questionnaires/pairs/{pair_id}/approve", h.ApproveQuestionnairePair)
 	})
 
 	// Start server

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import WorkspaceSwitcher from '@/components/WorkspaceSwitcher';
-import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building } from 'lucide-react';
+import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -63,6 +63,7 @@ export default function DashboardLayout({
         { name: 'Integrations', path: '/compliance/integrations', icon: Layers },
         { name: 'Policies', path: '/compliance/policies', icon: ScrollText },
         { name: 'Vendors / TPRM', path: '/compliance/vendors', icon: Building },
+        { name: 'Questionnaires', path: '/compliance/questionnaires', icon: HelpCircle },
       ]
     },
     {
@@ -75,6 +76,7 @@ export default function DashboardLayout({
       title: 'Settings',
       items: [
         { name: 'Team Settings', path: '/settings/team', icon: Users2 },
+        { name: 'Knowledge Base', path: '/settings/knowledge-base', icon: Brain },
         { name: 'Audit Logs', path: '/settings/audit-logs', icon: ScrollText },
       ]
     }

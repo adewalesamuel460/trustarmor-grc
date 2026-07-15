@@ -273,3 +273,37 @@ type VendorDocument struct {
 	ExpiresAt    *time.Time `json:"expires_at"`
 	CreatedAt    time.Time  `json:"created_at"`
 }
+
+type KnowledgeBaseItem struct {
+	ID          string    `json:"id"`
+	WorkspaceID string    `json:"workspace_id"`
+	Question    string    `json:"question"`
+	Answer      string    `json:"answer"`
+	SourceType  string    `json:"source_type"`
+	Tags        []string  `json:"tags"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type QuestionnaireProject struct {
+	ID                 string    `json:"id"`
+	WorkspaceID        string    `json:"workspace_id"`
+	Name               string    `json:"name"`
+	Status             string    `json:"status"`
+	TotalQuestions     int       `json:"total_questions"`
+	CompletedQuestions int       `json:"completed_questions"`
+	CreatedAt          time.Time `json:"created_at"`
+}
+
+type QuestionnairePair struct {
+	ID               string    `json:"id"`
+	ProjectID        string    `json:"project_id"`
+	OriginalQuestion string    `json:"original_question"`
+	AIDraftAnswer    *string   `json:"ai_draft_answer"`
+	FinalAnswer      *string   `json:"final_answer"`
+	ConfidenceScore  *float64  `json:"confidence_score"`
+	Status           string    `json:"status"`
+	ReviewerID       *string   `json:"reviewer_id"`
+	ReviewerEmail    *string   `json:"reviewer_email,omitempty"`
+	CreatedAt        time.Time `json:"created_at"`
+}

@@ -34,6 +34,9 @@ var riskSQL string
 //go:embed migrations/000008_vendor_tprm.up.sql
 var vendorSQL string
 
+//go:embed migrations/000009_questionnaire_rag.up.sql
+var questionnaireSQL string
+
 type DB struct {
 	Pool *pgxpool.Pool
 }
@@ -113,6 +116,12 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 	_, err = db.Pool.Exec(ctx, vendorSQL)
 	if err != nil {
 		return fmt.Errorf("failed to execute migration 000008: %w", err)
+	}
+
+	log.Println("Running database migrations (000009)...")
+	_, err = db.Pool.Exec(ctx, questionnaireSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000009: %w", err)
 	}
 
 	log.Println("Migrations executed successfully")
