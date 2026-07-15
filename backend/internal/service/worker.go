@@ -46,6 +46,7 @@ func NewWorker(redisAddr string, repo *repository.Repository, crypt *EncryptionS
 }
 
 const TypeEvaluateControl = "task:evaluate_control"
+const TypeCheckVendorExpiries = "task:check_vendor_expiries"
 
 type EvaluateControlPayload struct {
 	ControlID string `json:"control_id"`
@@ -96,6 +97,7 @@ func (w *Worker) Start() error {
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(TypeSyncIntegration, w.handleSyncIntegrationTask)
 	mux.HandleFunc(TypeEvaluateControl, w.handleEvaluateControlTask)
+	mux.HandleFunc(TypeCheckVendorExpiries, w.handleCheckVendorExpiriesTask)
 
 	log.Println("INFO [AsynqServer]: Starting Asynq background worker server...")
 	if err := w.server.Run(mux); err != nil {
@@ -305,5 +307,24 @@ func (w *Worker) handleEvaluateControlTask(ctx context.Context, t *asynq.Task) e
 	}
 
 	log.Printf("INFO [AsynqWorker]: Finished evaluation job for control %s in %v. New Status: %s", ctrl.Title, time.Since(startTime), newStatus)
+	return nil
+}
+
+func (w *Worker) handleCheckVendorExpiriesTask(ctx context.Context, t *asynq.Task) error {
+	log.Printf("INFO [AsynqWorker]: Executing daily check_vendor_expiries worker task...")
+	
+	// Query expiring vendor documents exactly 30 days away
+	docs, err := w.repo.GetExpiringVendorDocuments(ctx, 30)
+	if err != nil {
+		log.Printf("ERROR [AsynqWorker]: Failed to query expiring vendor compliance artifacts: %v", err)
+		return err
+	}
+
+	for _, doc := range docs {
+		log.Printf("WARNING [AsynqWorker]: Vendor Compliance Artifact '%s' (ID: %s) for Vendor '%s' is expiring in exactly 30 days on %s!", 
+			doc.Title, doc.ID, doc.VendorName, doc.ExpiresAt)
+	}
+
+	log.Printf("INFO [AsynqWorker]: Completed check_vendor_expiries task. Found %d expiring items.", len(docs))
 	return nil
 }

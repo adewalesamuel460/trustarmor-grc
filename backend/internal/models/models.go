@@ -246,3 +246,30 @@ type HeatmapCell struct {
 	Impact     int `json:"impact"`
 	Count      int `json:"count"`
 }
+
+type Vendor struct {
+	ID              string           `json:"id"`
+	WorkspaceID     string           `json:"workspace_id"`
+	Name            string           `json:"name"`
+	Domain          string           `json:"domain"`
+	Description     string           `json:"description"`
+	RiskTier        string           `json:"risk_tier"`
+	Status          string           `json:"status"`
+	OwnerID         *string          `json:"owner_id"`
+	OwnerEmail      *string          `json:"owner_email,omitempty"`
+	HasExpiringDocs bool             `json:"has_expiring_docs"`
+	CreatedAt       time.Time        `json:"created_at"`
+	UpdatedAt       time.Time        `json:"updated_at"`
+	Documents       []VendorDocument `json:"documents"`
+}
+
+type VendorDocument struct {
+	ID           string     `json:"id"`
+	VendorID     string     `json:"vendor_id"`
+	DocumentType string     `json:"document_type"`
+	Title        string     `json:"title"`
+	FileURL      string     `json:"file_url"`
+	ValidFrom    *time.Time `json:"valid_from"`
+	ExpiresAt    *time.Time `json:"expires_at"`
+	CreatedAt    time.Time  `json:"created_at"`
+}

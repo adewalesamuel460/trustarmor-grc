@@ -184,6 +184,14 @@ func main() {
 		r.Post("/workspaces/{id}/risks/{risk_id}/treatments", h.AddTreatment)
 		r.Post("/workspaces/{id}/risks/{risk_id}/map-controls", h.MapRiskControls)
 		r.Get("/workspaces/{id}/risks/heatmap", h.GetRiskHeatmap)
+
+		// Vendor Risk Management & TPRM
+		r.Get("/workspaces/{id}/vendors", h.GetVendors)
+		r.Post("/workspaces/{id}/vendors", h.CreateVendor)
+		r.Get("/workspaces/{id}/vendors/{vendor_id}", h.GetVendorByID)
+		r.Patch("/workspaces/{id}/vendors/{vendor_id}", h.UpdateVendor)
+		r.Post("/workspaces/{id}/vendors/{vendor_id}/documents", h.AddVendorDocument)
+		r.Delete("/workspaces/{id}/vendors/{vendor_id}/documents/{doc_id}", h.DeleteVendorDocument)
 	})
 
 	// Start server
