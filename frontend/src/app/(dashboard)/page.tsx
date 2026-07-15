@@ -44,22 +44,19 @@ export default function ExecutiveDashboard() {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch compliance posture
-      const postureRes = await api.get(`/workspaces/${activeWorkspace.id}/reports/posture`);
+      // Fire all 4 requests simultaneously instead of sequentially
+      const [postureRes, mttrRes, statsRes, tasksRes] = await Promise.all([
+        api.get(`/workspaces/${activeWorkspace.id}/reports/posture`),
+        api.get(`/workspaces/${activeWorkspace.id}/reports/mttr`),
+        api.get(`/workspaces/${activeWorkspace.id}/reports/summary-widgets`),
+        api.get(`/workspaces/${activeWorkspace.id}/tasks`),
+      ]);
+
       setReadiness(postureRes.data.readiness_percentage || 0);
-
-      // 2. Fetch MTTR
-      const mttrRes = await api.get(`/workspaces/${activeWorkspace.id}/reports/mttr`);
       setMttr(mttrRes.data.mean_time_to_remediate_hours || 0);
-
-      // 3. Fetch summary stats
-      const statsRes = await api.get(`/workspaces/${activeWorkspace.id}/reports/summary-widgets`);
       setStats(statsRes.data || { open_tasks_count: 0, failing_controls_count: 0, unmitigated_risks_count: 0 });
 
-      // 4. Fetch critical tasks for mini-datatable
-      const tasksRes = await api.get(`/workspaces/${activeWorkspace.id}/tasks`);
       const allTasks: CriticalTask[] = tasksRes.data || [];
-      // Filter only critical priority open tasks
       const filtered = allTasks.filter(t => t.priority === 'critical' && t.status !== 'done');
       setCriticalTasks(filtered.slice(0, 5));
     } catch (err: any) {
@@ -68,6 +65,7 @@ export default function ExecutiveDashboard() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     loadDashboardData();

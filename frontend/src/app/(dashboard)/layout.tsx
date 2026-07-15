@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import WorkspaceSwitcher from '@/components/WorkspaceSwitcher';
 import api from '@/lib/api';
 import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle, CheckSquare, Bell } from 'lucide-react';
@@ -168,7 +169,7 @@ export default function DashboardLayout({
                     const Icon = item.icon;
                     const isActive = pathname === item.path;
                     return (
-                      <a
+                      <Link
                         key={item.name}
                         href={item.path}
                         className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition ${
@@ -179,7 +180,7 @@ export default function DashboardLayout({
                       >
                         <Icon className="w-4 h-4" />
                         <span>{item.name}</span>
-                      </a>
+                      </Link>
                     );
                   })}
                 </div>
