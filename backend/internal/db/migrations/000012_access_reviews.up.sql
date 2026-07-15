@@ -1,6 +1,6 @@
 -- Represents a quarterly/annual review event
 CREATE TABLE access_review_campaigns (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL, -- e.g., "Q3 2026 Engineering Access Review"
     status VARCHAR(50) DEFAULT 'draft', -- 'draft', 'in_progress', 'completed'
@@ -11,7 +11,7 @@ CREATE TABLE access_review_campaigns (
 
 -- Individual access rights that need to be reviewed
 CREATE TABLE access_review_items (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     campaign_id UUID NOT NULL REFERENCES access_review_campaigns(id) ON DELETE CASCADE,
     account_email VARCHAR(255) NOT NULL,
     system_name VARCHAR(255) NOT NULL, -- e.g., 'AWS', 'GitHub', 'Salesforce'
@@ -24,7 +24,7 @@ CREATE TABLE access_review_items (
 
 -- Tracks completion of mandatory security training
 CREATE TABLE training_records (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     module_name VARCHAR(255) NOT NULL, -- e.g., 'Phishing Awareness 101'

@@ -5,7 +5,7 @@ ADD COLUMN last_tested_at TIMESTAMP WITH TIME ZONE;
 
 -- Defines the automated rule tying a control to an integration
 CREATE TABLE automated_tests (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     control_id UUID NOT NULL REFERENCES controls(id) ON DELETE CASCADE,
     integration_provider_id UUID NOT NULL REFERENCES integration_providers(id) ON DELETE CASCADE,
     query_logic JSONB NOT NULL, -- The rule (e.g., {"resource": "s3", "condition": "public_access_block == true"})
@@ -14,7 +14,7 @@ CREATE TABLE automated_tests (
 
 -- Stores the actual proof (both automated payloads and manual file uploads)
 CREATE TABLE evidence (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     control_id UUID NOT NULL REFERENCES controls(id) ON DELETE CASCADE,
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     type VARCHAR(50) NOT NULL, -- 'automated', 'manual'
@@ -26,7 +26,7 @@ CREATE TABLE evidence (
 
 -- Immutable log of a control changing state (crucial for audit trails)
 CREATE TABLE control_status_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     control_id UUID NOT NULL REFERENCES controls(id) ON DELETE CASCADE,
     previous_status VARCHAR(50),
     new_status VARCHAR(50) NOT NULL,

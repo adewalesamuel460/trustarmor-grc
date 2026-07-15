@@ -1,6 +1,6 @@
 -- Global Frameworks (e.g., SOC 2, NDPR) - Read-only for tenants
 CREATE TABLE frameworks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     version VARCHAR(50) NOT NULL,
     description TEXT,
@@ -9,7 +9,7 @@ CREATE TABLE frameworks (
 
 -- Specific clauses within a framework (e.g., SOC 2 CC6.1, NDPR Art 2.1(a))
 CREATE TABLE framework_requirements (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     framework_id UUID NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
     identifier VARCHAR(100) NOT NULL, -- e.g., 'CC6.1'
     title VARCHAR(255) NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE framework_requirements (
 
 -- Tracks which frameworks a specific workspace has activated
 CREATE TABLE workspace_frameworks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     framework_id UUID NOT NULL REFERENCES frameworks(id) ON DELETE CASCADE,
     status VARCHAR(50) DEFAULT 'active',
@@ -29,7 +29,7 @@ CREATE TABLE workspace_frameworks (
 
 -- Internal Controls defined by the tenant
 CREATE TABLE controls (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -42,7 +42,7 @@ CREATE TABLE controls (
 
 -- The mapping linking one control to multiple framework requirements
 CREATE TABLE control_mappings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     control_id UUID NOT NULL REFERENCES controls(id) ON DELETE CASCADE,
     requirement_id UUID NOT NULL REFERENCES framework_requirements(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

@@ -1,6 +1,6 @@
 -- Global catalogue of available integrations (e.g., AWS, GitHub)
 CREATE TABLE integration_providers (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL UNIQUE,
     category VARCHAR(50) NOT NULL, -- 'Cloud', 'Identity', 'VCS', 'HRIS'
     auth_type VARCHAR(50) NOT NULL, -- 'API_KEY', 'OAUTH2'
@@ -10,7 +10,7 @@ CREATE TABLE integration_providers (
 
 -- Tenant-specific integration connections
 CREATE TABLE workspace_integrations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     provider_id UUID NOT NULL REFERENCES integration_providers(id) ON DELETE CASCADE,
     status VARCHAR(50) DEFAULT 'connected', -- 'connected', 'error', 'disconnected'
@@ -23,7 +23,7 @@ CREATE TABLE workspace_integrations (
 
 -- Audit trail for background sync jobs
 CREATE TABLE sync_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_integration_id UUID NOT NULL REFERENCES workspace_integrations(id) ON DELETE CASCADE,
     status VARCHAR(50) NOT NULL, -- 'success', 'failed'
     records_fetched INTEGER DEFAULT 0,

@@ -1,6 +1,6 @@
 -- Global Task/Remediation Queue
 CREATE TABLE tasks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -17,7 +17,7 @@ CREATE TABLE tasks (
 
 -- Rules for automated alerting
 CREATE TABLE notification_rules (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     trigger_event VARCHAR(100) NOT NULL, -- e.g., 'control.failed', 'vendor.document_expiring', 'task.overdue'
     action_type VARCHAR(50) NOT NULL, -- 'email', 'slack', 'webhook'

@@ -1,6 +1,6 @@
 -- Vendor Inventory
 CREATE TABLE vendors (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     domain VARCHAR(255),
@@ -14,7 +14,7 @@ CREATE TABLE vendors (
 
 -- Vendor Artifacts (SOC 2, ISO certs, DPAs)
 CREATE TABLE vendor_documents (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id UUID NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
     document_type VARCHAR(100) NOT NULL, -- 'SOC2', 'ISO27001', 'DPA', 'MSA', 'PEN_TEST', 'OTHER'
     title VARCHAR(255) NOT NULL,

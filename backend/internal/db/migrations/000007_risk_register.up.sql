@@ -1,6 +1,6 @@
 -- Core Risk Register
 CREATE TABLE risks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -17,7 +17,7 @@ CREATE TABLE risks (
 
 -- Treatment plans for a specific risk
 CREATE TABLE risk_treatments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     risk_id UUID NOT NULL REFERENCES risks(id) ON DELETE CASCADE,
     strategy VARCHAR(50) NOT NULL, -- 'Mitigate', 'Accept', 'Transfer', 'Avoid'
     description TEXT NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE risk_treatments (
 
 -- Junction table linking Risks to mitigating Controls
 CREATE TABLE risk_control_mappings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     risk_id UUID NOT NULL REFERENCES risks(id) ON DELETE CASCADE,
     control_id UUID NOT NULL REFERENCES controls(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

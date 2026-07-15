@@ -1,6 +1,6 @@
 -- AI Asset Inventory (Shadow AI Governance)
 CREATE TABLE ai_assets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     tool_name VARCHAR(255) NOT NULL, -- e.g., 'ChatGPT', 'GitHub Copilot', 'Custom RAG'
     vendor_id UUID REFERENCES vendors(id) ON DELETE SET NULL, -- Links to TPRM from Phase 8
@@ -13,7 +13,7 @@ CREATE TABLE ai_assets (
 
 -- Cross-Border Data Transfers (Crucial for NDPR/GDPR)
 CREATE TABLE data_transfers (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     vendor_id UUID REFERENCES vendors(id) ON DELETE SET NULL,
     origin_country VARCHAR(100) DEFAULT 'Nigeria',
@@ -26,7 +26,7 @@ CREATE TABLE data_transfers (
 
 -- NDPR / Regulatory Audit Filings
 CREATE TABLE regulatory_filings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     regulator VARCHAR(100) NOT NULL, -- e.g., 'NITDA', 'NDPC'
     filing_year INTEGER NOT NULL,

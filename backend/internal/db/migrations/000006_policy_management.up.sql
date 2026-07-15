@@ -1,6 +1,6 @@
 -- The parent policy entity
 CREATE TABLE policies (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -13,7 +13,7 @@ CREATE TABLE policies (
 
 -- Immutable record of the policy text at a specific point in time
 CREATE TABLE policy_versions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     policy_id UUID NOT NULL REFERENCES policies(id) ON DELETE CASCADE,
     version_number INTEGER NOT NULL,
     content TEXT NOT NULL, -- Rich text HTML or Markdown
@@ -23,7 +23,7 @@ CREATE TABLE policy_versions (
 
 -- Tracks employee signatures against specific policy versions
 CREATE TABLE policy_acknowledgments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     policy_version_id UUID NOT NULL REFERENCES policy_versions(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'signed'

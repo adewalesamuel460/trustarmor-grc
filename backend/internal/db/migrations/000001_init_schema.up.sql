@@ -1,5 +1,7 @@
--- Enable UUID extension
+-- Enable UUID extensions (supports both uuid_generate_v4() and gen_random_uuid())
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
 
 -- Create organizations table
 CREATE TABLE IF NOT EXISTS organizations (
