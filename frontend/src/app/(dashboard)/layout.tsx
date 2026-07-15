@@ -17,38 +17,6 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState('');
 
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    const email = localStorage.getItem('user_email');
-    if (!token) {
-      router.push('/login');
-    } else {
-      setAuthenticated(true);
-      setUserEmail(email || 'admin@company.com');
-    }
-    setLoading(false);
-  }, [router]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('active_workspace_id');
-    localStorage.removeItem('user_email');
-    router.push('/login');
-  };
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-950 text-white">
-        <p className="text-sm font-semibold tracking-wider uppercase animate-pulse">Loading GRC Platform...</p>
-      </div>
-    );
-  }
-
-  if (!authenticated) {
-    return null;
-  }
-
   const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
@@ -81,6 +49,32 @@ export default function DashboardLayout({
       }
     }
   }, [userRole, pathname, router]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    const email = localStorage.getItem('user_email');
+    if (!token) {
+      router.push('/login');
+    } else {
+      setAuthenticated(true);
+      setUserEmail(email || 'admin@company.com');
+    }
+    setLoading(false);
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-950 text-white">
+        <p className="text-sm font-semibold tracking-wider uppercase animate-pulse">Loading GRC Platform...</p>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return null;
+  }
+
+
 
   const navGroups = [
     {
@@ -134,6 +128,14 @@ export default function DashboardLayout({
         }
       ]
     : navGroups;
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('active_workspace_id');
+    localStorage.removeItem('user_email');
+    router.push('/login');
+  };
 
   return (
     <div className="min-h-screen bg-[#090d16] text-white flex">
