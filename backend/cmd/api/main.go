@@ -107,11 +107,18 @@ func main() {
 	// Serve local uploaded files statically
 	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
+	// Root route - friendly message instead of 404 when backend URL is opened directly
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"service":"TrustArmor GRC API","status":"running","version":"1.0.0","note":"This is the backend API server. Access the application via the frontend on port 3000."}`))
+	})
+
 	// Health check
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"status":"healthy"}`))
+		_, _ = w.Write([]byte(`{"status":"healthy","service":"trustarmor-grc-api"}`))
 	})
 
 	// Public routes

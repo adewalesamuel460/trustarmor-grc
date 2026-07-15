@@ -8,9 +8,10 @@
       "onAutoForward": "openBrowser"
     },
     "8000": {
-      "label": "Go Backend API",
-      "onAutoForward": "notify"
+      "label": "Go Backend API (internal - use port 3000)",
+      "onAutoForward": "silent"
     },
+
     "5432": {
       "label": "PostgreSQL",
       "onAutoForward": "ignore"
