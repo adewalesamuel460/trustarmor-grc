@@ -39,3 +39,17 @@ type WorkspaceMember struct {
 	RoleName    string    `json:"role_name"`
 	CreatedAt   time.Time `json:"created_at"`
 }
+
+type AuditLog struct {
+	ID           string      `json:"id"`
+	WorkspaceID  string      `json:"workspace_id"`
+	ActorID      *string     `json:"actor_id"`
+	ActorEmail   *string     `json:"actor_email"`
+	Action       string      `json:"action"`
+	ResourceType string      `json:"resource_type"`
+	ResourceID   string      `json:"resource_id"`
+	OldValue     interface{} `json:"old_value"`
+	NewValue     interface{} `json:"new_value"`
+	IPAddress    string      `json:"ip_address"`
+	CreatedAt    time.Time   `json:"created_at"`
+}

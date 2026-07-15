@@ -15,6 +15,7 @@ import (
 
 type Service struct {
 	repo      *repository.Repository
+	auditSvc  *AuditService
 	jwtSecret []byte
 }
 
@@ -30,9 +31,10 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func New(repo *repository.Repository, jwtSecret string) *Service {
+func New(repo *repository.Repository, auditSvc *AuditService, jwtSecret string) *Service {
 	return &Service{
 		repo:      repo,
+		auditSvc:  auditSvc,
 		jwtSecret: []byte(jwtSecret),
 	}
 }
@@ -74,6 +76,31 @@ func (s *Service) Register(ctx context.Context, email, password, orgName, wsName
 	if err != nil {
 		return nil, err
 	}
+
+	// Capture Audit Logs (asynchronously)
+	s.auditSvc.LogEvent(
+		ws.ID,
+		&user.ID,
+		&user.Email,
+		"workspace.created",
+		"workspace",
+		ws.ID,
+		nil,
+		map[string]interface{}{"id": ws.ID, "organization_id": org.ID, "name": wsName},
+		"",
+	)
+
+	s.auditSvc.LogEvent(
+		ws.ID,
+		&user.ID,
+		&user.Email,
+		"workspace_member.created",
+		"workspace_member",
+		user.ID,
+		nil,
+		map[string]interface{}{"workspace_id": ws.ID, "user_id": user.ID, "role_name": "Admin"},
+		"",
+	)
 
 	// Generate tokens
 	accessToken, refreshToken, err := s.generateTokenPair(user.ID)
@@ -267,6 +294,34 @@ func (s *Service) CreateWorkspace(ctx context.Context, userID, name string) (mod
 		return models.Workspace{}, err
 	}
 
+	// Capture Audit Logs (asynchronously)
+	actor, err := s.repo.GetUserByID(ctx, userID)
+	if err == nil {
+		s.auditSvc.LogEvent(
+			ws.ID,
+			&userID,
+			&actor.Email,
+			"workspace.created",
+			"workspace",
+			ws.ID,
+			nil,
+			ws,
+			"",
+		)
+
+		s.auditSvc.LogEvent(
+			ws.ID,
+			&userID,
+			&actor.Email,
+			"workspace_member.created",
+			"workspace_member",
+			userID,
+			nil,
+			map[string]interface{}{"workspace_id": ws.ID, "user_id": userID, "role_name": "Admin"},
+			"",
+		)
+	}
+
 	return ws, nil
 }
 
@@ -274,7 +329,7 @@ func (s *Service) GetWorkspaceMembers(ctx context.Context, workspaceID string) (
 	return s.repo.GetWorkspaceMembers(ctx, workspaceID)
 }
 
-func (s *Service) InviteUser(ctx context.Context, workspaceID, email, roleName string) error {
+func (s *Service) InviteUser(ctx context.Context, actorID string, workspaceID, email, roleName string) error {
 	// Find or create user
 	var targetUserID string
 	targetUser, err := s.repo.GetUserByEmail(ctx, email)
@@ -295,7 +350,28 @@ func (s *Service) InviteUser(ctx context.Context, workspaceID, email, roleName s
 		return fmt.Errorf("invalid role selection: %w", err)
 	}
 
-	return s.repo.AddWorkspaceMember(ctx, workspaceID, targetUserID, role.ID)
+	err = s.repo.AddWorkspaceMember(ctx, workspaceID, targetUserID, role.ID)
+	if err != nil {
+		return err
+	}
+
+	// Capture Audit Logs (asynchronously)
+	actor, err := s.repo.GetUserByID(ctx, actorID)
+	if err == nil {
+		s.auditSvc.LogEvent(
+			workspaceID,
+			&actorID,
+			&actor.Email,
+			"workspace_member.created",
+			"workspace_member",
+			targetUserID,
+			nil,
+			map[string]interface{}{"workspace_id": workspaceID, "user_id": targetUserID, "role_name": roleName},
+			"",
+		)
+	}
+
+	return nil
 }
 
 // Helper to generate access + refresh token

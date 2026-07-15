@@ -38,7 +38,8 @@ func main() {
 
 	// Initialize layers
 	repo := repository.New(database)
-	svc := service.New(repo, cfg.JWTSecret)
+	auditSvc := service.NewAuditService(repo)
+	svc := service.New(repo, auditSvc, cfg.JWTSecret)
 	h := handler.New(svc, repo)
 
 	// Set up router
@@ -80,6 +81,10 @@ func main() {
 
 		// Invitations (Requires Admin or Compliance Manager role via RBAC permission 'workspace:invite')
 		r.With(middleware.RequirePermission("workspace:invite")).Post("/workspaces/{id}/invites", h.InviteMember)
+
+		// Audit Logs (Requires Tenancy check)
+		r.Get("/workspaces/{id}/audit-logs", h.GetAuditLogs)
+		r.Get("/workspaces/{id}/audit-logs/export", h.ExportAuditLogs)
 	})
 
 	// Start server

@@ -237,7 +237,8 @@ func (h *Handler) InviteMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.svc.InviteUser(r.Context(), workspaceID, req.Email, req.Role)
+	actorID := middleware.GetUserID(r.Context())
+	err := h.svc.InviteUser(r.Context(), actorID, workspaceID, req.Email, req.Role)
 	if err != nil {
 		h.respondError(w, http.StatusInternalServerError, err.Error())
 		return
