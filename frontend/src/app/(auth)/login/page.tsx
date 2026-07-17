@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Shield, KeyRound, Mail, AlertTriangle, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -116,6 +117,13 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Forgot password link */}
+            <div className="flex justify-end">
+              <Link href="/forgot-password" className="text-xs text-indigo-400 hover:text-indigo-300 transition">
+                Forgot your password?
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -127,9 +135,9 @@ export default function LoginPage() {
 
             <p className="text-gray-500 text-xs text-center mt-6">
               Don't have an account?{' '}
-              <a href="/register" className="text-indigo-400 hover:underline">
+              <Link href="/register" className="text-indigo-400 hover:underline">
                 Create one
-              </a>
+              </Link>
             </p>
           </form>
         ) : (

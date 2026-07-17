@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/db"
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/models"
@@ -207,4 +208,56 @@ func (r *Repository) GetWorkspaceMember(ctx context.Context, workspaceID string,
 		return wm, fmt.Errorf("failed to get workspace member: %w", err)
 	}
 	return wm, nil
+}
+
+// CreatePasswordResetToken stores a new password reset token for a user
+func (r *Repository) CreatePasswordResetToken(ctx context.Context, userID string, token string, expiresAt time.Time) error {
+	// Invalidate any existing tokens for this user first
+	_, _ = r.db.Pool.Exec(ctx, `UPDATE password_reset_tokens SET used_at = NOW() WHERE user_id = $1 AND used_at IS NULL`, userID)
+
+	_, err := r.db.Pool.Exec(ctx, `
+		INSERT INTO password_reset_tokens (user_id, token, expires_at)
+		VALUES ($1, $2, $3)
+	`, userID, token, expiresAt)
+	if err != nil {
+		return fmt.Errorf("failed to store reset token: %w", err)
+	}
+	return nil
+}
+
+// GetPasswordResetToken retrieves a valid, unused, non-expired reset token
+func (r *Repository) GetPasswordResetToken(ctx context.Context, token string) (userID string, err error) {
+	var expiredAt time.Time
+	var usedAt *time.Time
+
+	err = r.db.Pool.QueryRow(ctx, `
+		SELECT user_id, expires_at, used_at
+		FROM password_reset_tokens
+		WHERE token = $1
+	`, token).Scan(&userID, &expiredAt, &usedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", fmt.Errorf("invalid or expired reset token")
+		}
+		return "", fmt.Errorf("failed to look up reset token: %w", err)
+	}
+
+	if usedAt != nil {
+		return "", fmt.Errorf("this reset link has already been used")
+	}
+	if time.Now().After(expiredAt) {
+		return "", fmt.Errorf("this reset link has expired. Please request a new one")
+	}
+	return userID, nil
+}
+
+// MarkPasswordResetTokenUsed marks a token as consumed so it cannot be reused
+func (r *Repository) MarkPasswordResetTokenUsed(ctx context.Context, token string) error {
+	_, err := r.db.Pool.Exec(ctx, `
+		UPDATE password_reset_tokens SET used_at = NOW() WHERE token = $1
+	`, token)
+	if err != nil {
+		return fmt.Errorf("failed to mark token as used: %w", err)
+	}
+	return nil
 }

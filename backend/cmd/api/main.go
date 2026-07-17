@@ -126,6 +126,8 @@ func main() {
 	r.Post("/auth/login", h.Login)
 	r.Post("/auth/verify-mfa", h.VerifyMFA)
 	r.Post("/auth/refresh", h.RefreshToken)
+	r.Post("/auth/forgot-password", h.ForgotPassword)
+	r.Post("/auth/reset-password", h.ResetPassword)
 
 	// Public Trust Center routes (unauthenticated)
 	r.Get("/public/trust-center/{slug}", h.PublicGetTrustCenter)
