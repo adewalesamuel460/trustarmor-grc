@@ -23,6 +23,7 @@ export default function DashboardLayout({
   const [userEmail, setUserEmail] = useState('');
   const [userRole, setUserRole] = useState('');
   const [isImpersonating, setIsImpersonating] = useState(false);
+  const [isGlobalAdmin, setIsGlobalAdmin] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -62,6 +63,11 @@ export default function DashboardLayout({
     } else {
       setAuthenticated(true);
       setUserEmail(email || '');
+
+      // Check if user is a global admin
+      api.get('/admin/tenants')
+        .then(() => setIsGlobalAdmin(true))
+        .catch(() => setIsGlobalAdmin(false));
     }
     setLoading(false);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -236,6 +242,16 @@ export default function DashboardLayout({
 
         {/* Sidebar Footer with user info & Logout */}
         <div className="p-4 border-t border-white/5 space-y-4">
+          {isGlobalAdmin && (
+            <Link
+              href="/super-admin"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold border border-rose-500/30 text-rose-400 bg-rose-500/5 hover:bg-rose-500/10 transition"
+            >
+              <Shield className="w-4 h-4 text-rose-500" />
+              <span>Super Admin Portal</span>
+            </Link>
+          )}
+
           <div className="flex items-center gap-3 px-2">
             <div className="w-8 h-8 rounded-full bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center font-bold text-indigo-300">
               U
