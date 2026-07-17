@@ -72,24 +72,32 @@ type DB struct {
 }
 
 func Connect(ctx context.Context, connString string) (*DB, error) {
+	return ConnectWithRetries(ctx, connString, 5)
+}
+
+// ConnectOnce tries exactly once — used by connectWithFallbacks so we fail fast
+// between candidates instead of waiting 5×2=10 seconds per attempt.
+func ConnectOnce(ctx context.Context, connString string) (*DB, error) {
+	return ConnectWithRetries(ctx, connString, 1)
+}
+
+func ConnectWithRetries(ctx context.Context, connString string, maxAttempts int) (*DB, error) {
 	var pool *pgxpool.Pool
 	var err error
 
-	// Retry connection for up to 10 seconds to allow DB startup
-	for i := 0; i < 5; i++ {
+	for i := 0; i < maxAttempts; i++ {
 		pool, err = pgxpool.New(ctx, connString)
 		if err == nil {
 			err = pool.Ping(ctx)
 			if err == nil {
-				log.Println("Successfully connected to PostgreSQL database")
 				return &DB{Pool: pool}, nil
 			}
 		}
-
-		log.Printf("Failed to connect to database (attempt %d/5): %v. Retrying in 2 seconds...", i+1, err)
-		time.Sleep(2 * time.Second)
+		if i < maxAttempts-1 {
+			log.Printf("Failed to connect to database (attempt %d/%d): %v. Retrying in 2 seconds...", i+1, maxAttempts, err)
+			time.Sleep(2 * time.Second)
+		}
 	}
-
 	return nil, fmt.Errorf("unable to connect to database after retries: %w", err)
 }
 

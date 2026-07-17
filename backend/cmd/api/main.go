@@ -314,38 +314,61 @@ func main() {
 	}
 }
 
-// connectWithFallbacks tries multiple PostgreSQL connection strategies in order.
-// This makes the backend resilient to different Codespace/Docker configurations
-// where the postgres password or socket path may vary.
+// connectWithFallbacks tries multiple PostgreSQL connection strategies in order,
+// failing fast on each so the total wait is seconds not minutes.
 func connectWithFallbacks(ctx context.Context, primaryURL string) (*db.DB, error) {
+	osUser := os.Getenv("USER")
+	if osUser == "" {
+		osUser = "codespace" // Codespaces default
+	}
+
 	candidates := []struct {
 		label string
 		dsn   string
 	}{
-		// 1. Whatever is set in the environment / config (highest priority)
+		// 1. Configured DATABASE_URL (env var / config)
 		{"configured URL", primaryURL},
-		// 2. Password auth via TCP (Docker / local dev)
-		{"TCP with password", "postgres://postgres:postgres@127.0.0.1:5432/grc?sslmode=disable"},
-		// 3. No-password TCP (Codespaces native postgres, trust auth)
-		{"TCP no password", "postgres://postgres@127.0.0.1:5432/grc?sslmode=disable"},
-		// 4. Unix socket (Codespaces native postgres, peer auth)
-		{"unix socket", "postgres://postgres@/grc?host=/var/run/postgresql&sslmode=disable"},
-		// 5. Unix socket with default path
-		{"unix socket /tmp", "postgres://postgres@/grc?host=/tmp&sslmode=disable"},
+		// 2. Docker / local dev — postgres user with password
+		{"TCP postgres:postgres", "postgres://postgres:postgres@127.0.0.1:5432/grc?sslmode=disable"},
+		// 3. Codespaces unix socket — current OS user (peer auth, no password)
+		{"unix socket as " + osUser, "postgres://" + osUser + "@/grc?host=/var/run/postgresql&sslmode=disable"},
+		// 4. Codespaces unix socket — codespace user to postgres db first (in case grc doesn't exist yet)
+		{"unix socket as " + osUser + " (postgres db)", "postgres://" + osUser + "@/postgres?host=/var/run/postgresql&sslmode=disable"},
+		// 5. No-password TCP as current OS user
+		{"TCP no-password as " + osUser, "postgres://" + osUser + "@127.0.0.1:5432/grc?sslmode=disable"},
+		// 6. Trust auth — no user/password at all (some dev setups)
+		{"TCP trust postgres", "postgres://postgres@127.0.0.1:5432/grc?sslmode=disable"},
 	}
 
 	var lastErr error
 	for _, c := range candidates {
-		if c.dsn == "" {
+		if c.dsn == "" || c.dsn == candidates[0].dsn && c.label != "configured URL" {
 			continue
 		}
-		database, err := db.Connect(ctx, c.dsn)
+		log.Printf("🔌 Trying: %s", c.label)
+		database, err := db.ConnectOnce(ctx, c.dsn)
 		if err == nil {
 			log.Printf("✅ Connected to PostgreSQL via: %s", c.label)
+			// If we connected to postgres db instead of grc, try to create grc and reconnect
+			if c.label == "unix socket as "+osUser+" (postgres db)" {
+				log.Println("Creating 'grc' database if it doesn't exist...")
+				_ = database.Pool.QueryRow(ctx, "SELECT 1") // warm up
+				database.Pool.Exec(ctx, "CREATE DATABASE grc")
+				database.Close()
+				grcDSN := "postgres://" + osUser + "@/grc?host=/var/run/postgresql&sslmode=disable"
+				grcDB, grcErr := db.ConnectOnce(ctx, grcDSN)
+				if grcErr == nil {
+					log.Printf("✅ Reconnected to grc database via unix socket")
+					return grcDB, nil
+				}
+			}
 			return database, nil
 		}
-		log.Printf("⚠️  Connection attempt failed (%s): %v", c.label, err)
+		log.Printf("⚠️  %s — failed: %v", c.label, err)
 		lastErr = err
 	}
-	return nil, fmt.Errorf("all connection strategies failed. Last error: %w", lastErr)
+	return nil, fmt.Errorf("all connection strategies failed.\n\n"+
+		"💡 Fix: run this in your Codespace terminal:\n"+
+		"   psql -d postgres -c \"ALTER USER postgres WITH PASSWORD 'postgres'; CREATE DATABASE grc;\"\n"+
+		"Last error: %w", lastErr)
 }
