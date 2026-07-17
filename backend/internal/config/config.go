@@ -13,7 +13,7 @@ type Config struct {
 func Load() *Config {
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "postgres://postgres:postgres@localhost:5432/grc?sslmode=disable"
+		dbURL = "postgres://postgres:postgres@127.0.0.1:5432/grc?sslmode=disable"
 	}
 
 	jwtSecret := os.Getenv("JWT_SECRET")
