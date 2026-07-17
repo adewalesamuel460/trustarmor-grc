@@ -7,6 +7,9 @@ echo "============================================"
 echo "  TrustArmor GRC — First-time Setup"
 echo "============================================"
 
+# ── Remove broken yarn apt repo (common GPG issue in Codespaces) ────────────
+sudo rm -f /etc/apt/sources.list.d/yarn.list 2>/dev/null || true
+
 # ── Ensure PostgreSQL is running and grc DB exists ──────────────────────────
 echo "▶ Waiting for PostgreSQL to be ready..."
 for i in $(seq 1 15); do
