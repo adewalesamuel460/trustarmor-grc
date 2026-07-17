@@ -1,6 +1,20 @@
 {
   "name": "TrustArmor GRC",
   "image": "mcr.microsoft.com/devcontainers/universal:2",
+
+  "features": {
+    "ghcr.io/devcontainers/features/postgres:1": {
+      "version": "16",
+      "postgresPassword": "postgres"
+    },
+    "ghcr.io/devcontainers/features/redis:1": {
+      "version": "7"
+    },
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.24"
+    }
+  },
+
   "forwardPorts": [3000, 8000, 5432, 6379],
   "portsAttributes": {
     "3000": {
@@ -8,7 +22,7 @@
       "onAutoForward": "openBrowser"
     },
     "8000": {
-      "label": "Go Backend API (internal - use port 3000)",
+      "label": "Go Backend API",
       "onAutoForward": "silent"
     },
     "5432": {
@@ -20,15 +34,20 @@
       "onAutoForward": "ignore"
     }
   },
+
   "containerEnv": {
     "DATABASE_URL": "postgres://postgres:postgres@127.0.0.1:5432/grc?sslmode=disable",
     "JWT_SECRET": "trustarmor_development_secret_key_1234567890",
     "REDIS_ADDR": "127.0.0.1:6379",
-    "PORT": "8000"
+    "PORT": "8000",
+    "PGPASSWORD": "postgres"
   },
-  "postCreateCommand": "bash .devcontainer/setup.sh",
-  "postStartCommand": "bash .devcontainer/start-services.sh",
+
+  "postCreateCommand": "bash .devcontainer/post_create.sh",
+  "postStartCommand": "bash .devcontainer/post_start.sh",
+
   "remoteUser": "codespace",
+
   "customizations": {
     "vscode": {
       "extensions": [

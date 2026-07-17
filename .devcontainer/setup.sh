@@ -1,8 +1,11 @@
 #!/bin/bash
+# setup.sh — Manual installation fallback.
+# Run this if PostgreSQL/Redis are not available:
+#   bash /workspaces/trustarmor-grc/.devcontainer/setup.sh
 set -e
 
 echo "============================================"
-echo "  TrustArmor GRC — Dev Environment Setup"
+echo "  TrustArmor GRC — Manual Environment Setup"
 echo "============================================"
 
 # ── 1. PostgreSQL ──────────────────────────────
@@ -13,15 +16,12 @@ sudo apt-get install -y -qq postgresql postgresql-client
 
 echo "▶ Starting PostgreSQL service..."
 sudo service postgresql start
-
-# Give it a moment to start up fully
 sleep 3
 
-echo "▶ Creating database and user..."
+echo "▶ Configuring database..."
 sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';" 2>/dev/null || true
 sudo -u postgres createdb grc 2>/dev/null || echo "  (database 'grc' already exists)"
-
-echo "✅ PostgreSQL ready at localhost:5432"
+echo "✅ PostgreSQL ready at 127.0.0.1:5432"
 
 # ── 2. Redis ───────────────────────────────────
 echo ""
@@ -31,8 +31,7 @@ sudo apt-get install -y -qq redis-server
 echo "▶ Starting Redis service..."
 sudo service redis-server start
 sleep 1
-
-echo "✅ Redis ready at localhost:6379"
+echo "✅ Redis ready at 127.0.0.1:6379"
 
 # ── 3. Go dependencies ─────────────────────────
 echo ""
@@ -61,5 +60,7 @@ echo ""
 echo "  Terminal 2 — Frontend:"
 echo "    cd frontend && npm run dev"
 echo ""
-echo "  Then open the browser popup on port 3000."
+echo "  Dev Login:"
+echo "    Email   : admin@trustarmor.io"
+echo "    Password: TrustArmor2026!"
 echo "============================================"
