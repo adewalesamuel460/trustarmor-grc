@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '@/lib/api';
+import { isDemoMode, DEMO_WORKSPACE } from '@/lib/demo-mode';
 
 interface Workspace {
   id: string;
@@ -20,6 +21,11 @@ interface WorkspaceContextType {
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
+const DEMO_WS: Workspace = {
+  ...DEMO_WORKSPACE,
+  created_at: new Date().toISOString(),
+};
+
 export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null);
@@ -27,6 +33,13 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [error, setError] = useState<string | null>(null);
 
   const fetchWorkspaces = async () => {
+    // Demo mode: use a fake workspace immediately, skip API call
+    if (isDemoMode()) {
+      setWorkspaces([DEMO_WS]);
+      setActiveWorkspace(DEMO_WS);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {

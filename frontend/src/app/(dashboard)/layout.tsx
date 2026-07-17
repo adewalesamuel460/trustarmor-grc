@@ -6,6 +6,7 @@ import Link from 'next/link';
 import WorkspaceSwitcher from '@/components/WorkspaceSwitcher';
 import api from '@/lib/api';
 import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle, CheckSquare, Bell, Bug, User } from 'lucide-react';
+import { isDemoMode, disableDemoMode, DEMO_USER, DEMO_WORKSPACE } from '@/lib/demo-mode';
 
 export default function DashboardLayout({
   children,
@@ -56,6 +57,16 @@ export default function DashboardLayout({
 
   // Runs ONCE on mount (not on every navigation — layouts persist in App Router)
   useEffect(() => {
+    // Demo mode: bypass auth and show dashboard with mock data
+    if (isDemoMode()) {
+      setAuthenticated(true);
+      setUserEmail(DEMO_USER.email);
+      setUserRole('Admin');
+      setIsGlobalAdmin(true);
+      setLoading(false);
+      return;
+    }
+
     const token = localStorage.getItem('access_token');
     const email = localStorage.getItem('user_email');
     if (!token) {
