@@ -1,34 +1,15 @@
-version: '3.9'
-
-# ─── TrustArmor GRC — Local Development Stack ────────────────────────────────
-# Usage:
-#   docker compose up -d          # Start PostgreSQL + Redis
-#   cd backend && go run ./cmd/api/main.go   # Start backend (uses env below)
-#   cd frontend && npm run dev               # Start frontend
+# TrustArmor GRC — Local / Codespace Development Stack
 #
-# The backend auto-runs migrations on startup so you don't need to do anything
-# extra after starting the containers.
-# ─────────────────────────────────────────────────────────────────────────────
+# Usage:
+#   docker compose up -d          # Start Redis (Postgres runs natively in Codespaces)
+#   cd backend && go run ./cmd/api/main.go
+#   cd frontend && npm run dev
+#
+# In GitHub Codespaces, PostgreSQL is already running on port 5432 via the
+# devcontainer feature. Only Redis is needed from Docker here.
+# For pure local Windows dev, uncomment the postgres service below.
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: trustarmor-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: grc
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d grc"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
     container_name: trustarmor-redis
@@ -44,6 +25,25 @@ services:
       timeout: 3s
       retries: 5
 
+  # ── Uncomment below for local Windows development (no native PostgreSQL) ──
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: trustarmor-postgres
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: grc
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres -d grc"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+
 volumes:
-  postgres_data:
   redis_data:
+  # postgres_data:
