@@ -55,6 +55,9 @@ var tasksNotificationsSQL string
 //go:embed migrations/000015_incident_vulnerability.up.sql
 var incidentVulnerabilitySQL string
 
+//go:embed migrations/000016_super_admin.up.sql
+var superAdminSQL string
+
 type DB struct {
 	Pool *pgxpool.Pool
 }
@@ -176,6 +179,12 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 	_, err = db.Pool.Exec(ctx, incidentVulnerabilitySQL)
 	if err != nil {
 		return fmt.Errorf("failed to execute migration 000015: %w", err)
+	}
+
+	log.Println("Running database migrations (000016)...")
+	_, err = db.Pool.Exec(ctx, superAdminSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000016: %w", err)
 	}
 
 	log.Println("Migrations executed successfully")

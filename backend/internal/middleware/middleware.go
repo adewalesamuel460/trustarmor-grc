@@ -205,3 +205,24 @@ func RequireAuditorScoping(repo *repository.Repository) func(http.Handler) http.
 	}
 }
 
+// RequireGlobalAdmin restricts routes to platform support and administrators
+func RequireGlobalAdmin(repo *repository.Repository) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			userID, ok := r.Context().Value(UserIDKey).(string)
+			if !ok || userID == "" {
+				http.Error(w, "Unauthorized: User ID context missing", http.StatusUnauthorized)
+				return
+			}
+
+			isAdmin, err := repo.IsGlobalAdmin(r.Context(), userID)
+			if err != nil || !isAdmin {
+				http.Error(w, "Forbidden: Global Admin privileges required", http.StatusForbidden)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+

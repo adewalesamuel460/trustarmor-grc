@@ -22,6 +22,36 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState('');
   const [userRole, setUserRole] = useState('');
+  const [isImpersonating, setIsImpersonating] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const adminToken = localStorage.getItem('admin_access_token');
+      if (adminToken) {
+        setIsImpersonating(true);
+      }
+    }
+  }, []);
+
+  const handleEndImpersonation = () => {
+    const adminAccess = localStorage.getItem('admin_access_token');
+    const adminRefresh = localStorage.getItem('admin_refresh_token');
+    const adminEmail = localStorage.getItem('admin_user_email');
+    
+    if (adminAccess && adminRefresh) {
+      localStorage.setItem('access_token', adminAccess);
+      localStorage.setItem('refresh_token', adminRefresh);
+      if (adminEmail) {
+        localStorage.setItem('user_email', adminEmail);
+      }
+      
+      localStorage.removeItem('admin_access_token');
+      localStorage.removeItem('admin_refresh_token');
+      localStorage.removeItem('admin_user_email');
+      
+      window.location.href = '/super-admin';
+    }
+  };
 
   // Runs ONCE on mount (not on every navigation — layouts persist in App Router)
   useEffect(() => {
@@ -145,8 +175,21 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen bg-[#090d16] text-white flex">
-      {/* Sidebar */}
+    <div className="min-h-screen bg-[#090d16] text-white flex flex-col">
+      {/* Impersonation Banner */}
+      {isImpersonating && (
+        <div className="bg-red-600 hover:bg-red-700 text-white font-bold text-center py-2.5 text-xs flex justify-center items-center gap-2 border-b border-red-500 shadow-md">
+          <span>You are currently impersonating <strong>{userEmail}</strong>.</span>
+          <button 
+            onClick={handleEndImpersonation}
+            className="underline hover:text-red-200 transition bg-transparent border-none cursor-pointer"
+          >
+            [End Impersonation]
+          </button>
+        </div>
+      )}
+      <div className="flex-1 flex">
+        {/* Sidebar */}
       <aside className="w-64 border-r border-white/5 bg-gray-950/60 backdrop-blur-xl flex flex-col justify-between">
         <div>
           {/* Logo Header */}
@@ -228,6 +271,7 @@ export default function DashboardLayout({
         <main className="flex-1 p-8 overflow-y-auto">
           {children}
         </main>
+      </div>
       </div>
     </div>
   );

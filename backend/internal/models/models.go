@@ -5,9 +5,11 @@ import (
 )
 
 type Organization struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
+	ID               string    `json:"id"`
+	Name             string    `json:"name"`
+	SubscriptionTier string    `json:"subscription_tier"`
+	Status           string    `json:"status"`
+	CreatedAt        time.Time `json:"created_at"`
 }
 
 type Workspace struct {
@@ -540,4 +542,25 @@ type Vulnerability struct {
 	DiscoveredAt    time.Time  `json:"discovered_at"`
 	ResolvedAt      *time.Time `json:"resolved_at"`
 	IntegrationName *string    `json:"integration_name,omitempty"`
+}
+
+type GlobalAdmin struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"user_id"`
+	Role      string    `json:"role"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type GlobalAuditLog struct {
+	ID                   string     `json:"id"`
+	GlobalAdminID        string     `json:"global_admin_id"`
+	AdminEmail           string     `json:"admin_email,omitempty"`
+	TargetOrganizationID *string    `json:"target_organization_id,omitempty"`
+	TargetOrgName        string     `json:"target_org_name,omitempty"`
+	TargetWorkspaceID    *string    `json:"target_workspace_id,omitempty"`
+	TargetWorkspaceName  string     `json:"target_workspace_name,omitempty"`
+	Action               string     `json:"action"`
+	Details              any        `json:"details"`
+	IPAddress            string     `json:"ip_address"`
+	CreatedAt            time.Time  `json:"created_at"`
 }

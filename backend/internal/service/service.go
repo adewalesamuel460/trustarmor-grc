@@ -27,7 +27,8 @@ type AuthResult struct {
 }
 
 type Claims struct {
-	UserID string `json:"user_id"`
+	UserID          string `json:"user_id"`
+	IsImpersonating bool   `json:"is_impersonating,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -393,6 +394,41 @@ func (s *Service) generateTokenPair(userID string) (string, string, error) {
 	// Refresh Token (7 days)
 	refreshClaims := &Claims{
 		UserID: userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+	refreshStr, err := refreshToken.SignedString(s.jwtSecret)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to sign refresh token: %w", err)
+	}
+
+	return accessStr, refreshStr, nil
+}
+
+// generateImpersonatedTokenPair generates access + refresh tokens with an impersonating claim
+func (s *Service) generateImpersonatedTokenPair(userID string) (string, string, error) {
+	// Access Token (15 mins)
+	accessClaims := &Claims{
+		UserID:          userID,
+		IsImpersonating: true,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
+	accessStr, err := accessToken.SignedString(s.jwtSecret)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to sign access token: %w", err)
+	}
+
+	// Refresh Token (7 days)
+	refreshClaims := &Claims{
+		UserID:          userID,
+		IsImpersonating: true,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

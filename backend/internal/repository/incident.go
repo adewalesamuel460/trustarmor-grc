@@ -15,7 +15,7 @@ func (r *Repository) GetIncidents(ctx context.Context, workspaceID string) ([]mo
 	rows, err := r.db.Pool.Query(ctx, `
 		SELECT i.id, i.workspace_id, i.title, i.description, i.severity, i.status, i.is_breach, 
 		       i.discovered_at, i.regulatory_deadline, COALESCE(i.root_cause_analysis, ''), i.owner_id, 
-		       u.full_name as owner_name, i.created_at, i.updated_at
+		       u.email as owner_name, i.created_at, i.updated_at
 		FROM incidents i
 		LEFT JOIN users u ON i.owner_id = u.id
 		WHERE i.workspace_id = $1
@@ -51,7 +51,7 @@ func (r *Repository) GetIncidentByID(ctx context.Context, id string) (*models.In
 	err := r.db.Pool.QueryRow(ctx, `
 		SELECT i.id, i.workspace_id, i.title, i.description, i.severity, i.status, i.is_breach, 
 		       i.discovered_at, i.regulatory_deadline, COALESCE(i.root_cause_analysis, ''), i.owner_id, 
-		       u.full_name as owner_name, i.created_at, i.updated_at
+		       u.email as owner_name, i.created_at, i.updated_at
 		FROM incidents i
 		LEFT JOIN users u ON i.owner_id = u.id
 		WHERE i.id = $1;

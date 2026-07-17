@@ -131,6 +131,21 @@ func main() {
 	r.Get("/public/trust-center/{slug}", h.PublicGetTrustCenter)
 	r.Post("/public/trust-center/{slug}/nda-requests", h.PublicCreateNDARequest)
 
+	// Authenticated Admin routes
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.Auth(svc))
+		r.Route("/admin", func(r chi.Router) {
+			r.Use(middleware.RequireGlobalAdmin(repo))
+			r.Get("/tenants", h.AdminListTenants)
+			r.Patch("/tenants/{id}/status", h.AdminUpdateTenantStatus)
+			r.Get("/tenants/{id}/users", h.AdminGetTenantUsers)
+			r.Get("/tenants/{id}/frameworks", h.AdminGetTenantFrameworks)
+			r.Post("/impersonate", h.AdminImpersonateUser)
+			r.Post("/frameworks/push", h.AdminPushGlobalFramework)
+			r.Get("/audit-logs", h.AdminGetAuditLogs)
+		})
+	})
+
 	// Authenticated routes
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Auth(svc))
