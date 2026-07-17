@@ -23,8 +23,9 @@ func main() {
 	// Load configuration
 	cfg := config.Load()
 
-	// Connect to database
-	database, err := db.Connect(ctx, cfg.DatabaseURL)
+	// Connect to database — try multiple connection strategies automatically.
+	// This handles Codespaces where postgres password may not be configured.
+	database, err := connectWithFallbacks(ctx, cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("Database connection failure: %v", err)
 	}
@@ -311,4 +312,40 @@ func main() {
 	if err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
+}
+
+// connectWithFallbacks tries multiple PostgreSQL connection strategies in order.
+// This makes the backend resilient to different Codespace/Docker configurations
+// where the postgres password or socket path may vary.
+func connectWithFallbacks(ctx context.Context, primaryURL string) (*db.DB, error) {
+	candidates := []struct {
+		label string
+		dsn   string
+	}{
+		// 1. Whatever is set in the environment / config (highest priority)
+		{"configured URL", primaryURL},
+		// 2. Password auth via TCP (Docker / local dev)
+		{"TCP with password", "postgres://postgres:postgres@127.0.0.1:5432/grc?sslmode=disable"},
+		// 3. No-password TCP (Codespaces native postgres, trust auth)
+		{"TCP no password", "postgres://postgres@127.0.0.1:5432/grc?sslmode=disable"},
+		// 4. Unix socket (Codespaces native postgres, peer auth)
+		{"unix socket", "postgres://postgres@/grc?host=/var/run/postgresql&sslmode=disable"},
+		// 5. Unix socket with default path
+		{"unix socket /tmp", "postgres://postgres@/grc?host=/tmp&sslmode=disable"},
+	}
+
+	var lastErr error
+	for _, c := range candidates {
+		if c.dsn == "" {
+			continue
+		}
+		database, err := db.Connect(ctx, c.dsn)
+		if err == nil {
+			log.Printf("✅ Connected to PostgreSQL via: %s", c.label)
+			return database, nil
+		}
+		log.Printf("⚠️  Connection attempt failed (%s): %v", c.label, err)
+		lastErr = err
+	}
+	return nil, fmt.Errorf("all connection strategies failed. Last error: %w", lastErr)
 }
