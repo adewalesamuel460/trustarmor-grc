@@ -161,3 +161,16 @@ func (r *Repository) GetSyncLogs(ctx context.Context, integrationID string) ([]m
 
 	return logs, nil
 }
+
+// CreateIntegrationProvider registers a new integration provider
+func (r *Repository) CreateIntegrationProvider(ctx context.Context, p *models.IntegrationProvider) error {
+	err := r.db.Pool.QueryRow(ctx, `
+		INSERT INTO integration_providers (name, category, auth_type, logo_url)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, created_at;
+	`, p.Name, p.Category, p.AuthType, p.LogoURL).Scan(&p.ID, &p.CreatedAt)
+	if err != nil {
+		return fmt.Errorf("failed to create integration provider: %w", err)
+	}
+	return nil
+}

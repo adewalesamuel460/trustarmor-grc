@@ -152,3 +152,8 @@ func (s *Service) GetCompliancePosture(ctx context.Context, workspaceID, framewo
 func (s *Service) GetRequirements(ctx context.Context) ([]models.Requirement, error) {
 	return s.repo.GetRequirements(ctx)
 }
+
+// CreateIntegrationProvider registers a new integration provider
+func (s *Service) CreateIntegrationProvider(ctx context.Context, p *models.IntegrationProvider) error {
+	return s.repo.CreateIntegrationProvider(ctx, p)
+}

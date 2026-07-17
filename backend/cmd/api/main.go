@@ -170,6 +170,7 @@ func main() {
 
 		// Integrations & Background Workers
 		r.Get("/integrations/providers", h.GetIntegrationProviders)
+		r.Post("/integrations/providers", h.CreateIntegrationProvider)
 		r.Get("/workspaces/{id}/integrations", h.GetWorkspaceIntegrations)
 		r.Post("/workspaces/{id}/integrations/connect", h.ConnectIntegration)
 		r.Post("/workspaces/{id}/integrations/{integration_id}/sync", h.SyncIntegration)

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/middleware"
+	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/models"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -221,4 +222,38 @@ func (h *Handler) GetSyncLogs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.respondJSON(w, http.StatusOK, logs)
+}
+
+// CreateIntegrationProvider handles POST /integrations/providers to register a custom provider
+func (h *Handler) CreateIntegrationProvider(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Name     string  `json:"name"`
+		Category string  `json:"category"`
+		AuthType string  `json:"auth_type"`
+		LogoURL  *string `json:"logo_url"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.respondError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	if req.Name == "" || req.Category == "" || req.AuthType == "" {
+		h.respondError(w, http.StatusBadRequest, "Name, Category, and AuthType are required fields")
+		return
+	}
+
+	p := models.IntegrationProvider{
+		Name:     req.Name,
+		Category: req.Category,
+		AuthType: req.AuthType,
+		LogoURL:  req.LogoURL,
+	}
+
+	err := h.svc.CreateIntegrationProvider(r.Context(), &p)
+	if err != nil {
+		h.respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.respondJSON(w, http.StatusCreated, p)
 }

@@ -60,6 +60,43 @@ export default function IntegrationsPage() {
   // Sync Trigger Loading state
   const [syncTriggering, setSyncTriggering] = useState(false);
 
+  // Modal: Add Custom Provider
+  const [isAddProviderOpen, setIsAddProviderOpen] = useState(false);
+  const [newProviderName, setNewProviderName] = useState('');
+  const [newProviderCategory, setNewProviderCategory] = useState('Cloud');
+  const [newProviderAuthType, setNewProviderAuthType] = useState('API_KEY');
+  const [newProviderLogoURL, setNewProviderLogoURL] = useState('');
+  const [addProviderLoading, setAddProviderLoading] = useState(false);
+
+  const handleAddProviderSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProviderName) return;
+    setAddProviderLoading(true);
+    setError(null);
+    try {
+      await api.post('/integrations/providers', {
+        name: newProviderName,
+        category: newProviderCategory,
+        auth_type: newProviderAuthType,
+        logo_url: newProviderLogoURL || null,
+      });
+
+      // Reset form
+      setNewProviderName('');
+      setNewProviderCategory('Cloud');
+      setNewProviderAuthType('API_KEY');
+      setNewProviderLogoURL('');
+      setIsAddProviderOpen(false);
+
+      // Refresh listings
+      await fetchIntegrationsData();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to add custom integration provider');
+    } finally {
+      setAddProviderLoading(false);
+    }
+  };
+
   const fetchIntegrationsData = async () => {
     if (!activeWorkspace) return;
     setLoading(true);
@@ -332,14 +369,23 @@ export default function IntegrationsPage() {
         /* SUBVIEW: Global Providers Grid */
         <div className="space-y-6">
           {/* Header */}
-          <div>
-            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Layers className="w-6 h-6 text-indigo-400" />
-              <span>Integrations Hub</span>
-            </h2>
-            <p className="text-gray-400 text-sm">
-              Connect external Cloud, Identity, or VCS providers to collect compliance evidence automatically.
-            </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                <Layers className="w-6 h-6 text-indigo-400" />
+                <span>Integrations Hub</span>
+              </h2>
+              <p className="text-gray-400 text-sm">
+                Connect external Cloud, Identity, or VCS providers to collect compliance evidence automatically.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsAddProviderOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition shadow-lg shadow-indigo-600/10"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Provider</span>
+            </button>
           </div>
 
           {loading ? (
@@ -457,6 +503,100 @@ export default function IntegrationsPage() {
                 className="flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition disabled:opacity-50"
               >
                 {modalLoading ? 'Connecting...' : 'Establish Connection'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Modal: Add Custom Integration Provider */}
+      {isAddProviderOpen && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+          <form
+            onSubmit={handleAddProviderSubmit}
+            className="w-full max-w-md p-8 rounded-2xl border border-white/5 bg-gray-900 shadow-2xl relative space-y-6"
+          >
+            <div>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Plus className="w-5 h-5 text-indigo-400" />
+                <span>Add Custom Provider</span>
+              </h3>
+              <p className="text-xs text-gray-400 mt-1">
+                Register a new integration provider in the global catalogue.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Provider Name</label>
+                <input
+                  type="text"
+                  required
+                  value={newProviderName}
+                  onChange={(e) => setNewProviderName(e.target.value)}
+                  placeholder="e.g. GitLab Enterprise, Jira Cloud"
+                  className="w-full px-4 py-2.5 bg-gray-950/40 border border-white/5 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Category</label>
+                <select
+                  value={newProviderCategory}
+                  onChange={(e) => setNewProviderCategory(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-950/45 border border-white/5 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition"
+                >
+                  <option value="Cloud">Cloud (e.g. AWS, GCP)</option>
+                  <option value="Identity">Identity (e.g. Google Workspace, Okta)</option>
+                  <option value="VCS">VCS (e.g. GitHub, GitLab)</option>
+                  <option value="HRIS">HRIS (e.g. BambooHR, Rippling)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Auth Type</label>
+                <select
+                  value={newProviderAuthType}
+                  onChange={(e) => setNewProviderAuthType(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-950/45 border border-white/5 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition"
+                >
+                  <option value="API_KEY">API Key / Secret Token</option>
+                  <option value="OAUTH2">OAuth 2.0 Client Credentials</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Logo URL (Optional)</label>
+                <input
+                  type="text"
+                  value={newProviderLogoURL}
+                  onChange={(e) => setNewProviderLogoURL(e.target.value)}
+                  placeholder="e.g. /logos/gitlab.png"
+                  className="w-full px-4 py-2.5 bg-gray-950/40 border border-white/5 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+              <button
+                type="button"
+                onClick={() => {
+                  setNewProviderName('');
+                  setNewProviderCategory('Cloud');
+                  setNewProviderAuthType('API_KEY');
+                  setNewProviderLogoURL('');
+                  setIsAddProviderOpen(false);
+                }}
+                className="px-5 py-2.5 bg-gray-950/40 hover:bg-gray-950/60 border border-white/10 text-white font-semibold text-xs rounded-xl transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={addProviderLoading}
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition disabled:opacity-50"
+              >
+                {addProviderLoading ? 'Adding...' : 'Add Provider'}
               </button>
             </div>
           </form>
