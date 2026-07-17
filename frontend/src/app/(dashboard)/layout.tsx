@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import WorkspaceSwitcher from '@/components/WorkspaceSwitcher';
 import api from '@/lib/api';
-import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle, CheckSquare, Bell } from 'lucide-react';
+import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle, CheckSquare, Bell, Bug } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -95,7 +95,9 @@ export default function DashboardLayout({
         { name: 'Frameworks', path: '/compliance/frameworks', icon: ShieldCheck },
         { name: 'Controls', path: '/compliance/controls', icon: Sliders },
         { name: 'Integrations', path: '/compliance/integrations', icon: Layers },
+        { name: 'Vulnerabilities', path: '/compliance/vulnerabilities', icon: Bug },
         { name: 'Policies', path: '/compliance/policies', icon: ScrollText },
+        { name: 'Incidents', path: '/compliance/incidents', icon: AlertTriangle },
         { name: 'Vendors / TPRM', path: '/compliance/vendors', icon: Building },
         { name: 'Questionnaires', path: '/compliance/questionnaires', icon: HelpCircle },
         { name: 'Trust Center', path: '/compliance/trust-center', icon: Shield },

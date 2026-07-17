@@ -500,3 +500,44 @@ type NotificationRule struct {
 	IsActive          bool      `json:"is_active"`
 	CreatedAt         time.Time `json:"created_at"`
 }
+
+type Incident struct {
+	ID                 string     `json:"id"`
+	WorkspaceID        string     `json:"workspace_id"`
+	Title              string     `json:"title"`
+	Description        string     `json:"description"`
+	Severity           string     `json:"severity"`
+	Status             string     `json:"status"`
+	IsBreach           bool       `json:"is_breach"`
+	DiscoveredAt       time.Time  `json:"discovered_at"`
+	RegulatoryDeadline *time.Time `json:"regulatory_deadline"`
+	RootCauseAnalysis  string     `json:"root_cause_analysis"`
+	OwnerID            *string    `json:"owner_id"`
+	OwnerName          *string    `json:"owner_name,omitempty"`
+	CreatedAt          time.Time  `json:"created_at"`
+	UpdatedAt          time.Time  `json:"updated_at"`
+}
+
+type IncidentUpdate struct {
+	ID         string    `json:"id"`
+	IncidentID string    `json:"incident_id"`
+	UserID     *string   `json:"user_id"`
+	UserEmail  *string   `json:"user_email,omitempty"`
+	UpdateText string    `json:"update_text"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+type Vulnerability struct {
+	ID              string     `json:"id"`
+	WorkspaceID     string     `json:"workspace_id"`
+	IntegrationID   *string    `json:"integration_id"`
+	CVEID           string     `json:"cve_id"`
+	Title           string     `json:"title"`
+	Severity        string     `json:"severity"`
+	AssetAffected   string     `json:"asset_affected"`
+	Status          string     `json:"status"`
+	SLADeadline     *time.Time `json:"sla_deadline"`
+	DiscoveredAt    time.Time  `json:"discovered_at"`
+	ResolvedAt      *time.Time `json:"resolved_at"`
+	IntegrationName *string    `json:"integration_name,omitempty"`
+}

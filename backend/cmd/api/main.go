@@ -269,6 +269,15 @@ func main() {
 		r.Get("/workspaces/{id}/reports/posture", h.GetReportsPosture)
 		r.Get("/workspaces/{id}/reports/mttr", h.GetReportsMTTR)
 		r.Get("/workspaces/{id}/reports/summary-widgets", h.GetReportsSummaryWidgets)
+
+		// Incident Response & Vulnerability Management
+		r.Get("/workspaces/{id}/incidents", h.GetIncidents)
+		r.Post("/workspaces/{id}/incidents", h.CreateIncident)
+		r.Get("/workspaces/{id}/incidents/{incident_id}/updates", h.GetIncidentUpdates)
+		r.Post("/workspaces/{id}/incidents/{incident_id}/updates", h.AddIncidentUpdate)
+		r.Patch("/workspaces/{id}/incidents/{incident_id}/resolve", h.ResolveIncident)
+		r.Get("/workspaces/{id}/vulnerabilities", h.GetVulnerabilities)
+		r.Post("/workspaces/{id}/vulnerabilities", h.IngestVulnerability)
 	})
 
 	// Start server
