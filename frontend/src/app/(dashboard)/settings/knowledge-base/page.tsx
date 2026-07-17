@@ -5,7 +5,7 @@ import { useWorkspace } from '@/context/WorkspaceContext';
 import api from '@/lib/api';
 import { 
   Brain, Plus, Search, Edit2, Shield, Calendar, Users, Eye, Check,
-  X, Loader2, AlertCircle, Trash2, PlusCircle, Bookmark
+  X, Loader2, AlertCircle, Trash2, PlusCircle, Bookmark, Download
 } from 'lucide-react';
 
 interface KBItem {
@@ -117,13 +117,23 @@ export default function KnowledgeBasePage() {
           </h2>
           <p className="text-gray-400 text-sm">Manage company-approved security answers and context used to auto-respond to customer questionnaires.</p>
         </div>
-        <button
-          onClick={() => setIsCreating(true)}
-          className="flex items-center gap-1.5 px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Approved Q&A</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <a
+            href="/trustarmor_product_documentation.md"
+            download="trustarmor_product_documentation.md"
+            className="flex items-center gap-1.5 px-4.5 py-2.5 border border-white/10 bg-gray-900/40 hover:bg-gray-900/60 text-white font-semibold text-xs rounded-xl transition shadow-md"
+          >
+            <Download className="w-4 h-4 text-indigo-400" />
+            <span>Download Product Doc</span>
+          </a>
+          <button
+            onClick={() => setIsCreating(true)}
+            className="flex items-center gap-1.5 px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Approved Q&A</span>
+          </button>
+        </div>
       </div>
 
       {/* Search & Grid */}
