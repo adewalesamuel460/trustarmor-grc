@@ -11,7 +11,6 @@
       "label": "Go Backend API (internal - use port 3000)",
       "onAutoForward": "silent"
     },
-
     "5432": {
       "label": "PostgreSQL",
       "onAutoForward": "ignore"
@@ -24,10 +23,11 @@
   "containerEnv": {
     "DATABASE_URL": "postgres://postgres:postgres@localhost:5432/grc?sslmode=disable",
     "JWT_SECRET": "trustarmor_development_secret_key_1234567890",
-    "REDIS_URL": "redis://localhost:6379",
+    "REDIS_ADDR": "localhost:6379",
     "PORT": "8000"
   },
   "postCreateCommand": "bash .devcontainer/setup.sh",
+  "postStartCommand": "bash .devcontainer/start-services.sh",
   "remoteUser": "codespace",
   "customizations": {
     "vscode": {
