@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import WorkspaceSwitcher from '@/components/WorkspaceSwitcher';
 import api from '@/lib/api';
-import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle, CheckSquare, Bell, Bug } from 'lucide-react';
+import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle, CheckSquare, Bell, Bug, User } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -152,6 +152,7 @@ export default function DashboardLayout({
     {
       title: 'Settings',
       items: [
+        { name: 'Profile', path: '/settings/profile', icon: User },
         { name: 'Team Settings', path: '/settings/team', icon: Users2 },
         { name: 'Knowledge Base', path: '/settings/knowledge-base', icon: Brain },
         { name: 'Notification Rules', path: '/settings/notifications', icon: Bell },
@@ -252,14 +253,18 @@ export default function DashboardLayout({
             </Link>
           )}
 
-          <div className="flex items-center gap-3 px-2">
-            <div className="w-8 h-8 rounded-full bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center font-bold text-indigo-300">
+          <Link
+            href="/settings/profile"
+            className="flex items-center gap-3 px-2 hover:bg-white/5 rounded-xl transition py-1 group"
+          >
+            <div className="w-8 h-8 rounded-full bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center font-bold text-indigo-300 group-hover:border-indigo-400/50 transition">
               U
             </div>
             <div className="overflow-hidden">
-              <p className="text-xs text-gray-400 truncate">{userEmail}</p>
+              <p className="text-xs text-gray-400 truncate group-hover:text-white transition">{userEmail}</p>
+              <p className="text-[10px] text-gray-600 group-hover:text-gray-400 transition">View profile</p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl text-sm font-medium transition"

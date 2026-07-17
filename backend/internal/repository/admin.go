@@ -224,3 +224,56 @@ func (r *Repository) GetTenantFrameworks(ctx context.Context, orgID string) ([]m
 	}
 	return list, nil
 }
+
+// PromoteUserToAdmin inserts or updates a user in global_admins
+func (r *Repository) PromoteUserToAdmin(ctx context.Context, userID string, role string) error {
+	_, err := r.db.Pool.Exec(ctx, `
+		INSERT INTO global_admins (user_id, role)
+		VALUES ($1, $2)
+		ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
+	`, userID, role)
+	if err != nil {
+		return fmt.Errorf("failed to promote user to admin: %w", err)
+	}
+	return nil
+}
+
+// DemoteUserFromAdmin removes a user from global_admins
+func (r *Repository) DemoteUserFromAdmin(ctx context.Context, userID string) error {
+	_, err := r.db.Pool.Exec(ctx, `DELETE FROM global_admins WHERE user_id = $1`, userID)
+	if err != nil {
+		return fmt.Errorf("failed to demote user from admin: %w", err)
+	}
+	return nil
+}
+
+// ListGlobalAdmins retrieves all platform admins with their associated email
+func (r *Repository) ListGlobalAdmins(ctx context.Context) ([]map[string]any, error) {
+	rows, err := r.db.Pool.Query(ctx, `
+		SELECT ga.id, ga.user_id, u.email, ga.role, ga.created_at
+		FROM global_admins ga
+		JOIN users u ON ga.user_id = u.id
+		ORDER BY ga.created_at ASC;
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list global admins: %w", err)
+	}
+	defer rows.Close()
+
+	var list []map[string]any
+	for rows.Next() {
+		var id, userID, email, role string
+		var createdAt time.Time
+		if err := rows.Scan(&id, &userID, &email, &role, &createdAt); err != nil {
+			return nil, fmt.Errorf("failed to scan admin row: %w", err)
+		}
+		list = append(list, map[string]any{
+			"id":         id,
+			"user_id":    userID,
+			"email":      email,
+			"role":       role,
+			"created_at": createdAt,
+		})
+	}
+	return list, nil
+}

@@ -164,3 +164,69 @@ func (h *Handler) AdminGetTenantFrameworks(w http.ResponseWriter, r *http.Reques
 
 	h.respondJSON(w, http.StatusOK, frameworks)
 }
+
+// AdminListGlobalAdmins handles GET /admin/admins
+func (h *Handler) AdminListGlobalAdmins(w http.ResponseWriter, r *http.Request) {
+	adminUserID := middleware.GetUserID(r.Context())
+	admins, err := h.svc.AdminListGlobalAdmins(r.Context(), adminUserID)
+	if err != nil {
+		h.respondError(w, http.StatusForbidden, err.Error())
+		return
+	}
+	h.respondJSON(w, http.StatusOK, admins)
+}
+
+// AdminPromoteUser handles POST /admin/admins/promote
+func (h *Handler) AdminPromoteUser(w http.ResponseWriter, r *http.Request) {
+	adminUserID := middleware.GetUserID(r.Context())
+	var req struct {
+		Email string `json:"email"`
+		Role  string `json:"role"` // 'super_admin', 'support', 'content_manager'
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.respondError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	if req.Email == "" {
+		h.respondError(w, http.StatusBadRequest, "Email is required")
+		return
+	}
+
+	if req.Role == "" {
+		req.Role = "support"
+	}
+
+	ipAddress := r.RemoteAddr
+	if err := h.svc.AdminPromoteUser(r.Context(), adminUserID, req.Email, req.Role, ipAddress); err != nil {
+		h.respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	h.respondJSON(w, http.StatusOK, map[string]string{"message": "User promoted to admin successfully"})
+}
+
+// AdminDemoteUser handles DELETE /admin/admins/demote
+func (h *Handler) AdminDemoteUser(w http.ResponseWriter, r *http.Request) {
+	adminUserID := middleware.GetUserID(r.Context())
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.respondError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	if req.Email == "" {
+		h.respondError(w, http.StatusBadRequest, "Email is required")
+		return
+	}
+
+	ipAddress := r.RemoteAddr
+	if err := h.svc.AdminDemoteUser(r.Context(), adminUserID, req.Email, ipAddress); err != nil {
+		h.respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	h.respondJSON(w, http.StatusOK, map[string]string{"message": "Admin privileges revoked successfully"})
+}

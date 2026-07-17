@@ -53,9 +53,10 @@ interface Requirement {
 }
 
 export default function SuperAdminPage() {
-  const [activeTab, setActiveTab] = useState<'tenants' | 'push' | 'logs'>('tenants');
+  const [activeTab, setActiveTab] = useState<'tenants' | 'push' | 'logs' | 'admins'>('tenants');
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [globalAdmins, setGlobalAdmins] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -82,12 +83,14 @@ export default function SuperAdminPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [tenantsRes, logsRes] = await Promise.all([
+      const [tenantsRes, logsRes, adminsRes] = await Promise.all([
         api.get('/admin/tenants'),
-        api.get('/admin/audit-logs')
+        api.get('/admin/audit-logs'),
+        api.get('/admin/admins')
       ]);
       setTenants(tenantsRes.data || []);
       setAuditLogs(logsRes.data || []);
+      setGlobalAdmins(adminsRes.data || []);
     } catch (err) {
       console.error('Failed to load platform dashboard data', err);
     } finally {
@@ -213,6 +216,41 @@ export default function SuperAdminPage() {
     }
   };
 
+  // --- Admin Management State & Handlers ---
+  const [promoteEmail, setPromoteEmail] = useState('');
+  const [promoteRole, setPromoteRole] = useState('support');
+  const [promoting, setPromoting] = useState(false);
+  const [promoteMsg, setPromoteMsg] = useState({ type: '', text: '' });
+
+  const handlePromoteUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPromoteMsg({ type: '', text: '' });
+    setPromoting(true);
+    try {
+      await api.post('/admin/admins/promote', { email: promoteEmail, role: promoteRole });
+      setPromoteMsg({ type: 'success', text: `${promoteEmail} promoted to ${promoteRole} successfully.` });
+      setPromoteEmail('');
+      // Refresh admin list
+      const { data } = await api.get('/admin/admins');
+      setGlobalAdmins(data || []);
+    } catch (err: any) {
+      setPromoteMsg({ type: 'error', text: err.response?.data?.error || 'Failed to promote user.' });
+    } finally {
+      setPromoting(false);
+    }
+  };
+
+  const handleDemoteAdmin = async (email: string) => {
+    if (!confirm(`Revoke admin privileges from ${email}?`)) return;
+    try {
+      await api.post('/admin/admins/demote', { email });
+      const { data } = await api.get('/admin/admins');
+      setGlobalAdmins(data || []);
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to demote admin.');
+    }
+  };
+
   // Metrics calculators
   const totalOrgs = tenants.length;
   const totalUsers = tenants.reduce((acc, t) => acc + t.user_count, 0);
@@ -316,6 +354,16 @@ export default function SuperAdminPage() {
           }`}
         >
           System Audit Logs
+        </button>
+        <button
+          onClick={() => setActiveTab('admins')}
+          className={`px-6 py-3.5 font-semibold text-sm border-b-2 transition ${
+            activeTab === 'admins' 
+              ? 'border-rose-500 text-rose-400 bg-rose-500/5' 
+              : 'border-transparent text-gray-400 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          Admin Management
         </button>
       </div>
 
@@ -735,6 +783,104 @@ export default function SuperAdminPage() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {activeTab === 'admins' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Promote User Form */}
+          <div className="bg-gray-950/40 backdrop-blur-md border border-white/5 rounded-2xl p-6 shadow-xl space-y-6">
+            <div className="border-b border-white/5 pb-4">
+              <h3 className="text-lg font-black text-white">Grant Admin Privileges</h3>
+              <p className="text-xs text-gray-400 mt-1">
+                Enter a registered user's email to promote them to a platform admin role.
+              </p>
+            </div>
+
+            <form onSubmit={handlePromoteUser} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs text-gray-400 font-bold uppercase tracking-wider block">User Email</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="user@company.com"
+                  value={promoteEmail}
+                  onChange={e => setPromoteEmail(e.target.value)}
+                  className="w-full bg-gray-900/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:border-rose-500/50 transition"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs text-gray-400 font-bold uppercase tracking-wider block">Admin Role</label>
+                <select
+                  value={promoteRole}
+                  onChange={e => setPromoteRole(e.target.value)}
+                  className="w-full bg-gray-900/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-rose-500/50 transition"
+                >
+                  <option value="super_admin">Super Admin — Full platform control</option>
+                  <option value="support">Support — Tenant management & impersonation</option>
+                  <option value="content_manager">Content Manager — Framework distribution only</option>
+                </select>
+              </div>
+
+              {promoteMsg.text && (
+                <div className={`flex items-center gap-2 text-sm px-4 py-3 rounded-xl border ${
+                  promoteMsg.type === 'success'
+                    ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                    : 'text-red-400 bg-red-500/10 border-red-500/20'
+                }`}>
+                  {promoteMsg.text}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={promoting}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-rose-600 hover:bg-rose-700 disabled:bg-gray-800 disabled:text-gray-500 text-white font-bold rounded-xl border border-rose-500/20 transition"
+              >
+                {promoting ? 'Promoting...' : 'Grant Admin Access'}
+              </button>
+            </form>
+          </div>
+
+          {/* Current Admins List */}
+          <div className="bg-gray-950/40 backdrop-blur-md border border-white/5 rounded-2xl overflow-hidden shadow-xl">
+            <div className="p-6 border-b border-white/5 bg-gray-900/20">
+              <h3 className="text-lg font-black text-white">Current Platform Admins</h3>
+              <p className="text-xs text-gray-400 mt-1">{globalAdmins.length} admin{globalAdmins.length !== 1 ? 's' : ''} with platform access.</p>
+            </div>
+
+            <div className="divide-y divide-white/5">
+              {globalAdmins.length === 0 ? (
+                <div className="px-6 py-8 text-center text-gray-500 text-sm">
+                  No platform admins found.
+                </div>
+              ) : (
+                globalAdmins.map((admin: any) => (
+                  <div key={admin.id} className="px-6 py-4 flex items-center justify-between gap-3 hover:bg-white/5 transition">
+                    <div className="space-y-0.5 overflow-hidden">
+                      <p className="text-sm font-semibold text-white truncate">{admin.email}</p>
+                      <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider ${
+                        admin.role === 'super_admin'
+                          ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                          : admin.role === 'content_manager'
+                          ? 'bg-sky-500/10 border-sky-500/30 text-sky-400'
+                          : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                      }`}>
+                        {admin.role?.replace('_', ' ')}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleDemoteAdmin(admin.email)}
+                      className="flex-shrink-0 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg text-xs font-semibold transition"
+                    >
+                      Revoke
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

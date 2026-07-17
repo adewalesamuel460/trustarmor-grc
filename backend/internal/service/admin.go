@@ -166,3 +166,72 @@ func (s *Service) AdminGetTenantFrameworks(ctx context.Context, adminUserID stri
 
 	return s.repo.GetTenantFrameworks(ctx, orgID)
 }
+
+// AdminPromoteUser grants global admin privileges to a user identified by email
+func (s *Service) AdminPromoteUser(ctx context.Context, adminUserID string, targetEmail string, role string, ipAddress string) error {
+	isAdmin, err := s.repo.IsGlobalAdmin(ctx, adminUserID)
+	if err != nil || !isAdmin {
+		return fmt.Errorf("unauthorized: super_admin privilege required")
+	}
+
+	targetUser, err := s.repo.GetUserByEmail(ctx, targetEmail)
+	if err != nil {
+		return fmt.Errorf("user not found: %w", err)
+	}
+
+	if err := s.repo.PromoteUserToAdmin(ctx, targetUser.ID, role); err != nil {
+		return err
+	}
+
+	admin, _ := s.repo.GetGlobalAdminByUserID(ctx, adminUserID)
+	if admin != nil {
+		log := models.GlobalAuditLog{
+			GlobalAdminID: admin.ID,
+			Action:        "admin_promoted",
+			Details:       map[string]string{"target_email": targetEmail, "role": role},
+			IPAddress:     ipAddress,
+		}
+		_ = s.repo.CreateGlobalAuditLog(ctx, &log)
+	}
+
+	return nil
+}
+
+// AdminDemoteUser removes global admin privileges from a user identified by email
+func (s *Service) AdminDemoteUser(ctx context.Context, adminUserID string, targetEmail string, ipAddress string) error {
+	isAdmin, err := s.repo.IsGlobalAdmin(ctx, adminUserID)
+	if err != nil || !isAdmin {
+		return fmt.Errorf("unauthorized: super_admin privilege required")
+	}
+
+	targetUser, err := s.repo.GetUserByEmail(ctx, targetEmail)
+	if err != nil {
+		return fmt.Errorf("user not found: %w", err)
+	}
+
+	if err := s.repo.DemoteUserFromAdmin(ctx, targetUser.ID); err != nil {
+		return err
+	}
+
+	admin, _ := s.repo.GetGlobalAdminByUserID(ctx, adminUserID)
+	if admin != nil {
+		log := models.GlobalAuditLog{
+			GlobalAdminID: admin.ID,
+			Action:        "admin_demoted",
+			Details:       map[string]string{"target_email": targetEmail},
+			IPAddress:     ipAddress,
+		}
+		_ = s.repo.CreateGlobalAuditLog(ctx, &log)
+	}
+
+	return nil
+}
+
+// AdminListGlobalAdmins returns the list of all platform administrators
+func (s *Service) AdminListGlobalAdmins(ctx context.Context, adminUserID string) ([]map[string]any, error) {
+	isAdmin, err := s.repo.IsGlobalAdmin(ctx, adminUserID)
+	if err != nil || !isAdmin {
+		return nil, fmt.Errorf("unauthorized: support privilege required")
+	}
+	return s.repo.ListGlobalAdmins(ctx)
+}

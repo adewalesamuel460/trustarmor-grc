@@ -83,6 +83,23 @@ func (r *Repository) UpdateUserMFA(ctx context.Context, userID string, secret st
 	return nil
 }
 
+func (r *Repository) GetUserPasswordHash(ctx context.Context, userID string) (string, error) {
+	var hash string
+	err := r.db.Pool.QueryRow(ctx, `SELECT password_hash FROM users WHERE id = $1`, userID).Scan(&hash)
+	if err != nil {
+		return "", fmt.Errorf("failed to get password hash: %w", err)
+	}
+	return hash, nil
+}
+
+func (r *Repository) UpdateUserPassword(ctx context.Context, userID string, newHash string) error {
+	_, err := r.db.Pool.Exec(ctx, `UPDATE users SET password_hash = $1 WHERE id = $2`, newHash, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+	return nil
+}
+
 func (r *Repository) GetUserMFASecret(ctx context.Context, userID string) (string, error) {
 	var secret string
 	query := `SELECT mfa_secret FROM users WHERE id = $1`

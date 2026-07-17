@@ -143,6 +143,10 @@ func main() {
 			r.Post("/impersonate", h.AdminImpersonateUser)
 			r.Post("/frameworks/push", h.AdminPushGlobalFramework)
 			r.Get("/audit-logs", h.AdminGetAuditLogs)
+			// Admin management
+			r.Get("/admins", h.AdminListGlobalAdmins)
+			r.Post("/admins/promote", h.AdminPromoteUser)
+			r.Post("/admins/demote", h.AdminDemoteUser)
 		})
 	})
 
@@ -151,6 +155,10 @@ func main() {
 		r.Use(middleware.Auth(svc))
 		r.Use(middleware.Tenant(repo)) // Tenancy validation runs if X-Workspace-ID is provided
 		r.Use(middleware.RequireAuditorScoping(repo))
+
+		// User profile
+		r.Get("/users/me", h.GetProfile)
+		r.Put("/users/me/password", h.ChangePassword)
 
 		// MFA management
 		r.Post("/auth/mfa/setup", h.SetupMFA)
