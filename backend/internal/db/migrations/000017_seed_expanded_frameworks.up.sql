@@ -1,5 +1,11 @@
--- Clean up old versions of the four frameworks to prevent duplicate/conflicting records
-DELETE FROM frameworks WHERE name IN ('NIST CSF', 'PCI DSS', 'HIPAA (Security Rule)', 'General Data Protection Regulation (GDPR)', 'HIPAA Security Rule', 'NIST Cybersecurity Framework');
+-- Clean up old versions of the four frameworks if not referenced by active audit runs
+DO $$ 
+BEGIN
+    DELETE FROM frameworks WHERE name IN ('NIST CSF', 'PCI DSS', 'HIPAA (Security Rule)', 'General Data Protection Regulation (GDPR)', 'HIPAA Security Rule', 'NIST Cybersecurity Framework')
+    AND id NOT IN (SELECT framework_id FROM audit_runs WHERE framework_id IS NOT NULL);
+EXCEPTION WHEN OTHERS THEN
+    NULL;
+END $$;
 
 -- Insert new framework records and capture IDs
 WITH inserted_frameworks AS (
