@@ -410,15 +410,15 @@ export default function AuditHubPage() {
                 <div className="space-y-1.5 pt-2">
                   <div className="flex justify-between text-[10px] font-mono text-gray-500">
                     <span>Evidence Accepted Progress</span>
-                    <span>{run.accepted_percentage.toFixed(0)}%</span>
+                    <span>{(run.accepted_percentage || 0).toFixed(0)}%</span>
                   </div>
                   <div className="w-full bg-gray-900 rounded-full h-1.5 overflow-hidden">
                     <div
                       className="bg-indigo-500 h-1.5 rounded-full transition-all"
-                      style={{ width: `${run.accepted_percentage}%` }}
+                      style={{ width: `${run.accepted_percentage || 0}%` }}
                     />
                   </div>
-                  <p className="text-[10px] text-gray-500 italic mt-0.5">{run.requests_count} total requests logged</p>
+                  <p className="text-[10px] text-gray-500 italic mt-0.5">{run.requests_count || 0} total requests logged</p>
                 </div>
               </div>
             ))
