@@ -485,11 +485,11 @@ export default function AuditHubPage() {
             <div className="flex gap-8 items-center border-l border-white/5 pl-0 md:pl-8">
               <div>
                 <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Total Tickets</p>
-                <p className="text-2xl font-black text-white mt-1">{selectedRun.requests_count}</p>
+                <p className="text-2xl font-black text-white mt-1">{selectedRun.requests_count || 0}</p>
               </div>
               <div>
                 <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Accepted Ratio</p>
-                <p className="text-2xl font-black text-indigo-400 mt-1">{selectedRun.accepted_percentage.toFixed(0)}%</p>
+                <p className="text-2xl font-black text-indigo-400 mt-1">{(selectedRun.accepted_percentage || 0).toFixed(0)}%</p>
               </div>
             </div>
           </div>
