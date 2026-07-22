@@ -1,7 +1,7 @@
 -- Add status tracking to the existing controls table
 ALTER TABLE controls 
-ADD COLUMN current_status VARCHAR(50) DEFAULT 'untested', -- 'passing', 'failing', 'needs_attention', 'untested'
-ADD COLUMN last_tested_at TIMESTAMP WITH TIME ZONE;
+ADD COLUMN IF NOT EXISTS current_status VARCHAR(50) DEFAULT 'untested', -- 'passing', 'failing', 'needs_attention', 'untested'
+ADD COLUMN IF NOT EXISTS last_tested_at TIMESTAMP WITH TIME ZONE;
 
 -- Defines the automated rule tying a control to an integration
 CREATE TABLE IF NOT EXISTS automated_tests (
