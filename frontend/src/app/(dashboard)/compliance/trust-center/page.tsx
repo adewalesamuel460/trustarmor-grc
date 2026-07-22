@@ -5,7 +5,7 @@ import { useWorkspace } from '@/context/WorkspaceContext';
 import api from '@/lib/api';
 import { 
   Shield, Settings, Eye, Check, X, Loader2, Save, FileText, 
-  Building, ShieldAlert, CheckCircle2, Copy, AlertCircle, ExternalLink, Link
+  Building, ShieldAlert, CheckCircle2, Copy, AlertCircle, ExternalLink, Link, Globe
 } from 'lucide-react';
 
 interface TrustCenterProfile {
