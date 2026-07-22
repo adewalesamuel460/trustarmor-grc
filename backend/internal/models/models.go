@@ -564,3 +564,16 @@ type GlobalAuditLog struct {
 	IPAddress            string     `json:"ip_address"`
 	CreatedAt            time.Time  `json:"created_at"`
 }
+
+type Asset struct {
+	ID             string                 `json:"id"`
+	WorkspaceID    string                 `json:"workspace_id"`
+	IntegrationID  string                 `json:"integration_id"`
+	AssetType      string                 `json:"asset_type"` // e.g., 'cloud_user', 'cloud_storage', 'repository', 'custom_service'
+	ExternalID     string                 `json:"external_id"`
+	Name           string                 `json:"name"`
+	RawData        map[string]interface{} `json:"raw_data"`
+	ComplianceRisk bool                   `json:"compliance_risk"`
+	LastDiscovered time.Time              `json:"last_discovered"`
+}
+

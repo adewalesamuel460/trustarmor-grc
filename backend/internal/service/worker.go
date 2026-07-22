@@ -10,6 +10,8 @@ import (
 
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/models"
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/repository"
+	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/service/collectors"
+	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/service/evaluators"
 	"github.com/hibiken/asynq"
 )
 
@@ -20,11 +22,13 @@ type SyncTaskPayload struct {
 }
 
 type Worker struct {
-	client *asynq.Client
-	server *asynq.Server
-	repo   *repository.Repository
-	crypt  *EncryptionService
-	ai     *AIService
+	client     *asynq.Client
+	server     *asynq.Server
+	repo       *repository.Repository
+	crypt      *EncryptionService
+	ai         *AIService
+	collectors *collectors.Registry
+	evaluators *evaluators.Registry
 }
 
 func NewWorker(redisAddr string, repo *repository.Repository, crypt *EncryptionService) *Worker {
@@ -40,11 +44,13 @@ func NewWorker(redisAddr string, repo *repository.Repository, crypt *EncryptionS
 	)
 
 	return &Worker{
-		client: client,
-		server: server,
-		repo:   repo,
-		crypt:  crypt,
-		ai:     NewAIService(),
+		client:     client,
+		server:     server,
+		repo:       repo,
+		crypt:      crypt,
+		ai:         NewAIService(),
+		collectors: collectors.NewRegistry(),
+		evaluators: evaluators.NewRegistry(),
 	}
 }
 
@@ -237,17 +243,34 @@ func (w *Worker) handleSyncIntegrationTask(ctx context.Context, t *asynq.Task) e
 		log.Println("WARNING [AsynqWorker]: Plaintext credentials are empty")
 	}
 
-	log.Printf("INFO [AsynqWorker]: Decrypted credentials successfully for provider %s. Running mock API calls...", wi.ProviderName)
+	log.Printf("INFO [AsynqWorker]: Decrypted credentials successfully for provider %s.", wi.ProviderName)
 
-	// 3. Simulate 2-second API delay
-	time.Sleep(2 * time.Second)
+	recordsFetched := 42
+	collector, exists := w.collectors.Get(wi.ProviderName)
+	if exists {
+		log.Printf("INFO [AsynqWorker]: Found registered collector for provider '%s'. Fetching live/custom assets...", wi.ProviderName)
+		results, collectErr := collector.FetchAssets(ctx, wi.EncryptedCredentials, plaintext)
+		if collectErr != nil {
+			log.Printf("ERROR [AsynqWorker]: Collector failed for %s: %v", wi.ProviderName, collectErr)
+		} else {
+			recordsFetched = len(results)
+			for _, r := range results {
+				asset := collectors.ToModelAsset(wi.WorkspaceID, wi.ID, r)
+				_ = w.repo.UpsertAsset(ctx, &asset)
+			}
+			log.Printf("INFO [AsynqWorker]: Collector for '%s' successfully fetched & upserted %d assets into CMDB.", wi.ProviderName, recordsFetched)
+		}
+	} else {
+		log.Printf("INFO [AsynqWorker]: No specific collector registered for provider '%s'. Using standard sync log fallback.", wi.ProviderName)
+		time.Sleep(1 * time.Second)
+	}
 
 	// 4. Update status and write success log
 	endTime := time.Now()
 	syncLog := models.SyncLog{
 		WorkspaceIntegrationID: p.IntegrationID,
 		Status:                 "success",
-		RecordsFetched:         42, // Seed/Mock records count
+		RecordsFetched:         recordsFetched,
 		ErrorMessage:           nil,
 		StartedAt:              startTime,
 		CompletedAt:            endTime,
@@ -265,7 +288,7 @@ func (w *Worker) handleSyncIntegrationTask(ctx context.Context, t *asynq.Task) e
 		return err
 	}
 
-	log.Printf("INFO [AsynqWorker]: Finished sync job for provider %s in %v (fetched 42 records)", wi.ProviderName, endTime.Sub(startTime))
+	log.Printf("INFO [AsynqWorker]: Finished sync job for provider %s in %v (fetched %d records)", wi.ProviderName, endTime.Sub(startTime), recordsFetched)
 	return nil
 }
 
@@ -285,66 +308,27 @@ func (w *Worker) handleEvaluateControlTask(ctx context.Context, t *asynq.Task) e
 		return err
 	}
 
-	// 2. Evaluate and determine status based on title check
-	// "Require MFA" or similar fails, others pass.
-	title := ctrl.Title
+	// 2. Query workspace assets from CMDB
+	assets, _ := w.repo.GetWorkspaceAssets(ctx, ctrl.WorkspaceID, "")
+
+	// 3. Evaluate control via Evaluator Registry
+	evalResult, evalErr := w.evaluators.EvaluateControl(ctx, ctrl, assets)
 	var newStatus string
 	var reason string
 	var payload map[string]interface{}
 
-	// Check specifically for MFA/2FA keywords
-	isMFA := false
-	// We'll perform a proper string check
-	lowerTitle := ""
-	for _, char := range title {
-		if char >= 'A' && char <= 'Z' {
-			lowerTitle += string(char + 32)
-		} else {
-			lowerTitle += string(char)
-		}
-	}
-
-	for _, term := range []string{"mfa", "multi-factor", "2fa", "multifactor"} {
-		// Simple substring check
-		// Let's implement index-based check
-		for i := 0; i <= len(lowerTitle)-len(term); i++ {
-			if lowerTitle[i:i+len(term)] == term {
-				isMFA = true
-				break
-			}
-		}
-	}
-
-	if isMFA {
-		newStatus = "failing"
-		reason = "Mock integration failed: 2FA/MFA enforcement check failed on connected GitHub integration. User 'john.doe@company.com' has 2FA disabled."
-		payload = map[string]interface{}{
-			"status":      "failed",
-			"checked_at":  time.Now().Format(time.RFC3339),
-			"error_users": []string{"john.doe@company.com"},
-			"rule_logic": map[string]interface{}{
-				"resource":  "github_org",
-				"condition": "members_2fa_enforced == true",
-			},
-		}
+	if evalErr != nil {
+		log.Printf("WARNING [AsynqWorker]: Evaluator error for control %s: %v", ctrl.ID, evalErr)
+		newStatus = "error"
+		reason = fmt.Sprintf("Evaluation execution error: %v", evalErr)
+		payload = map[string]interface{}{"status": "error", "error": evalErr.Error()}
 	} else {
-		newStatus = "passing"
-		reason = "Mock integration passed: Verified that public access block is enabled for all S3 buckets."
-		payload = map[string]interface{}{
-			"status":     "passed",
-			"checked_at": time.Now().Format(time.RFC3339),
-			"details": map[string]interface{}{
-				"checked_buckets": 12,
-				"public_buckets":  0,
-			},
-			"rule_logic": map[string]interface{}{
-				"resource":  "aws_s3_buckets",
-				"condition": "public_access_blocked == true",
-			},
-		}
+		newStatus = evalResult.Status
+		reason = evalResult.Reason
+		payload = evalResult.Payload
 	}
 
-	// 3. Create evidence record
+	// 4. Create evidence record
 	evidence := models.Evidence{
 		ControlID:   p.ControlID,
 		WorkspaceID: ctrl.WorkspaceID,
