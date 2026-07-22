@@ -12,7 +12,8 @@ import (
 // GetVendors retrieves all vendors in a workspace with owner emails and expiring docs indicator
 func (r *Repository) GetVendors(ctx context.Context, workspaceID string) ([]models.Vendor, error) {
 	rows, err := r.db.Pool.Query(ctx, `
-		SELECT v.id, v.workspace_id, v.name, v.domain, v.description, v.risk_tier, v.status, v.owner_id, u.email as owner_email, v.created_at, v.updated_at,
+		SELECT v.id, v.workspace_id, v.name, COALESCE(v.domain, ''), COALESCE(v.description, ''), v.risk_tier, v.status,
+		       COALESCE(v.owner_id::text, ''), COALESCE(u.email, ''), v.created_at, v.updated_at,
 		       EXISTS (
 		           SELECT 1 FROM vendor_documents vd
 		           WHERE vd.vendor_id = v.id AND vd.expires_at IS NOT NULL AND vd.expires_at <= NOW() + INTERVAL '30 days'
@@ -76,7 +77,8 @@ func (r *Repository) UpdateVendor(ctx context.Context, v *models.Vendor) error {
 func (r *Repository) GetVendorByID(ctx context.Context, id string) (*models.Vendor, error) {
 	var v models.Vendor
 	err := r.db.Pool.QueryRow(ctx, `
-		SELECT v.id, v.workspace_id, v.name, v.domain, v.description, v.risk_tier, v.status, v.owner_id, u.email as owner_email, v.created_at, v.updated_at,
+		SELECT v.id, v.workspace_id, v.name, COALESCE(v.domain, ''), COALESCE(v.description, ''), v.risk_tier, v.status,
+		       COALESCE(v.owner_id::text, ''), COALESCE(u.email, ''), v.created_at, v.updated_at,
 		       EXISTS (
 		           SELECT 1 FROM vendor_documents vd
 		           WHERE vd.vendor_id = v.id AND vd.expires_at IS NOT NULL AND vd.expires_at <= NOW() + INTERVAL '30 days'

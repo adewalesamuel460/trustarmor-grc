@@ -87,3 +87,22 @@ INSERT INTO questionnaire_projects (id, workspace_id, name, status, total_questi
 ('ca100000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'Enterprise Client Security Assessment Q3', 'in_review', 45, 38, NOW() - INTERVAL '4 days'),
 ('ca100000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'Annual Vendor Due Diligence Audit', 'completed', 60, 60, NOW() - INTERVAL '14 days')
 ON CONFLICT (id) DO NOTHING;
+
+-- 10. Seed Audit Workspaces / Audit Runs (IDs use valid hex aa100000-...)
+INSERT INTO audit_runs (id, workspace_id, name, framework_id, auditor_firm, start_date, end_date, status, created_at) VALUES
+('aa100000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'SOC 2 Type II Annual Audit 2026', 'a0000000-0000-0000-0000-000000000001', 'Deloitte & Touche LLP', CURRENT_DATE - INTERVAL '15 days', CURRENT_DATE + INTERVAL '45 days', 'in_progress', NOW() - INTERVAL '20 days'),
+('aa100000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'ISO 27001 Surveillance Audit Q3', 'f1502700-1202-2200-0000-000000000000', 'BSI Assurance UK', CURRENT_DATE - INTERVAL '5 days', CURRENT_DATE + INTERVAL '10 days', 'in_progress', NOW() - INTERVAL '10 days')
+ON CONFLICT (id) DO NOTHING;
+
+-- 11. Seed Evidence Requests for Audit Runs
+INSERT INTO evidence_requests (id, audit_run_id, control_id, title, description, status, created_at) VALUES
+('eb100000-0000-0000-0000-000000000001', 'aa100000-0000-0000-0000-000000000001', 'c1000000-0000-0000-0000-000000000001', 'Sample MFA Enforce Log Screenshot', 'Provide system configuration screenshot demonstrating TOTP enforcement across AWS IAM.', 'submitted', NOW() - INTERVAL '10 days'),
+('eb100000-0000-0000-0000-000000000002', 'aa100000-0000-0000-0000-000000000001', 'c1000000-0000-0000-0000-000000000003', 'Database Backup & Restore Test Proof', 'Provide proof of latest successful database backup restoration drill executed in Q2.', 'accepted', NOW() - INTERVAL '8 days')
+ON CONFLICT (id) DO NOTHING;
+
+-- 12. Seed Trust Center Mapped Resources
+INSERT INTO trust_center_resources (id, trust_center_id, resource_type, resource_id, visibility, display_order) VALUES
+('tc200000-0000-0000-0000-000000000001', 'bc100000-0000-0000-0000-000000000001', 'FRAMEWORK', 'a0000000-0000-0000-0000-000000000001', 'public', 1),
+('tc200000-0000-0000-0000-000000000002', 'bc100000-0000-0000-0000-000000000002', 'FRAMEWORK', 'f1502700-1202-2200-0000-000000000000', 'public', 2),
+('tc200000-0000-0000-0000-000000000003', 'bc100000-0000-0000-0000-000000000003', 'FRAMEWORK', 'f1500dc1-4000-4000-0000-000000000000', 'gated', 3)
+ON CONFLICT DO NOTHING;

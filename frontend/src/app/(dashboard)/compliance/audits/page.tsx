@@ -340,7 +340,7 @@ export default function AuditHubPage() {
         </div>
 
         {/* Action triggers */}
-        {isAdmin && !selectedRun && (
+        {!selectedRun && !isAuditor && (
           <button
             onClick={() => setShowCreateRun(true)}
             className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg whitespace-nowrap shrink-0"
