@@ -51,7 +51,7 @@ func (r *Repository) CreateUser(ctx context.Context, email string, passwordHash 
 
 func (r *Repository) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
 	var user models.User
-	query := `SELECT id, email, password_hash, mfa_secret, mfa_enabled, created_at FROM users WHERE email = $1`
+	query := `SELECT id, email, password_hash, COALESCE(mfa_secret, ''), mfa_enabled, created_at FROM users WHERE email = $1`
 	err := r.db.Pool.QueryRow(ctx, query, email).Scan(&user.ID, &user.Email, &user.PasswordHash, &user.MFASecret, &user.MFAEnabled, &user.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -103,7 +103,7 @@ func (r *Repository) UpdateUserPassword(ctx context.Context, userID string, newH
 
 func (r *Repository) GetUserMFASecret(ctx context.Context, userID string) (string, error) {
 	var secret string
-	query := `SELECT mfa_secret FROM users WHERE id = $1`
+	query := `SELECT COALESCE(mfa_secret, '') FROM users WHERE id = $1`
 	err := r.db.Pool.QueryRow(ctx, query, userID).Scan(&secret)
 	if err != nil {
 		return "", fmt.Errorf("failed to get user MFA secret: %w", err)
