@@ -669,12 +669,13 @@ export default function RiskRegisterPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] text-gray-400 mb-1">Target Date</label>
+                      <label className="block text-[10px] text-gray-400 mb-1 font-medium">Target Date</label>
                       <input
                         type="date"
                         value={treatmentTargetDate}
+                        onClick={(e) => (e.target as any).showPicker?.()}
                         onChange={(e) => setTreatmentTargetDate(e.target.value)}
-                        className="w-full bg-gray-950 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none text-center"
+                        className="w-full bg-gray-950 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-indigo-500 transition cursor-pointer [color-scheme:dark]"
                       />
                     </div>
                   </div>

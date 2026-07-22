@@ -639,13 +639,14 @@ export default function AccessReviewsPage() {
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5">Deadline Date</label>
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Deadline Date</label>
                 <input
                   type="date"
                   required
                   value={deadline}
+                  onClick={(e) => (e.target as any).showPicker?.()}
                   onChange={(e) => setDeadline(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-950 text-xs text-white border border-white/10 rounded-xl outline-none"
+                  className="w-full px-4 py-2.5 bg-gray-950 text-xs text-white border border-white/10 rounded-xl outline-none focus:border-indigo-500 transition cursor-pointer [color-scheme:dark]"
                 />
               </div>
             </div>

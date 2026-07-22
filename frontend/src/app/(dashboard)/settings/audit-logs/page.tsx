@@ -193,12 +193,13 @@ export default function AuditLogsPage() {
         <div>
           <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Start Date</label>
           <div className="relative">
-            <Calendar className="w-4 h-4 text-gray-500 absolute left-3 top-3" />
+            <Calendar className="w-4 h-4 text-gray-500 absolute left-3 top-3 pointer-events-none z-10" />
             <input
               type="date"
               value={startDate}
+              onClick={(e) => (e.target as any).showPicker?.()}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-gray-950/40 border border-white/5 focus:border-indigo-500 rounded-xl text-xs text-white outline-none transition"
+              className="w-full pl-9 pr-4 py-2 bg-gray-950/40 border border-white/5 focus:border-indigo-500 rounded-xl text-xs text-white outline-none transition cursor-pointer [color-scheme:dark]"
             />
           </div>
         </div>
@@ -207,12 +208,13 @@ export default function AuditLogsPage() {
         <div>
           <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">End Date</label>
           <div className="relative">
-            <Calendar className="w-4 h-4 text-gray-500 absolute left-3 top-3" />
+            <Calendar className="w-4 h-4 text-gray-500 absolute left-3 top-3 pointer-events-none z-10" />
             <input
               type="date"
               value={endDate}
+              onClick={(e) => (e.target as any).showPicker?.()}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-gray-950/40 border border-white/5 focus:border-indigo-500 rounded-xl text-xs text-white outline-none transition"
+              className="w-full pl-9 pr-4 py-2 bg-gray-950/40 border border-white/5 focus:border-indigo-500 rounded-xl text-xs text-white outline-none transition cursor-pointer [color-scheme:dark]"
             />
           </div>
         </div>

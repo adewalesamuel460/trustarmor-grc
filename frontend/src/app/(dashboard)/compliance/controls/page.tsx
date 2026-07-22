@@ -857,8 +857,9 @@ export default function ControlsPage() {
                         <input
                           type="date"
                           value={expiryDate}
+                          onClick={(e) => (e.target as any).showPicker?.()}
                           onChange={(e) => setExpiryDate(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-950/40 border border-white/5 focus:border-indigo-500 rounded-xl text-xs text-white outline-none transition"
+                          className="w-full px-3 py-2 bg-gray-950/40 border border-white/5 focus:border-indigo-500 rounded-xl text-xs text-white outline-none transition cursor-pointer [color-scheme:dark]"
                         />
                       </div>
                       <div className="flex items-end">

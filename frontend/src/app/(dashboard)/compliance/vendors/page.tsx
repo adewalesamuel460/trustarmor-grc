@@ -585,13 +585,14 @@ export default function VendorsPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[9px] text-gray-500 uppercase font-semibold mb-1">Expires At</label>
+                        <label className="block text-[9px] text-gray-500 uppercase font-semibold mb-1 font-medium">Expires At</label>
                         <input
                           type="date"
                           required
                           value={docExpiresAt}
+                          onClick={(e) => (e.target as any).showPicker?.()}
                           onChange={(e) => setDocExpiresAt(e.target.value)}
-                          className="w-full bg-gray-950 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white"
+                          className="w-full bg-gray-950 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white focus:border-indigo-500 transition cursor-pointer [color-scheme:dark]"
                         />
                       </div>
                     </div>

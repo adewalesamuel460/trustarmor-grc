@@ -785,23 +785,31 @@ export default function AuditHubPage() {
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5">Start Date</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-950 text-xs text-white border border-white/10 rounded-xl outline-none"
-                />
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Start Date</label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    required
+                    value={startDate}
+                    onClick={(e) => (e.target as any).showPicker?.()}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-gray-950 text-xs text-white border border-white/10 rounded-xl outline-none focus:border-indigo-500 transition cursor-pointer [color-scheme:dark]"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5">End Date</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-950 text-xs text-white border border-white/10 rounded-xl outline-none"
-                />
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">End Date</label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    required
+                    value={endDate}
+                    onClick={(e) => (e.target as any).showPicker?.()}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-gray-950 text-xs text-white border border-white/10 rounded-xl outline-none focus:border-indigo-500 transition cursor-pointer [color-scheme:dark]"
+                  />
+                </div>
               </div>
             </div>
 
