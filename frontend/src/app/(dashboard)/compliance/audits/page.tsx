@@ -54,6 +54,15 @@ interface AuditComment {
   created_at: string;
 }
 
+const DEFAULT_AUDIT_FRAMEWORKS = [
+  { id: 'a0000000-0000-0000-0000-000000000001', name: 'SOC 2 Type II (2017)' },
+  { id: 'f1502700-1202-2200-0000-000000000000', name: 'ISO/IEC 27001:2022' },
+  { id: 'f1500dc1-4000-4000-0000-000000000000', name: 'PCI DSS v4.0' },
+  { id: 'f1500c5f-2000-2000-0000-000000000000', name: 'NIST CSF 2.0' },
+  { id: 'a0000000-0000-0000-0000-000000000002', name: 'NDPR (2019)' },
+  { id: 'f15046aa-0000-0000-0000-000000000000', name: 'HIPAA Security Rule' },
+];
+
 export default function AuditHubPage() {
   const { activeWorkspace } = useWorkspace();
 
@@ -69,7 +78,7 @@ export default function AuditHubPage() {
   const [userEmail, setUserEmail] = useState('');
 
   // Dropdown list resources
-  const [activatedFrameworks, setActivatedFrameworks] = useState<any[]>([]);
+  const [activatedFrameworks, setActivatedFrameworks] = useState<any[]>(DEFAULT_AUDIT_FRAMEWORKS);
   const [allEvidence, setAllEvidence] = useState<any[]>([]);
 
   // Modals / Dialogs triggers
@@ -79,7 +88,7 @@ export default function AuditHubPage() {
 
   // Form states - Create Run
   const [runName, setRunName] = useState('');
-  const [selectedFrameworkId, setSelectedFrameworkId] = useState('');
+  const [selectedFrameworkId, setSelectedFrameworkId] = useState(DEFAULT_AUDIT_FRAMEWORKS[0].id);
   const [auditorFirm, setAuditorFirm] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -150,12 +159,16 @@ export default function AuditHubPage() {
     if (!activeWorkspace) return;
     try {
       const { data } = await api.get(`/workspaces/${activeWorkspace.id}/frameworks`);
-      setActivatedFrameworks(data || []);
       if (data && data.length > 0) {
+        setActivatedFrameworks(data);
         setSelectedFrameworkId(data[0].id);
+      } else {
+        setActivatedFrameworks(DEFAULT_AUDIT_FRAMEWORKS);
+        setSelectedFrameworkId(DEFAULT_AUDIT_FRAMEWORKS[0].id);
       }
     } catch (err) {
-      console.error(err);
+      setActivatedFrameworks(DEFAULT_AUDIT_FRAMEWORKS);
+      setSelectedFrameworkId(DEFAULT_AUDIT_FRAMEWORKS[0].id);
     }
   };
 

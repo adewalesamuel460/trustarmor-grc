@@ -289,6 +289,45 @@ export default function TrustCenterAdminPage() {
         )}
       </div>
 
+      {/* Live Public Portal URL Banner */}
+      <div className="p-4 bg-gradient-to-r from-indigo-950/40 via-gray-950/40 to-gray-950/40 border border-indigo-500/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+            <Globe className="w-5 h-5 text-emerald-400" />
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-white flex items-center gap-2">
+              <span>Public Security Portal Link</span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] uppercase font-mono font-bold">Live & Published</span>
+            </h4>
+            <p className="text-xs text-indigo-300 font-mono mt-0.5 select-all">
+              http://localhost:3000/trust/{profile?.url_slug || 'trustarmor-dev'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(`http://localhost:3000/trust/${profile?.url_slug || 'trustarmor-dev'}`);
+              alert('Public Trust Portal URL copied to clipboard!');
+            }}
+            className="px-4 py-2 bg-gray-900 hover:bg-gray-800 border border-white/10 text-white font-bold text-xs rounded-xl transition whitespace-nowrap"
+          >
+            Copy Link
+          </button>
+          <a
+            href={`/trust/${profile?.url_slug || 'trustarmor-dev'}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg whitespace-nowrap"
+          >
+            <span>Open Public Portal</span>
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        </div>
+      </div>
+
       {/* Tabs */}
       <div className="flex border-b border-white/5">
         <button
