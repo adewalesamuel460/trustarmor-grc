@@ -453,7 +453,7 @@ export default function QuestionnairesPage() {
         </div>
         <button
           onClick={() => setIsUploading(true)}
-          className="flex items-center gap-1.5 px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg"
+          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg whitespace-nowrap shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Upload Questionnaire</span>

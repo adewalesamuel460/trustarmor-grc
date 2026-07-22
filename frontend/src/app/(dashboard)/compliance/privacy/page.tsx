@@ -259,7 +259,7 @@ export default function PrivacyNDPRPage() {
         {isAdmin && (
           <button
             onClick={() => setShowAddTransfer(true)}
-            className="flex items-center gap-1.5 px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg"
+            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg whitespace-nowrap shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Log Cross-Border Flow</span>
@@ -304,7 +304,7 @@ export default function PrivacyNDPRPage() {
                     setSelectedFiling(nextFiling);
                     setShowSubmitFiling(true);
                   }}
-                  className="px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow flex items-center gap-1.5"
+                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow flex items-center gap-2 whitespace-nowrap shrink-0"
                 >
                   <FileText className="w-4 h-4" />
                   <span>Upload Filing Receipt</span>

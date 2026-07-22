@@ -281,7 +281,7 @@ export default function TrustCenterAdminPage() {
             href={`/trust/${profile.url_slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-4.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg"
+            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg whitespace-nowrap shrink-0"
           >
             <span>View Public Portal</span>
             <ExternalLink className="w-4 h-4" />
