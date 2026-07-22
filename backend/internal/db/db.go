@@ -67,6 +67,9 @@ var passwordResetSQL string
 //go:embed migrations/000019_seed_dev_user.up.sql
 var seedDevUserSQL string
 
+//go:embed migrations/000020_seed_workspace_demo_data.up.sql
+var seedWorkspaceDemoDataSQL string
+
 type DB struct {
 	Pool *pgxpool.Pool
 }
@@ -220,6 +223,12 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 	_, err = db.Pool.Exec(ctx, seedDevUserSQL)
 	if err != nil {
 		return fmt.Errorf("failed to execute migration 000019: %w", err)
+	}
+
+	log.Println("Running database migrations (000020)...")
+	_, err = db.Pool.Exec(ctx, seedWorkspaceDemoDataSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000020: %w", err)
 	}
 
 	log.Println("Migrations executed successfully")
