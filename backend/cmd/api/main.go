@@ -290,6 +290,7 @@ func main() {
 		r.Get("/workspaces/{id}/notification-rules", h.ListNotificationRules)
 		r.Post("/workspaces/{id}/notification-rules", h.CreateNotificationRule)
 		r.Delete("/workspaces/{id}/notification-rules/{rule_id}", h.DeleteNotificationRule)
+		r.Post("/workspaces/{id}/notification-rules/test-email", h.SendTestNotification)
 
 		// Executive Reporting Metrics
 		r.Get("/workspaces/{id}/reports/posture", h.GetReportsPosture)
