@@ -8,7 +8,7 @@ SELECT 'b1000000-0000-0000-0000-000000000099', id, 'active'
 FROM frameworks
 ON CONFLICT (workspace_id, framework_id) DO UPDATE SET status = 'active';
 
--- 2. Seed realistic Controls for the default workspace
+-- 2. Seed realistic Controls for the default workspace (IDs use valid hex c1000000-...)
 INSERT INTO controls (id, workspace_id, title, description, type, frequency, current_status, last_tested_at) VALUES
 ('c1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'Enforce Multi-Factor Authentication (MFA)', 'All identity providers and administrative access points require hardware/TOTP multi-factor authentication.', 'Technical', 'Continuous', 'passing', NOW() - INTERVAL '2 hours'),
 ('c1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'AWS S3 Public Access Block Configuration', 'Ensure all AWS S3 storage buckets enforce public access block configurations at the account level.', 'Technical', 'Continuous', 'failing', NOW() - INTERVAL '1 hour'),
@@ -41,49 +41,49 @@ WHERE c.workspace_id = 'b1000000-0000-0000-0000-000000000099'
   )
 ON CONFLICT DO NOTHING;
 
--- 4. Seed Tasks (removes empty state on Tasks screen and populates dashboard widgets)
+-- 4. Seed Tasks (IDs use valid hex da100000-...)
 INSERT INTO tasks (id, workspace_id, title, description, priority, status, assignee_id, created_at, resolved_at) VALUES
-('t1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'Remediate Unencrypted S3 Bucket in Production', 'Configure server-side KMS encryption and enable Public Access Block on prod-data-lake-bucket.', 'critical', 'todo', (SELECT id FROM users WHERE email = 'admin@trustarmor.io' LIMIT 1), NOW() - INTERVAL '2 days', NULL),
-('t1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'Conduct Q3 Vendor Risk Assessment for AWS Infrastructure', 'Review updated AWS SOC 2 Type II report and log residual compliance risks.', 'high', 'in_progress', (SELECT id FROM users WHERE email = 'admin@trustarmor.io' LIMIT 1), NOW() - INTERVAL '3 days', NULL),
-('t1000000-0000-0000-0000-000000000003', 'b1000000-0000-0000-0000-000000000099', 'Review & Sign Annual Access Control Policy', 'Re-evaluate privileges for all 24 engineering accounts and sign policy acknowledgement.', 'medium', 'in_review', (SELECT id FROM users WHERE email = 'admin@trustarmor.io' LIMIT 1), NOW() - INTERVAL '5 days', NULL),
-('t1000000-0000-0000-0000-000000000004', 'b1000000-0000-0000-0000-000000000099', 'Configure Centralized Audit Log Retention to 365 Days', 'Update Datadog log pipeline retention settings to comply with PCI DSS Requirement 10.', 'high', 'todo', (SELECT id FROM users WHERE email = 'admin@trustarmor.io' LIMIT 1), NOW() - INTERVAL '1 day', NULL),
-('t1000000-0000-0000-0000-000000000005', 'b1000000-0000-0000-0000-000000000099', 'Submit Annual NITDA / NDPC Data Protection Audit Filing', 'Compile external auditor report and submit official audit filing to the NDPC portal.', 'high', 'done', (SELECT id FROM users WHERE email = 'admin@trustarmor.io' LIMIT 1), NOW() - INTERVAL '12 days', NOW() - INTERVAL '2 days')
+('da100000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'Remediate Unencrypted S3 Bucket in Production', 'Configure server-side KMS encryption and enable Public Access Block on prod-data-lake-bucket.', 'critical', 'todo', (SELECT id FROM users WHERE email = 'admin@trustarmor.io' LIMIT 1), NOW() - INTERVAL '2 days', NULL),
+('da100000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'Conduct Q3 Vendor Risk Assessment for AWS Infrastructure', 'Review updated AWS SOC 2 Type II report and log residual compliance risks.', 'high', 'in_progress', (SELECT id FROM users WHERE email = 'admin@trustarmor.io' LIMIT 1), NOW() - INTERVAL '3 days', NULL),
+('da100000-0000-0000-0000-000000000003', 'b1000000-0000-0000-0000-000000000099', 'Review & Sign Annual Access Control Policy', 'Re-evaluate privileges for all 24 engineering accounts and sign policy acknowledgement.', 'medium', 'in_review', (SELECT id FROM users WHERE email = 'admin@trustarmor.io' LIMIT 1), NOW() - INTERVAL '5 days', NULL),
+('da100000-0000-0000-0000-000000000004', 'b1000000-0000-0000-0000-000000000099', 'Configure Centralized Audit Log Retention to 365 Days', 'Update Datadog log pipeline retention settings to comply with PCI DSS Requirement 10.', 'high', 'todo', (SELECT id FROM users WHERE email = 'admin@trustarmor.io' LIMIT 1), NOW() - INTERVAL '1 day', NULL),
+('da100000-0000-0000-0000-000000000005', 'b1000000-0000-0000-0000-000000000099', 'Submit Annual NITDA / NDPC Data Protection Audit Filing', 'Compile external auditor report and submit official audit filing to the NDPC portal.', 'high', 'done', (SELECT id FROM users WHERE email = 'admin@trustarmor.io' LIMIT 1), NOW() - INTERVAL '12 days', NOW() - INTERVAL '2 days')
 ON CONFLICT (id) DO NOTHING;
 
--- 5. Seed Risk Register items
+-- 5. Seed Risk Register items (IDs use valid hex ea100000-...)
 INSERT INTO risks (id, workspace_id, category, title, description, likelihood, impact, inherent_score, status, created_at) VALUES
-('r1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'Data Security', 'Unencrypted Data at Rest in Secondary S3 Bucket', 'Legacy analytics bucket lacks default server-side KMS encryption settings.', 4, 5, 20, 'open', NOW() - INTERVAL '10 days'),
-('r1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'Third Party', 'Third-Party Vendor Data Leakage via Cloud SaaS', 'Exposure of non-sensitive customer metadata through third-party monitoring integration.', 3, 4, 12, 'open', NOW() - INTERVAL '8 days'),
-('r1000000-0000-0000-0000-000000000003', 'b1000000-0000-0000-0000-000000000099', 'Access Control', 'Single Point of Failure in Production SSO Gateway', 'Single IdP node without failover mechanism could cause temporary developer access outage.', 2, 4, 8, 'mitigated', NOW() - INTERVAL '15 days'),
-('r1000000-0000-0000-0000-000000000004', 'b1000000-0000-0000-0000-000000000099', 'Regulatory', 'Non-Compliance with NDPR Data Erasure Demands', 'Delay in executing automated data subject deletion requests within 30 statutory days.', 3, 4, 12, 'open', NOW() - INTERVAL '5 days'),
-('r1000000-0000-0000-0000-000000000005', 'b1000000-0000-0000-0000-000000000099', 'Infrastructure', 'Ransomware & Malware Outbreak on Developer Laptops', 'Phishing attempt targeting developer credentials with local privilege escalation risk.', 3, 5, 15, 'open', NOW() - INTERVAL '3 days')
+('ea100000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'Data Security', 'Unencrypted Data at Rest in Secondary S3 Bucket', 'Legacy analytics bucket lacks default server-side KMS encryption settings.', 4, 5, 20, 'open', NOW() - INTERVAL '10 days'),
+('ea100000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'Third Party', 'Third-Party Vendor Data Leakage via Cloud SaaS', 'Exposure of non-sensitive customer metadata through third-party monitoring integration.', 3, 4, 12, 'open', NOW() - INTERVAL '8 days'),
+('ea100000-0000-0000-0000-000000000003', 'b1000000-0000-0000-0000-000000000099', 'Access Control', 'Single Point of Failure in Production SSO Gateway', 'Single IdP node without failover mechanism could cause temporary developer access outage.', 2, 4, 8, 'mitigated', NOW() - INTERVAL '15 days'),
+('ea100000-0000-0000-0000-000000000004', 'b1000000-0000-0000-0000-000000000099', 'Regulatory', 'Non-Compliance with NDPR Data Erasure Demands', 'Delay in executing automated data subject deletion requests within 30 statutory days.', 3, 4, 12, 'open', NOW() - INTERVAL '5 days'),
+('ea100000-0000-0000-0000-000000000005', 'b1000000-0000-0000-0000-000000000099', 'Infrastructure', 'Ransomware & Malware Outbreak on Developer Laptops', 'Phishing attempt targeting developer credentials with local privilege escalation risk.', 3, 5, 15, 'open', NOW() - INTERVAL '3 days')
 ON CONFLICT (id) DO NOTHING;
 
--- 6. Seed Vendor Profiles (TPRM)
+-- 6. Seed Vendor Profiles (IDs use valid hex fa100000-...)
 INSERT INTO vendors (id, workspace_id, name, risk_tier, status, created_at) VALUES
-('v1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'Amazon Web Services (AWS)', 'critical', 'active', NOW() - INTERVAL '30 days'),
-('v1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'GitHub Enterprise', 'high', 'active', NOW() - INTERVAL '25 days'),
-('v1000000-0000-0000-0000-000000000003', 'b1000000-0000-0000-0000-000000000099', 'Slack Technologies', 'medium', 'active', NOW() - INTERVAL '20 days'),
-('v1000000-0000-0000-0000-000000000004', 'b1000000-0000-0000-0000-000000000099', 'Datadog Systems', 'medium', 'under_review', NOW() - INTERVAL '10 days'),
-('v1000000-0000-0000-0000-000000000005', 'b1000000-0000-0000-0000-000000000099', 'Stripe Payments', 'critical', 'active', NOW() - INTERVAL '40 days')
+('fa100000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'Amazon Web Services (AWS)', 'critical', 'active', NOW() - INTERVAL '30 days'),
+('fa100000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'GitHub Enterprise', 'high', 'active', NOW() - INTERVAL '25 days'),
+('fa100000-0000-0000-0000-000000000003', 'b1000000-0000-0000-0000-000000000099', 'Slack Technologies', 'medium', 'active', NOW() - INTERVAL '20 days'),
+('fa100000-0000-0000-0000-000000000004', 'b1000000-0000-0000-0000-000000000099', 'Datadog Systems', 'medium', 'under_review', NOW() - INTERVAL '10 days'),
+('fa100000-0000-0000-0000-000000000005', 'b1000000-0000-0000-0000-000000000099', 'Stripe Payments', 'critical', 'active', NOW() - INTERVAL '40 days')
 ON CONFLICT (id) DO NOTHING;
 
--- 7. Seed Policies
+-- 7. Seed Policies (IDs use valid hex ba100000-...)
 INSERT INTO policies (id, workspace_id, title, description, content, status, current_version, created_at) VALUES
-('p1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'Information Security Policy (ISP-2026)', 'High-level information security governance guidelines', 'Establishes high-level information security governance, management commitments, and acceptable use guidelines.', 'published', 2, NOW() - INTERVAL '60 days'),
-('p1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'Access Control & Identity Management Policy', 'Least privilege RBAC and MFA mandates', 'Mandates least-privilege role-based access control (RBAC), multi-factor authentication, and quarterly access reviews.', 'published', 1, NOW() - INTERVAL '50 days'),
-('p1000000-0000-0000-0000-000000000003', 'b1000000-0000-0000-0000-000000000099', 'Data Protection & Privacy Policy (GDPR / NDPR)', 'Personal data rights and processing procedures', 'Outlines procedures for processing personal data, satisfying data subject rights, and conducting data protection impact assessments.', 'published', 3, NOW() - INTERVAL '45 days'),
-('p1000000-0000-0000-0000-000000000004', 'b1000000-0000-0000-0000-000000000099', 'Incident Response & Contingency Plan', 'Security incident notification and containment steps', 'Defines roles, communication pathways, containment procedures, and notification timelines for security incidents.', 'published', 1, NOW() - INTERVAL '40 days'),
-('p1000000-0000-0000-0000-000000000005', 'b1000000-0000-0000-0000-000000000099', 'Third-Party Vendor Risk Management Policy', 'SaaS vendor risk tiering and due diligence rules', 'Establishes risk tiering criteria, due diligence requirements, and contract safeguards for external SaaS vendors.', 'draft', 1, NOW() - INTERVAL '10 days')
+('ba100000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'Information Security Policy (ISP-2026)', 'High-level information security governance guidelines', 'Establishes high-level information security governance, management commitments, and acceptable use guidelines.', 'published', 2, NOW() - INTERVAL '60 days'),
+('ba100000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'Access Control & Identity Management Policy', 'Least privilege RBAC and MFA mandates', 'Mandates least-privilege role-based access control (RBAC), multi-factor authentication, and quarterly access reviews.', 'published', 1, NOW() - INTERVAL '50 days'),
+('ba100000-0000-0000-0000-000000000003', 'b1000000-0000-0000-0000-000000000099', 'Data Protection & Privacy Policy (GDPR / NDPR)', 'Personal data rights and processing procedures', 'Outlines procedures for processing personal data, satisfying data subject rights, and conducting data protection impact assessments.', 'published', 3, NOW() - INTERVAL '45 days'),
+('ba100000-0000-0000-0000-000000000004', 'b1000000-0000-0000-0000-000000000099', 'Incident Response & Contingency Plan', 'Security incident notification and containment steps', 'Defines roles, communication pathways, containment procedures, and notification timelines for security incidents.', 'published', 1, NOW() - INTERVAL '40 days'),
+('ba100000-0000-0000-0000-000000000005', 'b1000000-0000-0000-0000-000000000099', 'Third-Party Vendor Risk Management Policy', 'SaaS vendor risk tiering and due diligence rules', 'Establishes risk tiering criteria, due diligence requirements, and contract safeguards for external SaaS vendors.', 'draft', 1, NOW() - INTERVAL '10 days')
 ON CONFLICT (id) DO NOTHING;
 
--- 8. Seed Trust Center Profile
+-- 8. Seed Trust Center Profile (IDs use valid hex bc100000-...)
 INSERT INTO trust_centers (id, workspace_id, url_slug, hero_title, hero_description, is_published, created_at) VALUES
-('tc100000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'trustarmor-dev', 'TrustArmor Security & Trust Portal', 'Real-time security posture, compliance certifications, and security controls overview for TrustArmor platform.', true, NOW() - INTERVAL '30 days')
+('bc100000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'trustarmor-dev', 'TrustArmor Security & Trust Portal', 'Real-time security posture, compliance certifications, and security controls overview for TrustArmor platform.', true, NOW() - INTERVAL '30 days')
 ON CONFLICT (id) DO NOTHING;
 
--- 9. Seed Security Questionnaire Projects
+-- 9. Seed Security Questionnaire Projects (IDs use valid hex ca100000-...)
 INSERT INTO questionnaire_projects (id, workspace_id, name, status, total_questions, completed_questions, created_at) VALUES
-('q1000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'Enterprise Client Security Assessment Q3', 'in_review', 45, 38, NOW() - INTERVAL '4 days'),
-('q1000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'Annual Vendor Due Diligence Audit', 'completed', 60, 60, NOW() - INTERVAL '14 days')
+('ca100000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000099', 'Enterprise Client Security Assessment Q3', 'in_review', 45, 38, NOW() - INTERVAL '4 days'),
+('ca100000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000099', 'Annual Vendor Due Diligence Audit', 'completed', 60, 60, NOW() - INTERVAL '14 days')
 ON CONFLICT (id) DO NOTHING;
