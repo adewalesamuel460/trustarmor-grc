@@ -7,6 +7,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -70,8 +72,17 @@ var seedDevUserSQL string
 //go:embed migrations/000020_seed_workspace_demo_data.up.sql
 var seedWorkspaceDemoDataSQL string
 
+type PgxPoolIface interface {
+	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	Begin(ctx context.Context) (pgx.Tx, error)
+	Close()
+	Ping(ctx context.Context) error
+}
+
 type DB struct {
-	Pool *pgxpool.Pool
+	Pool PgxPoolIface
 }
 
 func Connect(ctx context.Context, connString string) (*DB, error) {
