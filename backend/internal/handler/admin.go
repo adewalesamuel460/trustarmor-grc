@@ -76,6 +76,8 @@ func (h *Handler) AdminImpersonateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.setAuthCookies(w, r, access, refresh)
+
 	h.respondJSON(w, http.StatusOK, map[string]string{
 		"access_token":  access,
 		"refresh_token": refresh,

@@ -26,8 +26,6 @@ export default function LoginPage() {
       if (data.requires_mfa) {
         setRequiresMfa(true);
       } else {
-        localStorage.setItem('access_token', data.access_token);
-        localStorage.setItem('refresh_token', data.refresh_token);
         router.push('/');
       }
     } catch (err: any) {
@@ -43,9 +41,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const { data } = await api.post('/auth/verify-mfa', { email, code: mfaCode });
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('refresh_token', data.refresh_token);
+      await api.post('/auth/verify-mfa', { email, code: mfaCode });
       router.push('/');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Invalid authentication code.');

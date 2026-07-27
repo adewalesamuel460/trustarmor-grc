@@ -20,19 +20,13 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      const { data } = await api.post('/auth/register', {
+      await api.post('/auth/register', {
         email,
         password,
         organization_name: orgName,
         workspace_name: wsName,
       });
 
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('refresh_token', data.refresh_token);
-      
-      // Auto-set the active workspace
-      // The API doesn't return workspace ID directly inside the auth outcome,
-      // but we will redirect to / and let WorkspaceContext fetch and load it.
       router.push('/');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Registration failed. Try a different email.');

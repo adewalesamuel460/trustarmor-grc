@@ -102,6 +102,7 @@ func main() {
 
 	// Global Middlewares
 	r.Use(middleware.CORS)
+	r.Use(middleware.CSRF)
 	r.Use(chiMiddleware.Logger)
 	r.Use(chiMiddleware.Recoverer)
 
@@ -127,6 +128,7 @@ func main() {
 	r.Post("/auth/login", h.Login)
 	r.Post("/auth/verify-mfa", h.VerifyMFA)
 	r.Post("/auth/refresh", h.RefreshToken)
+	r.Post("/auth/logout", h.Logout)
 	r.Post("/auth/forgot-password", h.ForgotPassword)
 	r.Post("/auth/reset-password", h.ResetPassword)
 

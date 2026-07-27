@@ -96,9 +96,8 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   useEffect(() => {
-    // Only fetch workspaces if user is logged in
-    const token = localStorage.getItem('access_token');
-    if (token) {
+    // Attempt fetching workspaces on mount (browser automatically sends httpOnly cookies)
+    if (typeof window !== 'undefined') {
       fetchWorkspaces();
     }
   }, []);

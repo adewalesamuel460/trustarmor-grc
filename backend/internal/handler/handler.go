@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 
@@ -48,6 +50,74 @@ func (h *Handler) respondError(w http.ResponseWriter, status int, message string
 	h.respondJSON(w, status, map[string]string{"error": message})
 }
 
+func generateCSRFToken() string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
+func (h *Handler) setAuthCookies(w http.ResponseWriter, r *http.Request, accessToken, refreshToken string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "access_token",
+		Value:    accessToken,
+		Path:     "/",
+		MaxAge:   3600,
+		HttpOnly: true,
+		Secure:   r.TLS != nil,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	if refreshToken != "" {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "refresh_token",
+			Value:    refreshToken,
+			Path:     "/",
+			MaxAge:   7 * 86400,
+			HttpOnly: true,
+			Secure:   r.TLS != nil,
+			SameSite: http.SameSiteLaxMode,
+		})
+	}
+
+	csrfToken := generateCSRFToken()
+	http.SetCookie(w, &http.Cookie{
+		Name:     "XSRF-TOKEN",
+		Value:    csrfToken,
+		Path:     "/",
+		MaxAge:   7 * 86400,
+		HttpOnly: false,
+		Secure:   r.TLS != nil,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
+func (h *Handler) clearAuthCookies(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "XSRF-TOKEN",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: false,
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
 // Auth handlers
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var req struct {
@@ -73,6 +143,10 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if res != nil && res.AccessToken != "" {
+		h.setAuthCookies(w, r, res.AccessToken, res.RefreshToken)
+	}
+
 	h.respondJSON(w, http.StatusCreated, res)
 }
 
@@ -93,6 +167,10 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if res != nil && res.AccessToken != "" {
+		h.setAuthCookies(w, r, res.AccessToken, res.RefreshToken)
+	}
+
 	h.respondJSON(w, http.StatusOK, res)
 }
 
@@ -111,6 +189,10 @@ func (h *Handler) VerifyMFA(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.respondError(w, http.StatusUnauthorized, err.Error())
 		return
+	}
+
+	if res != nil && res.AccessToken != "" {
+		h.setAuthCookies(w, r, res.AccessToken, res.RefreshToken)
 	}
 
 	h.respondJSON(w, http.StatusOK, res)
@@ -151,25 +233,41 @@ func (h *Handler) ConfirmMFA(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		RefreshToken string `json:"refresh_token"`
+	refreshToken := ""
+	if cookie, err := r.Cookie("refresh_token"); err == nil && cookie.Value != "" {
+		refreshToken = cookie.Value
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.respondError(w, http.StatusBadRequest, "Invalid request payload")
+	if refreshToken == "" {
+		var req struct {
+			RefreshToken string `json:"refresh_token"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		refreshToken = req.RefreshToken
+	}
+
+	if refreshToken == "" {
+		h.respondError(w, http.StatusBadRequest, "Refresh token missing")
 		return
 	}
 
-	access, refresh, err := h.svc.RefreshToken(req.RefreshToken)
+	access, refresh, err := h.svc.RefreshToken(refreshToken)
 	if err != nil {
 		h.respondError(w, http.StatusUnauthorized, err.Error())
 		return
 	}
 
+	h.setAuthCookies(w, r, access, refresh)
+
 	h.respondJSON(w, http.StatusOK, map[string]string{
 		"access_token":  access,
 		"refresh_token": refresh,
 	})
+}
+
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	h.clearAuthCookies(w)
+	h.respondJSON(w, http.StatusOK, map[string]string{"message": "Logged out successfully"})
 }
 
 // Workspace handlers

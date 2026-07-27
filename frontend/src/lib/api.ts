@@ -7,21 +7,28 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+// Helper to extract cookie value by name
+const getCookie = (name: string): string | null => {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+};
 
-// Attach Authorization and X-Workspace-ID headers
+// Attach CSRF Token and X-Workspace-ID headers
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
+      const csrfToken = getCookie('XSRF-TOKEN');
+      if (csrfToken) {
+        config.headers['X-CSRF-Token'] = csrfToken;
       }
-      
+
       const workspaceId = localStorage.getItem('active_workspace_id');
       if (workspaceId) {
         config.headers['X-Workspace-ID'] = workspaceId;
@@ -32,16 +39,16 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for automatic refresh token handling
+// Response interceptor for automatic httpOnly refresh token handling
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: any) => {
   failedQueue.forEach((prom) => {
-    if (token) {
-      prom.resolve(token);
-    } else {
+    if (error) {
       prom.reject(error);
+    } else {
+      prom.resolve();
     }
   });
   failedQueue = [];
@@ -52,51 +59,38 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh') {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            originalRequest.headers['Authorization'] = `Bearer ${token}`;
-            return api(originalRequest);
-          })
+          .then(() => api(originalRequest))
           .catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (!refreshToken) {
-        isRefreshing = false;
-        return Promise.reject(error);
-      }
-
       try {
-        const { data } = await axios.post(`${API_URL}/auth/refresh`, {
-          refresh_token: refreshToken,
-        });
+        await axios.post(
+          `${API_URL}/auth/refresh`,
+          {},
+          { withCredentials: true }
+        );
 
-        localStorage.setItem('access_token', data.access_token);
-        localStorage.setItem('refresh_token', data.refresh_token);
-
-        api.defaults.headers.common['Authorization'] = `Bearer ${data.access_token}`;
-        originalRequest.headers['Authorization'] = `Bearer ${data.access_token}`;
-
-        processQueue(null, data.access_token);
+        processQueue(null);
         isRefreshing = false;
         return api(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
+        processQueue(refreshError);
         isRefreshing = false;
-        
-        // Token refresh failed, log user out
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('active_workspace_id');
+
+        // Token refresh failed, clear active workspace and redirect to login
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          localStorage.removeItem('active_workspace_id');
+          if (!window.location.pathname.startsWith('/login')) {
+            window.location.href = '/login';
+          }
         }
         return Promise.reject(refreshError);
       }

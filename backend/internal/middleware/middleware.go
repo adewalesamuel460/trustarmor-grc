@@ -22,19 +22,27 @@ const (
 func Auth(svc *service.Service) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			tokenString := ""
 			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
-				http.Error(w, "Unauthorized: Authorization header missing", http.StatusUnauthorized)
+			if authHeader != "" {
+				parts := strings.Split(authHeader, " ")
+				if len(parts) == 2 && strings.ToLower(parts[0]) == "bearer" {
+					tokenString = parts[1]
+				}
+			}
+
+			if tokenString == "" {
+				if cookie, err := r.Cookie("access_token"); err == nil && cookie.Value != "" {
+					tokenString = cookie.Value
+				}
+			}
+
+			if tokenString == "" {
+				http.Error(w, "Unauthorized: Authentication token missing", http.StatusUnauthorized)
 				return
 			}
 
-			parts := strings.Split(authHeader, " ")
-			if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-				http.Error(w, "Unauthorized: Invalid authorization format", http.StatusUnauthorized)
-				return
-			}
-
-			userID, err := svc.ValidateToken(parts[1])
+			userID, err := svc.ValidateToken(tokenString)
 			if err != nil {
 				http.Error(w, "Unauthorized: "+err.Error(), http.StatusUnauthorized)
 				return
@@ -44,6 +52,39 @@ func Auth(svc *service.Service) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+func CSRF(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost || r.Method == http.MethodPut || r.Method == http.MethodDelete || r.Method == http.MethodPatch {
+			path := r.URL.Path
+
+			if strings.HasPrefix(path, "/auth/login") ||
+				strings.HasPrefix(path, "/auth/register") ||
+				strings.HasPrefix(path, "/auth/verify-mfa") ||
+				strings.HasPrefix(path, "/auth/refresh") ||
+				strings.HasPrefix(path, "/auth/forgot-password") ||
+				strings.HasPrefix(path, "/auth/reset-password") ||
+				strings.HasPrefix(path, "/public/") {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			csrfHeader := r.Header.Get("X-CSRF-Token")
+			if csrfHeader == "" {
+				csrfHeader = r.Header.Get("X-XSRF-Token")
+			}
+
+			csrfCookie, err := r.Cookie("XSRF-TOKEN")
+
+			if csrfHeader == "" || err != nil || csrfCookie.Value == "" || csrfHeader != csrfCookie.Value {
+				http.Error(w, "Forbidden: CSRF token missing or mismatch", http.StatusForbidden)
+				return
+			}
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func Tenant(repo *repository.Repository) func(http.Handler) http.Handler {
@@ -57,19 +98,16 @@ func Tenant(repo *repository.Repository) func(http.Handler) http.Handler {
 
 			workspaceID := r.Header.Get("X-Workspace-ID")
 			if workspaceID == "" {
-				// Allow requests that don't need a workspace context (e.g. lists workspaces)
 				next.ServeHTTP(w, r)
 				return
 			}
 
-			// Validate workspace membership
 			member, err := repo.GetWorkspaceMember(r.Context(), workspaceID, userID)
 			if err != nil {
 				http.Error(w, "Forbidden: Workspace access denied", http.StatusForbidden)
 				return
 			}
 
-			// Get workspace detail to fetch organization_id
 			workspaces, err := repo.GetUserWorkspaces(r.Context(), userID)
 			var orgID string
 			for _, ws := range workspaces {
@@ -84,14 +122,12 @@ func Tenant(repo *repository.Repository) func(http.Handler) http.Handler {
 				return
 			}
 
-			// Get role details to fetch permissions
 			role, err := repo.GetRoleByID(r.Context(), member.RoleID)
 			if err != nil {
 				http.Error(w, "Internal Server Error: Failed to fetch permissions", http.StatusInternalServerError)
 				return
 			}
 
-			// Inject contexts
 			ctx := context.WithValue(r.Context(), WorkspaceIDKey, workspaceID)
 			ctx = context.WithValue(ctx, OrganizationIDKey, orgID)
 			ctx = context.WithValue(ctx, PermissionsKey, role.Permissions)
@@ -131,9 +167,16 @@ func RequirePermission(permission string) func(http.Handler) http.Handler {
 
 func CORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Workspace-ID")
+		origin := r.Header.Get("Origin")
+		if origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		} else {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		}
+
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Workspace-ID, X-CSRF-Token, X-XSRF-Token")
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)

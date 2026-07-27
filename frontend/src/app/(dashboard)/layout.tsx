@@ -184,9 +184,10 @@ export default function DashboardLayout({
       ]
     : navGroups;
 
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (e) {}
     localStorage.removeItem('active_workspace_id');
     localStorage.removeItem('user_email');
     router.push('/login');
