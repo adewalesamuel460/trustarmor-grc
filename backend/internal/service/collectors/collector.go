@@ -37,8 +37,8 @@ func NewRegistry() *Registry {
 	}
 	// Register default/custom collectors
 	r.Register(&CustomCloudCollector{})
-	r.Register(&AWSMockCollector{})
-	r.Register(&GitHubMockCollector{})
+	r.Register(NewAWSCollector())
+	r.Register(NewGitHubCollector())
 	return r
 }
 

@@ -79,33 +79,70 @@ func TestToModelAsset(t *testing.T) {
 	assert.Equal(t, res.ComplianceRisk, modelAsset.ComplianceRisk)
 }
 
-func TestBuiltInCollectors(t *testing.T) {
+func TestCustomCloudCollector(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("CustomCloudCollector fetches assets", func(t *testing.T) {
-		c := &CustomCloudCollector{}
-		assert.Equal(t, "Custom Cloud", c.ProviderName())
+	c := &CustomCloudCollector{}
+	assert.Equal(t, "Custom Cloud", c.ProviderName())
 
-		assets, err := c.FetchAssets(ctx, nil, nil)
+	assets, err := c.FetchAssets(ctx, nil, nil)
+	require.NoError(t, err)
+	assert.GreaterOrEqual(t, len(assets), 3)
+}
+
+func TestAWSCollector_ParseCredentialsAndErrorHandling(t *testing.T) {
+	ctx := context.Background()
+	c := NewAWSCollector()
+	assert.Equal(t, "AWS", c.ProviderName())
+
+	t.Run("Parse valid JSON credentials", func(t *testing.T) {
+		jsonCreds := []byte(`{"access_key_id":"AKIAIOSFODNN7EXAMPLE","secret_access_key":"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY","region":"us-west-2"}`)
+		creds, err := parseAWSCreds(jsonCreds)
 		require.NoError(t, err)
-		assert.GreaterOrEqual(t, len(assets), 3)
+		assert.Equal(t, "AKIAIOSFODNN7EXAMPLE", creds.AccessKeyID)
+		assert.Equal(t, "us-west-2", creds.Region)
 	})
 
-	t.Run("AWSMockCollector fetches assets", func(t *testing.T) {
-		c := &AWSMockCollector{}
-		assert.Equal(t, "AWS", c.ProviderName())
-
-		assets, err := c.FetchAssets(ctx, nil, nil)
+	t.Run("Parse colon separated credentials", func(t *testing.T) {
+		raw := []byte("AKIA12345:secret6789:eu-west-1")
+		creds, err := parseAWSCreds(raw)
 		require.NoError(t, err)
-		assert.Len(t, assets, 2)
+		assert.Equal(t, "AKIA12345", creds.AccessKeyID)
+		assert.Equal(t, "secret6789", creds.SecretAccessKey)
+		assert.Equal(t, "eu-west-1", creds.Region)
 	})
 
-	t.Run("GitHubMockCollector fetches assets", func(t *testing.T) {
-		c := &GitHubMockCollector{}
-		assert.Equal(t, "GitHub", c.ProviderName())
+	t.Run("Return error on empty/invalid credentials", func(t *testing.T) {
+		_, err := c.FetchAssets(ctx, nil, nil)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "credential parsing failed")
+	})
+}
 
-		assets, err := c.FetchAssets(ctx, nil, nil)
+func TestGitHubCollector_ParseCredentialsAndErrorHandling(t *testing.T) {
+	ctx := context.Background()
+	c := NewGitHubCollector()
+	assert.Equal(t, "GitHub", c.ProviderName())
+
+	t.Run("Parse valid JSON token credentials", func(t *testing.T) {
+		jsonCreds := []byte(`{"token":"ghp_testtoken123","owner":"company","repo":"app"}`)
+		creds, err := parseGitHubCreds(jsonCreds)
 		require.NoError(t, err)
-		assert.Len(t, assets, 1)
+		assert.Equal(t, "ghp_testtoken123", creds.Token)
+		assert.Equal(t, "company", creds.Owner)
+		assert.Equal(t, "app", creds.Repo)
+	})
+
+	t.Run("Parse raw token string", func(t *testing.T) {
+		raw := []byte("ghp_rawtoken456")
+		creds, err := parseGitHubCreds(raw)
+		require.NoError(t, err)
+		assert.Equal(t, "ghp_rawtoken456", creds.Token)
+	})
+
+	t.Run("Return error on empty credentials", func(t *testing.T) {
+		_, err := c.FetchAssets(ctx, nil, nil)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "credential parsing failed")
 	})
 }

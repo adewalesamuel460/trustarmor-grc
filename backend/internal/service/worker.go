@@ -245,23 +245,38 @@ func (w *Worker) handleSyncIntegrationTask(ctx context.Context, t *asynq.Task) e
 
 	log.Printf("INFO [AsynqWorker]: Decrypted credentials successfully for provider %s.", wi.ProviderName)
 
-	recordsFetched := 42
+	recordsFetched := 0
 	collector, exists := w.collectors.Get(wi.ProviderName)
 	if exists {
 		log.Printf("INFO [AsynqWorker]: Found registered collector for provider '%s'. Fetching live/custom assets...", wi.ProviderName)
 		results, collectErr := collector.FetchAssets(ctx, wi.EncryptedCredentials, plaintext)
 		if collectErr != nil {
+			errMsg := collectErr.Error()
 			log.Printf("ERROR [AsynqWorker]: Collector failed for %s: %v", wi.ProviderName, collectErr)
-		} else {
-			recordsFetched = len(results)
-			for _, r := range results {
-				asset := collectors.ToModelAsset(wi.WorkspaceID, wi.ID, r)
-				_ = w.repo.UpsertAsset(ctx, &asset)
+
+			endTime := time.Now()
+			syncLog := models.SyncLog{
+				WorkspaceIntegrationID: p.IntegrationID,
+				Status:                 "failed",
+				RecordsFetched:         0,
+				ErrorMessage:           &errMsg,
+				StartedAt:              startTime,
+				CompletedAt:            endTime,
 			}
-			log.Printf("INFO [AsynqWorker]: Collector for '%s' successfully fetched & upserted %d assets into CMDB.", wi.ProviderName, recordsFetched)
+			_ = w.repo.CreateSyncLog(ctx, &syncLog)
+			_ = w.repo.UpdateIntegrationStatus(ctx, p.IntegrationID, "error", endTime)
+			return nil
 		}
+
+		recordsFetched = len(results)
+		for _, r := range results {
+			asset := collectors.ToModelAsset(wi.WorkspaceID, wi.ID, r)
+			_ = w.repo.UpsertAsset(ctx, &asset)
+		}
+		log.Printf("INFO [AsynqWorker]: Collector for '%s' successfully fetched & upserted %d assets into CMDB.", wi.ProviderName, recordsFetched)
 	} else {
 		log.Printf("INFO [AsynqWorker]: No specific collector registered for provider '%s'. Using standard sync log fallback.", wi.ProviderName)
+		recordsFetched = 42
 		time.Sleep(1 * time.Second)
 	}
 
