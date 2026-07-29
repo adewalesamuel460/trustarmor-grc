@@ -18,15 +18,10 @@ export default function SuperAdminLayout({
 
   useEffect(() => {
     const checkAdminPrivileges = async () => {
-      const token = localStorage.getItem('access_token');
-      const email = localStorage.getItem('user_email');
-      if (!token) {
-        router.replace('/login');
-        return;
-      }
+      const email = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
 
       try {
-        // Fetch tenants list. If it succeeds, the user is a verified global admin.
+        // Fetch tenants list. If it succeeds via httpOnly cookie, the user is a verified global admin.
         await api.get('/admin/tenants');
         setAuthenticated(true);
         setUserEmail(email || 'Admin');
@@ -41,7 +36,10 @@ export default function SuperAdminLayout({
     checkAdminPrivileges();
   }, [router]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (e) {}
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('active_workspace_id');

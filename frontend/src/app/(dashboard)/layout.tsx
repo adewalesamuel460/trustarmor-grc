@@ -64,20 +64,36 @@ export default function DashboardLayout({
       return;
     }
 
-    const token = localStorage.getItem('access_token');
-    const email = localStorage.getItem('user_email');
-    if (!token) {
-      router.replace('/login');
-    } else {
-      setAuthenticated(true);
-      setUserEmail(email || '');
+    // Authenticate via httpOnly cookie session
+    api.get('/users/me')
+      .then((res) => {
+        setAuthenticated(true);
+        if (res.data?.email) {
+          setUserEmail(res.data.email);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('user_email', res.data.email);
+          }
+        } else {
+          setUserEmail(localStorage.getItem('user_email') || '');
+        }
 
-      api.get('/admin/tenants')
-        .then(() => setIsGlobalAdmin(true))
-        .catch(() => setIsGlobalAdmin(false));
-    }
-    setLoading(false);
-  }, []);
+        api.get('/admin/tenants')
+          .then(() => setIsGlobalAdmin(true))
+          .catch(() => setIsGlobalAdmin(false));
+      })
+      .catch((err) => {
+        const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
+        if (storedEmail && err.response?.status !== 401) {
+          setAuthenticated(true);
+          setUserEmail(storedEmail);
+        } else {
+          router.replace('/login');
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [router]);
 
   useEffect(() => {
     const fetchUserRole = async () => {
