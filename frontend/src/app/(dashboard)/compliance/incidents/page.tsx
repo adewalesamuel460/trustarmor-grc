@@ -366,52 +366,52 @@ export default function IncidentsPage() {
 
       {/* Log Incident Modal */}
       {isCreateOpen && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <form
             onSubmit={handleCreateSubmit}
-            className="w-full max-w-lg p-8 rounded-2xl border border-white/5 bg-gray-900 shadow-2xl relative space-y-6"
+            className="w-full max-w-lg p-8 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-gray-900 shadow-2xl relative space-y-6"
           >
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
                 <span>Log New Incident</span>
               </h3>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">
                 Establish an incident record and compute SLA deadlines automatically.
               </p>
             </div>
 
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Title</label>
+                <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-medium">Title</label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Unauthorized S3 Bucket Access Detected"
-                  className="w-full px-4 py-2.5 bg-gray-950/40 border border-white/5 focus:border-red-500 rounded-xl text-sm text-white outline-none transition"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 focus:border-red-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition shadow-sm dark:shadow-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Description</label>
+                <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-medium">Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Incident details, assets impacted, initial discovery metrics..."
                   rows={3}
-                  className="w-full px-4 py-2.5 bg-gray-950/40 border border-white/5 focus:border-red-500 rounded-xl text-sm text-white outline-none transition"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 focus:border-red-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition shadow-sm dark:shadow-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1.5 font-medium">Severity</label>
+                  <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-medium">Severity</label>
                   <select
                     value={severity}
                     onChange={(e) => setSeverity(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-950/45 border border-white/5 focus:border-red-500 rounded-xl text-sm text-white outline-none transition"
+                    className="w-full px-4 py-2.5 bg-white dark:bg-gray-950/45 border border-slate-200 dark:border-white/5 focus:border-red-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition shadow-sm dark:shadow-none"
                   >
                     <option value="critical">Critical</option>
                     <option value="high">High</option>
@@ -421,11 +421,11 @@ export default function IncidentsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1.5 font-medium">Owner</label>
+                  <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-medium">Owner</label>
                   <select
                     value={ownerID}
                     onChange={(e) => setOwnerID(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-950/45 border border-white/5 focus:border-red-500 rounded-xl text-sm text-white outline-none transition"
+                    className="w-full px-4 py-2.5 bg-white dark:bg-gray-950/45 border border-slate-200 dark:border-white/5 focus:border-red-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition shadow-sm dark:shadow-none"
                   >
                     <option value="">Unassigned</option>
                     {members.map((m) => (
@@ -436,32 +436,32 @@ export default function IncidentsPage() {
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Discovered At</label>
+                <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-medium">Discovered At</label>
                 <input
                   type="datetime-local"
                   required
                   value={discoveredAt}
                   onChange={(e) => setDiscoveredAt(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-950/40 border border-white/5 focus:border-red-500 rounded-xl text-sm text-white outline-none transition"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 focus:border-red-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition shadow-sm dark:shadow-none"
                 />
               </div>
 
-              <div className="flex items-center gap-3 p-3 bg-red-500/5 border border-red-500/10 rounded-xl">
+              <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-500/5 border border-red-200 dark:border-red-500/10 rounded-xl">
                 <input
                   type="checkbox"
                   id="isBreach"
                   checked={isBreach}
                   onChange={(e) => setIsBreach(e.target.checked)}
-                  className="w-4 h-4 text-red-600 bg-gray-950/40 border-white/5 rounded focus:ring-red-500"
+                  className="w-4 h-4 text-red-600 bg-white dark:bg-gray-950/40 border-slate-300 dark:border-white/5 rounded focus:ring-red-500 cursor-pointer"
                 />
-                <label htmlFor="isBreach" className="text-xs text-gray-300 font-medium cursor-pointer">
-                  <span className="block text-white">Regulatory Data Breach</span>
+                <label htmlFor="isBreach" className="text-xs text-slate-700 dark:text-gray-300 font-medium cursor-pointer">
+                  <span className="block text-slate-900 dark:text-white font-bold">Regulatory Data Breach</span>
                   Marks this incident as a breach, triggering the strict 72-hour regulatory notification deadline.
                 </label>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/5">
               <button
                 type="button"
                 onClick={() => {
@@ -473,14 +473,14 @@ export default function IncidentsPage() {
                   setOwnerID('');
                   setIsCreateOpen(false);
                 }}
-                className="px-5 py-2.5 bg-gray-950/40 hover:bg-gray-950/60 border border-white/10 text-white font-semibold text-xs rounded-xl transition"
+                className="px-5 py-2.5 bg-slate-100 dark:bg-gray-950/40 hover:bg-slate-200 dark:hover:bg-gray-950/60 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-semibold text-xs rounded-xl transition"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={createLoading}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold text-xs rounded-xl transition disabled:opacity-50"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold text-xs rounded-xl transition disabled:opacity-50 shadow-lg"
               >
                 {createLoading ? 'Logging...' : 'Log Incident'}
               </button>
@@ -491,28 +491,28 @@ export default function IncidentsPage() {
 
       {/* Split-View Detail Drawer */}
       {selectedIncident && (
-        <div className="fixed inset-y-0 right-0 z-50 w-full max-w-5xl bg-gray-950 border-l border-white/10 shadow-2xl flex flex-col h-full">
+        <div className="fixed inset-y-0 right-0 z-50 w-full max-w-5xl bg-white dark:bg-gray-950 border-l border-slate-200 dark:border-white/10 shadow-2xl flex flex-col h-full">
           {/* Drawer Header */}
-          <div className="p-6 border-b border-white/5 flex items-center justify-between bg-gray-900">
+          <div className="p-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between bg-slate-50 dark:bg-gray-900">
             <div>
               <div className="flex items-center gap-3">
                 <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                  selectedIncident.severity === 'critical' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-                  selectedIncident.severity === 'high' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
-                  selectedIncident.severity === 'medium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                  'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                  selectedIncident.severity === 'critical' ? 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/20' :
+                  selectedIncident.severity === 'high' ? 'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-500/20' :
+                  selectedIncident.severity === 'medium' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20' :
+                  'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20'
                 }`}>
                   {selectedIncident.severity}
                 </span>
-                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-white/5 text-gray-400 border border-white/10">
+                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-slate-200 dark:bg-white/5 text-slate-700 dark:text-gray-400 border border-slate-300 dark:border-white/10">
                   {selectedIncident.status}
                 </span>
               </div>
-              <h3 className="text-lg font-bold text-white mt-1.5">{selectedIncident.title}</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-1.5">{selectedIncident.title}</h3>
             </div>
             <button
               onClick={() => setSelectedIncident(null)}
-              className="p-1.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition"
+              className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-white/5 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -522,38 +522,38 @@ export default function IncidentsPage() {
           <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-2">
             
             {/* Left Column: Details & RCA Resolution */}
-            <div className="p-6 overflow-y-auto border-r border-white/5 space-y-6">
+            <div className="p-6 overflow-y-auto border-r border-slate-200 dark:border-white/5 space-y-6">
               <div>
-                <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Description</h4>
-                <p className="text-sm text-gray-300 bg-white/5 p-4 rounded-xl border border-white/5 leading-relaxed">
+                <h4 className="text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wider mb-2">Description</h4>
+                <p className="text-sm text-slate-700 dark:text-gray-300 bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/5 leading-relaxed">
                   {selectedIncident.description || 'No description provided.'}
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 text-sm bg-white/5 p-4 rounded-xl border border-white/5">
+              <div className="grid grid-cols-2 gap-4 text-sm bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/5">
                 <div>
-                  <div className="text-xs text-gray-400 flex items-center gap-1.5 mb-1">
+                  <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 mb-1">
                     <User className="w-3.5 h-3.5" />
                     <span>Owner</span>
                   </div>
-                  <span className="text-white font-medium">{selectedIncident.owner_name || 'Unassigned'}</span>
+                  <span className="text-slate-900 dark:text-white font-medium">{selectedIncident.owner_name || 'Unassigned'}</span>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-400 flex items-center gap-1.5 mb-1">
+                  <div className="text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 mb-1">
                     <Calendar className="w-3.5 h-3.5" />
                     <span>Discovered</span>
                   </div>
-                  <span className="text-white font-mono text-xs">{new Date(selectedIncident.discovered_at).toLocaleString()}</span>
+                  <span className="text-slate-900 dark:text-white font-mono text-xs">{new Date(selectedIncident.discovered_at).toLocaleString()}</span>
                 </div>
               </div>
 
               {selectedIncident.is_breach && (
-                <div className="p-4 bg-red-500/5 border border-red-500/10 rounded-xl space-y-2">
-                  <div className="text-xs font-semibold text-red-400 flex items-center gap-1.5">
+                <div className="p-4 bg-red-50 dark:bg-red-500/5 border border-red-200 dark:border-red-500/10 rounded-xl space-y-2">
+                  <div className="text-xs font-semibold text-red-600 dark:text-red-400 flex items-center gap-1.5">
                     <Clock className="w-4 h-4" />
                     <span>GDPR Breach Notification Deadline</span>
                   </div>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-slate-600 dark:text-gray-400">
                     Breach incidents must be disclosed to regulatory authorities within 72 hours of discovery.
                   </p>
                   <div className="pt-1">
@@ -563,28 +563,28 @@ export default function IncidentsPage() {
               )}
 
               {/* Resolution Form */}
-              <form onSubmit={handleResolveSubmit} className="space-y-4 pt-4 border-t border-white/5">
-                <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">RCA & Ticket Resolution</h4>
+              <form onSubmit={handleResolveSubmit} className="space-y-4 pt-4 border-t border-slate-200 dark:border-white/5">
+                <h4 className="text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wider">RCA & Ticket Resolution</h4>
                 
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1.5 font-medium">Root Cause Analysis (RCA)</label>
+                  <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-medium">Root Cause Analysis (RCA)</label>
                   <textarea
                     required
                     value={rcaText}
                     onChange={(e) => setRcaText(e.target.value)}
                     placeholder="Document root cause, vector of compromise, containment steps, and long-term patching actions..."
                     rows={6}
-                    className="w-full px-4 py-2.5 bg-gray-950/40 border border-white/5 focus:border-red-500 rounded-xl text-sm text-white outline-none transition"
+                    className="w-full px-4 py-2.5 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 focus:border-red-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition shadow-sm dark:shadow-none"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1.5 font-medium">Status Update</label>
+                    <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-medium">Status Update</label>
                     <select
                       value={resolveStatus}
                       onChange={(e) => setResolveStatus(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-gray-950/45 border border-white/5 focus:border-red-500 rounded-xl text-sm text-white outline-none transition"
+                      className="w-full px-4 py-2.5 bg-white dark:bg-gray-950/45 border border-slate-200 dark:border-white/5 focus:border-red-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition shadow-sm dark:shadow-none"
                     >
                       <option value="investigating">Investigating</option>
                       <option value="contained">Contained</option>
@@ -597,7 +597,7 @@ export default function IncidentsPage() {
                     <button
                       type="submit"
                       disabled={actionLoading}
-                      className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition disabled:opacity-50"
+                      className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl transition disabled:opacity-50 shadow-lg"
                     >
                       {actionLoading ? 'Updating...' : 'Save Resolution'}
                     </button>
@@ -607,9 +607,9 @@ export default function IncidentsPage() {
             </div>
 
             {/* Right Column: Chronological Timeline Log */}
-            <div className="p-6 overflow-y-auto flex flex-col h-full bg-gray-950/40">
-              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-indigo-400" />
+            <div className="p-6 overflow-y-auto flex flex-col h-full bg-slate-50/50 dark:bg-gray-950/40">
+              <h4 className="text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 <span>Activity Timeline</span>
               </h4>
 
@@ -620,20 +620,20 @@ export default function IncidentsPage() {
                     <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
                   </div>
                 ) : incidentUpdates.length === 0 ? (
-                  <div className="text-center py-10 text-xs text-gray-500">
+                  <div className="text-center py-10 text-xs text-slate-400 dark:text-gray-500">
                     No timeline logs entered yet. Post a status update below.
                   </div>
                 ) : (
-                  <div className="space-y-4 relative border-l border-white/10 pl-4 ml-2">
+                  <div className="space-y-4 relative border-l border-slate-200 dark:border-white/10 pl-4 ml-2">
                     {incidentUpdates.filter(up => up.update_text.trim() !== "").map((up) => (
                       <div key={up.id} className="relative space-y-1">
                         {/* Dot indicator */}
-                        <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-gray-950" />
+                        <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-indigo-500 border-2 border-white dark:border-gray-950" />
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-indigo-400 font-semibold">{up.user_email || 'System / Auto'}</span>
-                          <span className="text-[10px] text-gray-500">{new Date(up.created_at).toLocaleString()}</span>
+                          <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{up.user_email || 'System / Auto'}</span>
+                          <span className="text-[10px] text-slate-400 dark:text-gray-500">{new Date(up.created_at).toLocaleString()}</span>
                         </div>
-                        <p className="text-xs text-gray-300 leading-relaxed bg-white/5 p-2.5 rounded-lg border border-white/5">
+                        <p className="text-xs text-slate-700 dark:text-gray-300 leading-relaxed bg-white dark:bg-white/5 p-2.5 rounded-lg border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none">
                           {up.update_text}
                         </p>
                       </div>
@@ -643,18 +643,18 @@ export default function IncidentsPage() {
               </div>
 
               {/* Timeline update input form */}
-              <form onSubmit={handleAddUpdate} className="flex gap-2 pt-3 border-t border-white/5">
+              <form onSubmit={handleAddUpdate} className="flex gap-2 pt-3 border-t border-slate-200 dark:border-white/5">
                 <input
                   type="text"
                   required
                   value={newUpdateText}
                   onChange={(e) => setNewUpdateText(e.target.value)}
                   placeholder="Post timeline log update..."
-                  className="flex-1 px-4 py-2.5 bg-gray-950/40 border border-white/5 focus:border-indigo-500 rounded-xl text-xs text-white outline-none transition"
+                  className="flex-1 px-4 py-2.5 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 focus:border-indigo-500 rounded-xl text-xs text-slate-900 dark:text-white outline-none transition shadow-sm dark:shadow-none"
                 />
                 <button
                   type="submit"
-                  className="p-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition"
+                  className="p-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition shadow-md"
                 >
                   <Send className="w-4 h-4" />
                 </button>
