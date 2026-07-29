@@ -289,7 +289,7 @@ export default function RiskRegisterPage() {
   return (
     <div className="space-y-8 pb-12 min-h-screen">
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400 text-sm">
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-600 dark:text-red-400 text-sm">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <p>{error}</p>
         </div>
@@ -298,11 +298,11 @@ export default function RiskRegisterPage() {
       {/* Top section */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <AlertTriangle className="w-6 h-6 text-indigo-400" />
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <AlertTriangle className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             <span>Risk Register & Enterprise GRC</span>
           </h2>
-          <p className="text-gray-400 text-sm">Analyze organizational risk matrices, track mitigation treatments, and map compliance controls.</p>
+          <p className="text-slate-600 dark:text-gray-400 text-sm">Analyze organizational risk matrices, track mitigation treatments, and map compliance controls.</p>
         </div>
         <button
           onClick={() => setIsCreating(true)}
@@ -317,14 +317,14 @@ export default function RiskRegisterPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Risk Heatmap Panel */}
-        <div className="lg:col-span-2 p-6 rounded-2xl border border-white/5 bg-gray-900/10 flex flex-col justify-between">
+        <div className="lg:col-span-2 p-6 rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-900/10 flex flex-col justify-between shadow-sm dark:shadow-none">
           <div>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">5x5 Risk Heatmap</h3>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">5x5 Risk Heatmap</h3>
               {filterCoord && (
                 <button
                   onClick={() => setFilterCoord(null)}
-                  className="flex items-center gap-1 text-[10px] bg-white/5 hover:bg-white/10 px-2 py-1 rounded text-gray-400 hover:text-white transition"
+                  className="flex items-center gap-1 text-[10px] bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 px-2 py-1 rounded text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition"
                 >
                   <Filter className="w-3 h-3" />
                   <span>Clear Filter ({filterCoord.likelihood}x{filterCoord.impact})</span>
@@ -335,7 +335,7 @@ export default function RiskRegisterPage() {
             {/* 5x5 Grid Wrapper */}
             <div className="flex gap-4">
               {/* Y Axis Legend (Likelihood) */}
-              <div className="flex flex-col justify-between items-end text-xs font-semibold text-gray-500 pb-8 pt-2 w-12 pr-2 select-none">
+              <div className="flex flex-col justify-between items-end text-xs font-semibold text-slate-400 dark:text-gray-500 pb-8 pt-2 w-12 pr-2 select-none">
                 <span>Likelihood 5</span>
                 <span>4</span>
                 <span>3</span>
@@ -364,7 +364,7 @@ export default function RiskRegisterPage() {
                 ))}
 
                 {/* X Axis Legend (Impact) */}
-                <div className="grid grid-cols-5 gap-2 text-center text-xs font-semibold text-gray-500 pt-2 select-none">
+                <div className="grid grid-cols-5 gap-2 text-center text-xs font-semibold text-slate-400 dark:text-gray-500 pt-2 select-none">
                   <span>Impact 1</span>
                   <span>2</span>
                   <span>3</span>
@@ -377,7 +377,7 @@ export default function RiskRegisterPage() {
         </div>
 
         {/* Categories / Stats Panel */}
-        <div className="p-6 rounded-2xl border border-white/5 bg-gray-900/20 flex flex-col justify-between">
+        <div className="p-6 rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-900/20 flex flex-col justify-between shadow-sm dark:shadow-none">
           <div className="space-y-4">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">Scoring Framework</h3>
             <p className="text-xs text-gray-400 leading-relaxed">

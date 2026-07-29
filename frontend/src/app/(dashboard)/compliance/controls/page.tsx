@@ -354,10 +354,10 @@ export default function ControlsPage() {
         key={ident}
         className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
           isSoc2
-            ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+            ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400'
             : isNdpr
-            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-            : 'bg-gray-500/10 border-gray-500/20 text-gray-400'
+            ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+            : 'bg-slate-100 dark:bg-gray-500/10 border-slate-200 dark:border-gray-500/20 text-slate-600 dark:text-gray-400'
         }`}
       >
         {ident}
@@ -369,29 +369,29 @@ export default function ControlsPage() {
     switch (status) {
       case 'passing':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-full text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
             Passing
           </span>
         );
       case 'failing':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-red-400 text-xs font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-full text-red-700 dark:text-red-400 text-xs font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400" />
             Failing
           </span>
         );
       case 'needs_attention':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-amber-400 text-xs font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-full text-amber-700 dark:text-amber-400 text-xs font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400" />
             Attention
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-500/10 border border-gray-500/20 rounded-full text-gray-400 text-xs font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-gray-500/10 border border-slate-200 dark:border-gray-500/20 rounded-full text-slate-600 dark:text-gray-400 text-xs font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-gray-400" />
             Untested
           </span>
         );
@@ -403,11 +403,11 @@ export default function ControlsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Sliders className="w-6 h-6 text-indigo-400" />
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Sliders className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             <span>Workspace Controls</span>
           </h2>
-          <p className="text-gray-400 text-sm">Define internal procedures and link them to global framework requirements.</p>
+          <p className="text-slate-600 dark:text-gray-400 text-sm">Define internal procedures and link them to global framework requirements.</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -419,7 +419,7 @@ export default function ControlsPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400 text-sm">
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-600 dark:text-red-400 text-sm">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <p>{error}</p>
         </div>
@@ -427,21 +427,21 @@ export default function ControlsPage() {
 
       {/* Filter and Search */}
       <div className="relative max-w-md">
-        <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-3.5" />
+        <Search className="w-4 h-4 text-slate-400 dark:text-gray-500 absolute left-3.5 top-3.5" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search controls by title or type..."
-          className="w-full pl-10 pr-4 py-3 bg-gray-900/30 border border-white/5 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition"
+          className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900/30 border border-slate-200 dark:border-white/5 focus:border-indigo-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition shadow-sm dark:shadow-none"
         />
       </div>
 
       {/* Datatable */}
-      <div className="glass-panel rounded-2xl overflow-hidden">
+      <div className="glass-panel rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-white/5 text-gray-400 text-xs font-semibold uppercase tracking-wider bg-gray-950/20">
+            <tr className="border-b border-slate-200 dark:border-white/5 text-slate-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider bg-slate-50 dark:bg-gray-950/20">
               <th className="px-6 py-4">Title</th>
               <th className="px-6 py-4">Status</th>
               <th className="px-6 py-4">Type</th>
@@ -466,30 +466,30 @@ export default function ControlsPage() {
               </tr>
             ) : (
               filteredControls.map((c) => (
-                <tr key={c.id} className="hover:bg-white/5 transition">
+                <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition">
                   <td className="px-6 py-4">
-                    <p className="font-semibold text-white">{c.title}</p>
-                    <p className="text-xs text-gray-400 line-clamp-1 mt-0.5">{c.description}</p>
+                    <p className="font-semibold text-slate-900 dark:text-white">{c.title}</p>
+                    <p className="text-xs text-slate-500 dark:text-gray-400 line-clamp-1 mt-0.5">{c.description}</p>
                   </td>
                   <td className="px-6 py-4">
                     {renderStatusBadge(c.current_status)}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="px-2 py-0.5 bg-white/5 text-gray-300 text-xs rounded border border-white/5 font-medium">
+                    <span className="px-2 py-0.5 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-gray-300 text-xs rounded border border-slate-200 dark:border-white/5 font-medium">
                       {c.type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-300 text-xs">{c.frequency}</td>
-                  <td className="px-6 py-4 text-gray-400 text-xs">
+                  <td className="px-6 py-4 text-slate-600 dark:text-gray-300 text-xs">{c.frequency}</td>
+                  <td className="px-6 py-4 text-slate-500 dark:text-gray-400 text-xs">
                     <span className="flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-gray-500" />
+                      <User className="w-3.5 h-3.5 text-slate-400 dark:text-gray-500" />
                       <span>{getOwnerEmail(c.owner_id)}</span>
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1.5 max-w-[200px]">
                       {c.mapped_requirements.length === 0 ? (
-                        <span className="text-xs text-gray-500 italic">None</span>
+                        <span className="text-xs text-slate-400 dark:text-gray-500 italic">None</span>
                       ) : (
                         c.mapped_requirements.map((req) => renderRequirementBadge(req))
                       )}
@@ -498,7 +498,7 @@ export default function ControlsPage() {
                   <td className="px-6 py-4 text-right">
                     <button
                       onClick={() => handleOpenDrawer(c)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-950/60 hover:bg-indigo-600 border border-white/5 text-xs font-semibold rounded-lg text-gray-300 hover:text-white transition"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-gray-950/60 hover:bg-indigo-600 border border-slate-200 dark:border-white/5 text-xs font-semibold rounded-lg text-slate-700 dark:text-gray-300 hover:text-white transition shadow-sm dark:shadow-none"
                     >
                       <Eye className="w-3.5 h-3.5" />
                       <span>Details & Audit</span>
@@ -629,16 +629,16 @@ export default function ControlsPage() {
             className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
           />
 
-          <div className="fixed right-0 top-0 h-full w-[540px] bg-gray-900 border-l border-white/5 shadow-2xl z-50 flex flex-col justify-between transition-transform duration-300">
+          <div className="fixed right-0 top-0 h-full w-[540px] bg-white dark:bg-gray-900 border-l border-slate-200 dark:border-white/5 shadow-2xl z-50 flex flex-col justify-between transition-transform duration-300">
             {/* Header */}
-            <div className="p-6 border-b border-white/5 bg-gray-950/10">
+            <div className="p-6 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-gray-950/10">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-white leading-tight">{selectedControl.title}</h3>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">{selectedControl.title}</h3>
                   <div className="flex items-center gap-3 mt-2">
                     {renderStatusBadge(selectedControl.current_status)}
-                    <span className="text-gray-500 text-xs">
-                      Last tested: <span className="text-gray-300 font-mono">{selectedControl.last_tested_at ? new Date(selectedControl.last_tested_at).toLocaleString() : 'Never'}</span>
+                    <span className="text-slate-500 dark:text-gray-500 text-xs">
+                      Last tested: <span className="text-slate-700 dark:text-gray-300 font-mono">{selectedControl.last_tested_at ? new Date(selectedControl.last_tested_at).toLocaleString() : 'Never'}</span>
                     </span>
                   </div>
                 </div>
@@ -647,7 +647,7 @@ export default function ControlsPage() {
                     setShowDrawer(false);
                     setSelectedControl(null);
                   }}
-                  className="p-1.5 hover:bg-white/5 rounded-lg border border-white/5 text-gray-400 hover:text-white transition"
+                  className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg border border-slate-200 dark:border-white/5 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition"
                 >
                   <X className="w-4 h-4" />
                 </button>

@@ -126,11 +126,11 @@ export default function FrameworksPage() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-indigo-400" />
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <ShieldCheck className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             <span>Compliance Frameworks</span>
           </h2>
-          <p className="text-gray-400 text-sm">
+          <p className="text-slate-600 dark:text-gray-400 text-sm">
             Browse globally supported security standards, activate them for your workspace, and track posture coverage.
           </p>
         </div>
@@ -144,15 +144,15 @@ export default function FrameworksPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400 text-sm">
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-600 dark:text-red-400 text-sm">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <p>{error}</p>
         </div>
       )}
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-gray-500 gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-gray-500 gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-500" />
           <p className="text-sm">Loading security frameworks...</p>
         </div>
       ) : (
@@ -164,10 +164,10 @@ export default function FrameworksPage() {
             return (
               <div
                 key={f.id}
-                className={`p-6 rounded-2xl border transition duration-300 relative overflow-hidden flex flex-col justify-between min-h-[220px] ${
+                className={`p-6 rounded-2xl border transition duration-300 relative overflow-hidden flex flex-col justify-between min-h-[220px] shadow-sm dark:shadow-none ${
                   isActivated
-                    ? 'border-indigo-500/20 bg-indigo-950/5 hover:border-indigo-500/35'
-                    : 'border-white/5 bg-gray-900/20 hover:border-white/10'
+                    ? 'border-indigo-200 dark:border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-950/5 hover:border-indigo-400 dark:hover:border-indigo-500/35'
+                    : 'border-slate-200 dark:border-white/5 bg-white dark:bg-gray-900/20 hover:border-slate-300 dark:hover:border-white/10'
                 }`}
               >
                 {/* Background glow for activated */}
@@ -178,27 +178,27 @@ export default function FrameworksPage() {
                 <div>
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <span>{f.name}</span>
                       </h3>
-                      <span className="text-[10px] px-2 py-0.5 bg-white/5 border border-white/10 rounded text-gray-400 font-mono">
+                      <span className="text-[10px] px-2 py-0.5 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded text-slate-600 dark:text-gray-400 font-mono">
                         v{f.version}
                       </span>
                     </div>
 
                     {isActivated ? (
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/25 px-2 py-1 rounded-full uppercase tracking-wider">
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/25 px-2 py-1 rounded-full uppercase tracking-wider">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Active</span>
                       </span>
                     ) : (
-                      <span className="text-[10px] font-bold text-gray-500 bg-white/5 border border-white/5 px-2 py-1 rounded-full uppercase tracking-wider">
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-gray-500 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 px-2 py-1 rounded-full uppercase tracking-wider">
                         Inactive
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs text-gray-400 leading-relaxed mb-6">
+                  <p className="text-xs text-slate-600 dark:text-gray-400 leading-relaxed mb-6">
                     {f.description}
                   </p>
                 </div>
@@ -207,10 +207,10 @@ export default function FrameworksPage() {
                   {isActivated ? (
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs font-semibold">
-                        <span className="text-gray-400">Compliance Posture</span>
-                        <span className="text-indigo-400 font-bold">{posture.toFixed(0)}%</span>
+                        <span className="text-slate-500 dark:text-gray-400">Compliance Posture</span>
+                        <span className="text-indigo-600 dark:text-indigo-400 font-bold">{posture.toFixed(0)}%</span>
                       </div>
-                      <div className="w-full h-2 bg-gray-950 rounded-full overflow-hidden border border-white/5">
+                      <div className="w-full h-2 bg-slate-200 dark:bg-gray-950 rounded-full overflow-hidden border border-slate-200 dark:border-white/5">
                         <div
                           className="h-full bg-gradient-to-r from-indigo-500 to-indigo-400 rounded-full transition-all duration-500"
                           style={{ width: `${posture}%` }}
@@ -221,7 +221,7 @@ export default function FrameworksPage() {
                     <button
                       onClick={() => handleActivate(f.id)}
                       disabled={actionLoading !== null}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white text-xs font-bold rounded-xl transition"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white text-xs font-bold rounded-xl transition shadow-sm"
                     >
                       {actionLoading === f.id ? (
                         <>
@@ -246,25 +246,25 @@ export default function FrameworksPage() {
       {/* Create Custom Framework Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-gray-900 border border-white/5 rounded-2xl p-6 shadow-2xl relative">
+          <div className="w-full max-w-md bg-white dark:bg-gray-900 border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-2xl relative">
             <button
               onClick={() => setShowCreateModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+              className="absolute top-4 right-4 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-indigo-400" />
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               <span>Add Custom Framework</span>
             </h3>
-            <p className="text-xs text-gray-400 mb-6">
+            <p className="text-xs text-slate-500 dark:text-gray-400 mb-6">
               Create a new compliance framework standard to map your controls against.
             </p>
 
             <form onSubmit={handleCreateFramework} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300 uppercase tracking-wider mb-2">
                   Framework Name
                 </label>
                 <input
@@ -273,12 +273,12 @@ export default function FrameworksPage() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g., ISO 27001"
-                  className="w-full px-4 py-3 bg-gray-950/50 border border-white/10 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white outline-none text-sm transition"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-gray-950/50 border border-slate-200 dark:border-white/10 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-slate-900 dark:text-white outline-none text-sm transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300 uppercase tracking-wider mb-2">
                   Version
                 </label>
                 <input
@@ -287,12 +287,12 @@ export default function FrameworksPage() {
                   value={newVersion}
                   onChange={(e) => setNewVersion(e.target.value)}
                   placeholder="e.g., 2022"
-                  className="w-full px-4 py-3 bg-gray-950/50 border border-white/10 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white outline-none text-sm transition"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-gray-950/50 border border-slate-200 dark:border-white/10 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-slate-900 dark:text-white outline-none text-sm transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300 uppercase tracking-wider mb-2">
                   Description
                 </label>
                 <textarea
@@ -300,15 +300,15 @@ export default function FrameworksPage() {
                   onChange={(e) => setNewDescription(e.target.value)}
                   placeholder="Describe the framework scope and security goals..."
                   rows={4}
-                  className="w-full px-4 py-3 bg-gray-950/50 border border-white/10 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white outline-none text-sm transition resize-none"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-gray-950/50 border border-slate-200 dark:border-white/10 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-slate-900 dark:text-white outline-none text-sm transition resize-none"
                 />
               </div>
 
-              <div className="flex gap-3 justify-end pt-4 border-t border-white/5">
+              <div className="flex gap-3 justify-end pt-4 border-t border-slate-200 dark:border-white/5">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 font-semibold rounded-xl text-sm transition"
+                  className="px-4 py-2.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-gray-300 font-semibold rounded-xl text-sm transition"
                 >
                   Cancel
                 </button>

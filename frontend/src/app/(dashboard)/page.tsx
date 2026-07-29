@@ -110,11 +110,11 @@ export default function ExecutiveDashboard() {
       {/* Hero Welcome banner */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-black text-white flex items-center gap-2.5">
-            <Sparkles className="w-6.5 h-6.5 text-indigo-400" />
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+            <Sparkles className="w-6.5 h-6.5 text-indigo-600 dark:text-indigo-400" />
             <span>Executive Trust & Compliance Dashboard</span>
           </h2>
-          <p className="text-gray-400 text-sm">
+          <p className="text-slate-600 dark:text-gray-400 text-sm">
             Real-time audit readiness posture, mean remediation metrics, and critical alert directory logs.
           </p>
         </div>
@@ -122,7 +122,7 @@ export default function ExecutiveDashboard() {
         <button
           onClick={loadDashboardData}
           disabled={loading}
-          className="p-2.5 bg-gray-950/40 hover:bg-white/5 border border-white/5 rounded-xl text-gray-400 hover:text-white transition flex items-center gap-1.5 text-xs font-semibold"
+          className="p-2.5 bg-white dark:bg-gray-950/40 hover:bg-slate-100 dark:hover:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition flex items-center gap-1.5 text-xs font-semibold shadow-sm dark:shadow-none"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           <span>Refresh Metrics</span>
@@ -130,7 +130,7 @@ export default function ExecutiveDashboard() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-24 text-gray-500 gap-2">
+        <div className="flex justify-center py-24 text-slate-400 dark:text-gray-500 gap-2">
           <Loader2 className="w-6 h-6 animate-spin" />
           <span>Synchronizing leadership dashboard...</span>
         </div>
@@ -141,37 +141,37 @@ export default function ExecutiveDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Failing Controls */}
-            <div className="p-6 bg-gray-950/40 border border-white/5 rounded-2xl flex justify-between items-center group hover:border-red-500/25 transition">
+            <div className="p-6 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 rounded-2xl flex justify-between items-center group hover:border-red-500/30 transition shadow-sm dark:shadow-none">
               <div className="space-y-1">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Failing Controls</span>
-                <h4 className="text-3xl font-black text-white">{stats.failing_controls_count}</h4>
-                <p className="text-[10px] text-gray-400">Controls failed automated check</p>
+                <span className="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider">Failing Controls</span>
+                <h4 className="text-3xl font-black text-slate-900 dark:text-white">{stats.failing_controls_count}</h4>
+                <p className="text-[10px] text-slate-500 dark:text-gray-400">Controls failed automated check</p>
               </div>
-              <div className="p-3.5 bg-red-500/10 text-red-400 rounded-xl group-hover:scale-115 transition">
+              <div className="p-3.5 bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl group-hover:scale-115 transition">
                 <AlertTriangle className="w-6 h-6" />
               </div>
             </div>
 
             {/* Unmitigated Risks */}
-            <div className="p-6 bg-gray-950/40 border border-white/5 rounded-2xl flex justify-between items-center group hover:border-amber-500/25 transition">
+            <div className="p-6 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 rounded-2xl flex justify-between items-center group hover:border-amber-500/30 transition shadow-sm dark:shadow-none">
               <div className="space-y-1">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Unmitigated Risks</span>
-                <h4 className="text-3xl font-black text-white">{stats.unmitigated_risks_count}</h4>
-                <p className="text-[10px] text-gray-400">Risk register treatments pending</p>
+                <span className="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider">Unmitigated Risks</span>
+                <h4 className="text-3xl font-black text-slate-900 dark:text-white">{stats.unmitigated_risks_count}</h4>
+                <p className="text-[10px] text-slate-500 dark:text-gray-400">Risk register treatments pending</p>
               </div>
-              <div className="p-3.5 bg-amber-500/10 text-amber-400 rounded-xl group-hover:scale-115 transition">
+              <div className="p-3.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl group-hover:scale-115 transition">
                 <Layers className="w-6 h-6" />
               </div>
             </div>
 
             {/* Active Remediation Queue Tasks */}
-            <div className="p-6 bg-gray-950/40 border border-white/5 rounded-2xl flex justify-between items-center group hover:border-blue-500/25 transition">
+            <div className="p-6 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 rounded-2xl flex justify-between items-center group hover:border-blue-500/30 transition shadow-sm dark:shadow-none">
               <div className="space-y-1">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Open Tasks Queue</span>
-                <h4 className="text-3xl font-black text-white">{stats.open_tasks_count}</h4>
-                <p className="text-[10px] text-gray-400">Remediation action items open</p>
+                <span className="text-[10px] font-bold text-slate-400 dark:text-gray-500 uppercase tracking-wider">Open Tasks Queue</span>
+                <h4 className="text-3xl font-black text-slate-900 dark:text-white">{stats.open_tasks_count}</h4>
+                <p className="text-[10px] text-slate-500 dark:text-gray-400">Remediation action items open</p>
               </div>
-              <div className="p-3.5 bg-blue-500/10 text-blue-400 rounded-xl group-hover:scale-115 transition">
+              <div className="p-3.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl group-hover:scale-115 transition">
                 <CheckSquare className="w-6 h-6" />
               </div>
             </div>
@@ -182,10 +182,10 @@ export default function ExecutiveDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* POSTURE RADIAL GAUGE */}
-            <div className="p-6 bg-gray-950/40 border border-white/5 rounded-3xl flex flex-col items-center justify-between min-h-[320px]">
+            <div className="p-6 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 rounded-3xl flex flex-col items-center justify-between min-h-[320px] shadow-sm dark:shadow-none">
               <div className="w-full text-left space-y-1">
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">Audit Readiness Posture</h3>
-                <p className="text-[10px] text-gray-500">Aggregated coverage readiness percent across active frameworks.</p>
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Audit Readiness Posture</h3>
+                <p className="text-[10px] text-slate-500 dark:text-gray-500">Aggregated coverage readiness percent across active frameworks.</p>
               </div>
 
               <div className="relative w-40 h-40 flex items-center justify-center">
@@ -196,7 +196,8 @@ export default function ExecutiveDashboard() {
                     cy="60"
                     r={radius}
                     fill="none"
-                    stroke="#1f2937"
+                    stroke="currentColor"
+                    className="text-slate-200 dark:text-gray-800"
                     strokeWidth={strokeWidth}
                   />
                   {/* Foreground Circle */}
@@ -221,27 +222,27 @@ export default function ExecutiveDashboard() {
                 </svg>
                 {/* Center text */}
                 <div className="absolute text-center">
-                  <span className="text-3xl font-black text-white">{readiness.toFixed(0)}%</span>
-                  <p className="text-[8px] uppercase text-indigo-400 font-bold tracking-wider mt-0.5">Compliant</p>
+                  <span className="text-3xl font-black text-slate-900 dark:text-white">{readiness.toFixed(0)}%</span>
+                  <p className="text-[8px] uppercase text-indigo-600 dark:text-indigo-400 font-bold tracking-wider mt-0.5">Compliant</p>
                 </div>
               </div>
 
-              <div className="text-[10px] text-gray-500 italic">
+              <div className="text-[10px] text-slate-400 dark:text-gray-500 italic">
                 Active Frameworks list is fully mapped and synchronized.
               </div>
             </div>
 
             {/* MTTR Sparkline / Line Chart (6-months history) */}
-            <div className="p-6 bg-gray-950/40 border border-white/5 rounded-3xl flex flex-col justify-between min-h-[320px]">
+            <div className="p-6 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 rounded-3xl flex flex-col justify-between min-h-[320px] shadow-sm dark:shadow-none">
               <div className="space-y-1">
                 <div className="flex justify-between items-start">
-                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">Remediation Velocity (MTTR)</h3>
-                  <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Remediation Velocity (MTTR)</h3>
+                  <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     <span>Average: {mttr.toFixed(1)} hrs</span>
                   </span>
                 </div>
-                <p className="text-[10px] text-gray-500">Mean Time To Remediate failures over last 6 months (downward is good).</p>
+                <p className="text-[10px] text-slate-500 dark:text-gray-500">Mean Time To Remediate failures over last 6 months (downward is good).</p>
               </div>
 
               {/* Styled SVG Chart */}
@@ -299,14 +300,14 @@ export default function ExecutiveDashboard() {
                 </svg>
 
                 {/* X-Axis labels */}
-                <div className="flex justify-between text-[8px] text-gray-500 font-bold uppercase mt-2 px-1">
+                <div className="flex justify-between text-[8px] text-slate-500 dark:text-gray-500 font-bold uppercase mt-2 px-1">
                   {mttrTrend.map((t, idx) => (
                     <span key={idx}>{t.month} ({t.mttr}h)</span>
                   ))}
                 </div>
               </div>
 
-              <div className="text-[10px] text-gray-500 italic mt-2 text-right">
+              <div className="text-[10px] text-slate-400 dark:text-gray-500 italic mt-2 text-right">
                 Includes automated tasks and manual control tickets.
               </div>
             </div>
@@ -314,16 +315,16 @@ export default function ExecutiveDashboard() {
           </div>
 
           {/* LOWER BLOCK: CRITICAL REMEDIATION DIRECTORY */}
-          <div className="p-6 bg-gray-950/40 border border-white/5 rounded-3xl space-y-4 shadow-xl">
+          <div className="p-6 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 rounded-3xl space-y-4 shadow-sm dark:shadow-xl">
             <div className="space-y-1">
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Critical Priority Open Action Items</h3>
-              <p className="text-[10px] text-gray-500">Unmitigated events requiring immediate leadership attention.</p>
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Critical Priority Open Action Items</h3>
+              <p className="text-[10px] text-slate-500 dark:text-gray-500">Unmitigated events requiring immediate leadership attention.</p>
             </div>
 
-            <div className="overflow-hidden border border-white/5 rounded-2xl">
+            <div className="overflow-hidden border border-slate-200 dark:border-white/5 rounded-2xl">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="border-b border-white/5 bg-white/[0.02] text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                  <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider">
                     <th className="p-4">Critical Event Title</th>
                     <th className="p-4">Entity Context</th>
                     <th className="p-4">Priority</th>
@@ -331,32 +332,32 @@ export default function ExecutiveDashboard() {
                     <th className="p-4 text-right">Owner</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 text-xs text-gray-300">
+                <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs text-slate-700 dark:text-gray-300">
                   {criticalTasks.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-gray-500 italic">
+                      <td colSpan={5} className="p-8 text-center text-slate-400 dark:text-gray-500 italic">
                         No critical priority open tasks logged. Compliance posture is stable.
                       </td>
                     </tr>
                   ) : (
                     criticalTasks.map((t) => (
-                      <tr key={t.id} className="hover:bg-white/[0.01] transition">
-                        <td className="p-4 font-bold text-white flex items-center gap-2">
+                      <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition">
+                        <td className="p-4 font-bold text-slate-900 dark:text-white flex items-center gap-2">
                           <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                           <span>{t.title}</span>
                         </td>
-                        <td className="p-4 text-gray-400 capitalize">{t.related_entity_type || 'task'}</td>
+                        <td className="p-4 text-slate-500 dark:text-gray-400 capitalize">{t.related_entity_type || 'task'}</td>
                         <td className="p-4">
-                          <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/20 text-[9px] text-red-400 rounded font-black uppercase tracking-wider">
+                          <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/20 text-[9px] text-red-600 dark:text-red-400 rounded font-black uppercase tracking-wider">
                             {t.priority}
                           </span>
                         </td>
                         <td className="p-4">
-                          <span className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-[9px] text-amber-400 rounded font-bold uppercase">
+                          <span className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-[9px] text-amber-600 dark:text-amber-400 rounded font-bold uppercase">
                             {t.status.replace('_', ' ')}
                           </span>
                         </td>
-                        <td className="p-4 text-right text-gray-400 font-mono">{t.assignee_email || 'System'}</td>
+                        <td className="p-4 text-right text-slate-500 dark:text-gray-400 font-mono">{t.assignee_email || 'System'}</td>
                       </tr>
                     ))
                   )}

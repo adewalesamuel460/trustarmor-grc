@@ -3,13 +3,31 @@
 @tailwind utilities;
 
 :root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: rgba(255, 255, 255, 0.85);
+  --card-solid: #ffffff;
+  --border: rgba(226, 232, 240, 0.8);
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --muted: #64748b;
+  --muted-bg: #f1f5f9;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+}
+
+.dark {
   --background: #090d16;
-  --foreground: #f1f5f9;
+  --foreground: #f8fafc;
   --card: rgba(17, 24, 39, 0.7);
+  --card-solid: #111827;
   --border: rgba(255, 255, 255, 0.08);
   --primary: #6366f1;
   --primary-hover: #4f46e5;
   --muted: #9ca3af;
+  --muted-bg: #111827;
+  --input-bg: rgba(3, 7, 18, 0.5);
+  --input-border: rgba(255, 255, 255, 0.1);
 }
 
 body {
@@ -17,6 +35,7 @@ body {
   color: var(--foreground);
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Glassmorphism utility */
@@ -24,6 +43,10 @@ body {
   background: var(--card);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+}
+
+.dark .glass-panel {
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
@@ -36,27 +59,41 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1f2937;
+  background: #cbd5e1;
   border-radius: 4px;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #1f2937;
+}
 ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
   background: #374151;
 }
 
-/* Dark mode native date picker styling */
+/* Native date picker styling */
 input[type="date"] {
-  color-scheme: dark;
+  color-scheme: light;
   cursor: pointer;
+}
+
+.dark input[type="date"] {
+  color-scheme: dark;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
+  filter: invert(0.2);
+  opacity: 0.8;
+  padding: 4px;
+}
+
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.9);
   opacity: 0.9;
-  padding: 4px;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
-  filter: invert(1);
 }
