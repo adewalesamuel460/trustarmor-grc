@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import api from '@/lib/api';
 import { 
   ShieldCheck, AlertTriangle, CheckSquare, Clock, ArrowUpRight, 
-  Loader2, Sparkles, AlertCircle, RefreshCw, HelpCircle, Layers, FileText
+  Loader2, Sparkles, AlertCircle, RefreshCw, HelpCircle, Layers, FileText, ExternalLink
 } from 'lucide-react';
 
 interface WidgetStats {
@@ -21,9 +23,11 @@ interface CriticalTask {
   status: string;
   assignee_email?: string;
   related_entity_type?: string | null;
+  related_entity_id?: string | null;
 }
 
 export default function ExecutiveDashboard() {
+  const router = useRouter();
   const { activeWorkspace } = useWorkspace();
 
   const [loading, setLoading] = useState(false);
@@ -38,6 +42,27 @@ export default function ExecutiveDashboard() {
     unmitigated_risks_count: 0,
   });
   const [criticalTasks, setCriticalTasks] = useState<CriticalTask[]>([]);
+
+  const getTaskTargetLink = (task: CriticalTask) => {
+    const entityType = task.related_entity_type?.toLowerCase();
+    switch (entityType) {
+      case 'control':
+        return '/compliance/controls';
+      case 'risk':
+        return '/compliance/risks';
+      case 'vendor':
+      case 'vendor_document':
+        return '/compliance/vendors';
+      case 'incident':
+        return '/compliance/incidents';
+      case 'vulnerability':
+        return '/compliance/vulnerabilities';
+      case 'access_review':
+        return '/compliance/access-reviews';
+      default:
+        return '/tasks';
+    }
+  };
 
   const loadDashboardData = async () => {
     if (!activeWorkspace) return;
@@ -318,7 +343,7 @@ export default function ExecutiveDashboard() {
           <div className="p-6 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 rounded-3xl space-y-4 shadow-sm dark:shadow-xl">
             <div className="space-y-1">
               <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Critical Priority Open Action Items</h3>
-              <p className="text-[10px] text-slate-500 dark:text-gray-500">Unmitigated events requiring immediate leadership attention.</p>
+              <p className="text-[10px] text-slate-500 dark:text-gray-500">Unmitigated events requiring immediate leadership attention. Click any title to jump to its action item.</p>
             </div>
 
             <div className="overflow-hidden border border-slate-200 dark:border-white/5 rounded-2xl">
@@ -329,37 +354,61 @@ export default function ExecutiveDashboard() {
                     <th className="p-4">Entity Context</th>
                     <th className="p-4">Priority</th>
                     <th className="p-4">Status</th>
-                    <th className="p-4 text-right">Owner</th>
+                    <th className="p-4">Owner</th>
+                    <th className="p-4 text-right">Action Target</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs text-slate-700 dark:text-gray-300">
                   {criticalTasks.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-slate-400 dark:text-gray-500 italic">
+                      <td colSpan={6} className="p-8 text-center text-slate-400 dark:text-gray-500 italic">
                         No critical priority open tasks logged. Compliance posture is stable.
                       </td>
                     </tr>
                   ) : (
-                    criticalTasks.map((t) => (
-                      <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition">
-                        <td className="p-4 font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                          <span>{t.title}</span>
-                        </td>
-                        <td className="p-4 text-slate-500 dark:text-gray-400 capitalize">{t.related_entity_type || 'task'}</td>
-                        <td className="p-4">
-                          <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/20 text-[9px] text-red-600 dark:text-red-400 rounded font-black uppercase tracking-wider">
-                            {t.priority}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-[9px] text-amber-600 dark:text-amber-400 rounded font-bold uppercase">
-                            {t.status.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="p-4 text-right text-slate-500 dark:text-gray-400 font-mono">{t.assignee_email || 'System'}</td>
-                      </tr>
-                    ))
+                    criticalTasks.map((t) => {
+                      const targetLink = getTaskTargetLink(t);
+                      return (
+                        <tr 
+                          key={t.id} 
+                          onClick={() => router.push(targetLink)}
+                          className="hover:bg-slate-100/80 dark:hover:bg-white/[0.03] transition cursor-pointer group"
+                        >
+                          <td className="p-4 font-bold text-slate-900 dark:text-white">
+                            <Link 
+                              href={targetLink}
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-2 text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition group-hover:underline"
+                            >
+                              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
+                              <span>{t.title}</span>
+                            </Link>
+                          </td>
+                          <td className="p-4 text-slate-500 dark:text-gray-400 capitalize">{t.related_entity_type || 'task'}</td>
+                          <td className="p-4">
+                            <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/20 text-[9px] text-red-600 dark:text-red-400 rounded font-black uppercase tracking-wider">
+                              {t.priority}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <span className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-[9px] text-amber-600 dark:text-amber-400 rounded font-bold uppercase">
+                              {t.status.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className="p-4 text-slate-500 dark:text-gray-400 font-mono">{t.assignee_email || 'System'}</td>
+                          <td className="p-4 text-right">
+                            <Link
+                              href={targetLink}
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-600/15 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 group-hover:bg-indigo-600 group-hover:text-white text-[11px] font-semibold rounded-lg transition shadow-sm"
+                            >
+                              <span>Open Item</span>
+                              <ArrowUpRight className="w-3.5 h-3.5" />
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
