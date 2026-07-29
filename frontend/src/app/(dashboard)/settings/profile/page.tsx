@@ -111,27 +111,27 @@ export default function ProfilePage() {
     <div className="max-w-3xl mx-auto space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">My Profile</h1>
-        <p className="text-gray-400 mt-1 text-sm">Manage your account details and security settings.</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Profile</h1>
+        <p className="text-slate-600 dark:text-gray-400 mt-1 text-sm">Manage your account details and security settings.</p>
       </div>
 
       {/* Account Info Card */}
-      <div className="bg-gray-900/60 border border-white/8 rounded-2xl overflow-hidden backdrop-blur-sm">
-        <div className="px-6 py-4 border-b border-white/5 flex items-center gap-3">
-          <div className="p-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-400">
+      <div className="bg-white dark:bg-gray-900/60 border border-slate-200 dark:border-white/8 rounded-2xl overflow-hidden backdrop-blur-sm shadow-sm dark:shadow-none">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-white/5 flex items-center gap-3">
+          <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-xl text-indigo-600 dark:text-indigo-400">
             <User className="w-4 h-4" />
           </div>
-          <h2 className="text-sm font-semibold text-white">Account Information</h2>
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">Account Information</h2>
         </div>
 
         <div className="p-6 space-y-5">
           {/* Avatar + Email */}
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-2xl font-bold text-indigo-300 flex-shrink-0">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center text-2xl font-bold text-indigo-700 dark:text-indigo-300 flex-shrink-0">
               {profile?.email?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="space-y-1">
-              <p className="text-white font-semibold text-lg">{profile?.email}</p>
+              <p className="text-slate-900 dark:text-white font-semibold text-lg">{profile?.email}</p>
               {profile?.is_admin && (
                 <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${roleColors[profile.admin_role || ''] || roleColors.support}`}>
                   <Shield className="w-3 h-3" />

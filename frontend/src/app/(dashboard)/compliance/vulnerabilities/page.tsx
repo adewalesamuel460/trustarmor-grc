@@ -110,11 +110,11 @@ export default function VulnerabilitiesPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Bug className="w-6 h-6 text-indigo-400" />
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Bug className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             <span>Vulnerability Register</span>
           </h2>
-          <p className="text-gray-400 text-sm">
+          <p className="text-slate-600 dark:text-gray-400 text-sm">
             Ingest CVEs from active scanning integrations and track vulnerability patching SLAs.
           </p>
         </div>
@@ -128,7 +128,7 @@ export default function VulnerabilitiesPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm">
+        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-sm">
           {error}
         </div>
       )}
@@ -136,47 +136,47 @@ export default function VulnerabilitiesPage() {
       {/* SLA & Status Summary Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Open Criticals Widget */}
-        <div className="p-6 rounded-2xl border border-red-500/10 bg-red-500/5 shadow-xl flex items-center justify-between">
+        <div className="p-6 rounded-2xl border border-red-500/20 dark:border-red-500/10 bg-red-50 dark:bg-red-500/5 shadow-sm dark:shadow-xl flex items-center justify-between">
           <div>
-            <span className="text-xs text-red-400 font-semibold uppercase tracking-wider">Open Criticals</span>
-            <h3 className="text-3xl font-extrabold text-white mt-2">{openCriticals}</h3>
-            <p className="text-xs text-gray-400 mt-1">Requires immediate mitigation</p>
+            <span className="text-xs text-red-600 dark:text-red-400 font-semibold uppercase tracking-wider">Open Criticals</span>
+            <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white mt-2">{openCriticals}</h3>
+            <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">Requires immediate mitigation</p>
           </div>
           <ShieldAlert className="w-12 h-12 text-red-500/40" />
         </div>
 
         {/* SLA Breaches Widget */}
-        <div className="p-6 rounded-2xl border border-orange-500/10 bg-orange-500/5 shadow-xl flex items-center justify-between">
+        <div className="p-6 rounded-2xl border border-orange-500/20 dark:border-orange-500/10 bg-orange-50 dark:bg-orange-500/5 shadow-sm dark:shadow-xl flex items-center justify-between">
           <div>
-            <span className="text-xs text-orange-400 font-semibold uppercase tracking-wider">SLA Breaches</span>
-            <h3 className="text-3xl font-extrabold text-white mt-2">{slaBreaches}</h3>
-            <p className="text-xs text-gray-400 mt-1">Past their target remediation date</p>
+            <span className="text-xs text-orange-600 dark:text-orange-400 font-semibold uppercase tracking-wider">SLA Breaches</span>
+            <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white mt-2">{slaBreaches}</h3>
+            <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">Past their target remediation date</p>
           </div>
           <AlertCircle className="w-12 h-12 text-orange-500/40" />
         </div>
 
         {/* Total Active CVEs Widget */}
-        <div className="p-6 rounded-2xl border border-white/5 bg-gray-900 shadow-xl flex items-center justify-between">
+        <div className="p-6 rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-900 shadow-sm dark:shadow-xl flex items-center justify-between">
           <div>
-            <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Total Active CVEs</span>
-            <h3 className="text-3xl font-extrabold text-white mt-2">
+            <span className="text-xs text-slate-500 dark:text-gray-400 font-semibold uppercase tracking-wider">Total Active CVEs</span>
+            <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white mt-2">
               {vulnerabilities.filter(v => v.status === 'open').length}
             </h3>
-            <p className="text-xs text-gray-400 mt-1">Across all infrastructure assets</p>
+            <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">Across all infrastructure assets</p>
           </div>
-          <Bug className="w-12 h-12 text-gray-400/40" />
+          <Bug className="w-12 h-12 text-slate-400 dark:text-gray-400/40" />
         </div>
       </div>
 
       {/* Main Datatable */}
-      <div className="bg-gray-900 border border-white/5 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white dark:bg-gray-900 border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-500 gap-3">
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-gray-500 gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
             <p className="text-sm">Loading vulnerabilities registry...</p>
           </div>
         ) : vulnerabilities.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-500 gap-2">
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-gray-500 gap-2">
             <ShieldCheck className="w-10 h-10 text-emerald-500/40" />
             <p className="text-sm">No open vulnerabilities detected.</p>
           </div>
@@ -184,7 +184,7 @@ export default function VulnerabilitiesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/5 text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-950/20">
+                <tr className="border-b border-slate-200 dark:border-white/5 text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider bg-slate-50 dark:bg-gray-950/20">
                   <th className="px-6 py-4">CVE ID</th>
                   <th className="px-6 py-4">Title / Description</th>
                   <th className="px-6 py-4">Severity</th>
@@ -194,55 +194,55 @@ export default function VulnerabilitiesPage() {
                   <th className="px-6 py-4">Source</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-sm">
                 {vulnerabilities.map((vuln) => {
                   const daysLeft = getSlaDaysRemaining(vuln.sla_deadline);
                   return (
-                    <tr key={vuln.id} className="hover:bg-white/5 transition duration-150">
-                      <td className="px-6 py-4 font-mono font-bold text-indigo-400 text-xs">
+                    <tr key={vuln.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition duration-150">
+                      <td className="px-6 py-4 font-mono font-bold text-indigo-600 dark:text-indigo-400 text-xs">
                         {vuln.cve_id || 'N/A'}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="font-semibold text-white">{vuln.title}</div>
+                        <div className="font-semibold text-slate-900 dark:text-white">{vuln.title}</div>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
-                          vuln.severity === 'critical' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-                          vuln.severity === 'high' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
-                          vuln.severity === 'medium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                          'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                          vuln.severity === 'critical' ? 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/20' :
+                          vuln.severity === 'high' ? 'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-500/20' :
+                          vuln.severity === 'medium' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20' :
+                          'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20'
                         }`}>
                           {vuln.severity}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-gray-300 font-medium flex items-center gap-1.5 mt-0.5">
-                        <HardDrive className="w-3.5 h-3.5 text-gray-500" />
+                      <td className="px-6 py-4 text-slate-700 dark:text-gray-300 font-medium flex items-center gap-1.5 mt-0.5">
+                        <HardDrive className="w-3.5 h-3.5 text-slate-400 dark:text-gray-500" />
                         <span>{vuln.asset_affected}</span>
                       </td>
-                      <td className="px-6 py-4 text-xs text-gray-400 font-mono">
+                      <td className="px-6 py-4 text-xs text-slate-500 dark:text-gray-400 font-mono">
                         {vuln.sla_deadline ? new Date(vuln.sla_deadline).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-6 py-4">
                         {daysLeft === null ? (
-                          <span className="text-gray-500">N/A</span>
+                          <span className="text-slate-400 dark:text-gray-500">N/A</span>
                         ) : daysLeft < 0 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/20">
                             Breached ({Math.abs(daysLeft)}d overdue)
                           </span>
                         ) : daysLeft === 0 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-500/20">
                             Breaching Today
                           </span>
                         ) : (
                           <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
-                            daysLeft <= 7 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-white/5 text-gray-300 border border-white/10'
+                            daysLeft <= 7 ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20' : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-gray-300 border border-slate-200 dark:border-white/10'
                           }`}>
                             {daysLeft} days remaining
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-xs text-gray-400 flex items-center gap-1.5 mt-0.5">
-                        <Layers className="w-3.5 h-3.5 text-indigo-400/60" />
+                      <td className="px-6 py-4 text-xs text-slate-500 dark:text-gray-400 flex items-center gap-1.5 mt-0.5">
+                        <Layers className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400/60" />
                         <span>{vuln.integration_name || 'Manual Upload'}</span>
                       </td>
                     </tr>
@@ -259,48 +259,48 @@ export default function VulnerabilitiesPage() {
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
           <form
             onSubmit={handleIngestSubmit}
-            className="w-full max-w-md p-8 rounded-2xl border border-white/5 bg-gray-900 shadow-2xl relative space-y-6"
+            className="w-full max-w-md p-8 rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-900 shadow-2xl relative space-y-6"
           >
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Bug className="w-5 h-5 text-indigo-400" />
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Bug className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 <span>Mock CVE Ingestion</span>
               </h3>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">
                 Mock scanner ingestion to test severity SLA date calculations.
               </p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">CVE ID (Optional)</label>
+                <label className="block text-xs text-slate-600 dark:text-gray-400 mb-1.5 font-medium">CVE ID (Optional)</label>
                 <input
                   type="text"
                   value={cveID}
                   onChange={(e) => setCveID(e.target.value)}
                   placeholder="e.g. CVE-2026-0921"
-                  className="w-full px-4 py-2.5 bg-gray-950/40 border border-white/5 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 focus:border-indigo-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Title / Vulnerability Name</label>
+                <label className="block text-xs text-slate-600 dark:text-gray-400 mb-1.5 font-medium">Title / Vulnerability Name</label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Remote Code Execution in Apache Log4j"
-                  className="w-full px-4 py-2.5 bg-gray-950/40 border border-white/5 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 focus:border-indigo-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Severity (Determines Patching SLA)</label>
+                <label className="block text-xs text-slate-600 dark:text-gray-400 mb-1.5 font-medium">Severity (Determines Patching SLA)</label>
                 <select
                   value={severity}
                   onChange={(e) => setSeverity(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-950/45 border border-white/5 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-gray-950/45 border border-slate-200 dark:border-white/5 focus:border-indigo-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition"
                 >
                   <option value="critical">Critical (14 Days SLA)</option>
                   <option value="high">High (30 Days SLA)</option>
@@ -310,19 +310,19 @@ export default function VulnerabilitiesPage() {
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Affected Asset</label>
+                <label className="block text-xs text-slate-600 dark:text-gray-400 mb-1.5 font-medium">Affected Asset</label>
                 <input
                   type="text"
                   required
                   value={assetAffected}
                   onChange={(e) => setAssetAffected(e.target.value)}
                   placeholder="e.g. prod-api-server-01"
-                  className="w-full px-4 py-2.5 bg-gray-950/40 border border-white/5 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 focus:border-indigo-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/5">
               <button
                 type="button"
                 onClick={() => {
@@ -332,7 +332,7 @@ export default function VulnerabilitiesPage() {
                   setAssetAffected('');
                   setIsIngestOpen(false);
                 }}
-                className="px-5 py-2.5 bg-gray-950/40 hover:bg-gray-950/60 border border-white/10 text-white font-semibold text-xs rounded-xl transition"
+                className="px-5 py-2.5 bg-slate-100 dark:bg-gray-950/40 hover:bg-slate-200 dark:hover:bg-gray-950/60 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-semibold text-xs rounded-xl transition"
               >
                 Cancel
               </button>
@@ -349,4 +349,5 @@ export default function VulnerabilitiesPage() {
       )}
     </div>
   );
+
 }

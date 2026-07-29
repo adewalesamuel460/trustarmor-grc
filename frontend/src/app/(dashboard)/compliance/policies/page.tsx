@@ -477,28 +477,28 @@ export default function PoliciesPage() {
         <div className="space-y-6">
           {/* Top Panel */}
           <div>
-            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <FileSignature className="w-6 h-6 text-indigo-400" />
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <FileSignature className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
               <span>Policies & E-Signatures</span>
             </h2>
-            <p className="text-gray-400 text-sm">Manage internal compliance guidelines and distribute signing acknowledgment tasks.</p>
+            <p className="text-slate-600 dark:text-gray-400 text-sm">Manage internal compliance guidelines and distribute signing acknowledgment tasks.</p>
           </div>
 
           {/* Search bar */}
           <div className="relative max-w-md">
-            <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-3.5" />
+            <Search className="w-4 h-4 text-slate-400 dark:text-gray-500 absolute left-3.5 top-3.5" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search policies by title or objective..."
-              className="w-full pl-10 pr-4 py-3 bg-gray-900/30 border border-white/5 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition"
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900/30 border border-slate-200 dark:border-white/5 focus:border-indigo-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition shadow-sm dark:shadow-none"
             />
           </div>
 
           {/* Grid of Policies */}
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-500 gap-3">
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-gray-500 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
               <p className="text-sm">Loading policies catalogue...</p>
             </div>
@@ -508,27 +508,27 @@ export default function PoliciesPage() {
                 <div
                   key={p.id}
                   onClick={() => handleViewPolicy(p)}
-                  className="p-6 rounded-2xl border border-white/5 bg-gray-900/20 hover:border-white/10 transition cursor-pointer flex flex-col justify-between min-h-[200px] group"
+                  className="p-6 rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-900/20 hover:border-slate-300 dark:hover:border-white/10 transition cursor-pointer flex flex-col justify-between min-h-[200px] group shadow-sm dark:shadow-none"
                 >
                   <div>
                     <div className="flex justify-between items-start mb-4">
-                      <FileText className="w-8 h-8 text-indigo-400 group-hover:text-indigo-300 transition" />
+                      <FileText className="w-8 h-8 text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition" />
                       {p.status === 'published' ? (
-                        <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                        <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                           Published
                         </span>
                       ) : (
-                        <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                        <span className="text-[9px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                           Draft
                         </span>
                       )}
                     </div>
 
-                    <h3 className="text-base font-bold text-white mb-1 group-hover:text-indigo-300 transition">{p.title}</h3>
-                    <p className="text-xs text-gray-400 line-clamp-2">{p.description || 'No description summary.'}</p>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition">{p.title}</h3>
+                    <p className="text-xs text-slate-600 dark:text-gray-400 line-clamp-2">{p.description || 'No description summary.'}</p>
                   </div>
 
-                  <div className="flex justify-between items-center text-[10px] text-gray-500 font-mono mt-4 pt-3 border-t border-white/5">
+                  <div className="flex justify-between items-center text-[10px] text-slate-400 dark:text-gray-500 font-mono mt-4 pt-3 border-t border-slate-100 dark:border-white/5">
                     <span>Version: V{p.current_version}</span>
                     <span>{new Date(p.created_at).toLocaleDateString()}</span>
                   </div>
@@ -543,11 +543,11 @@ export default function PoliciesPage() {
                   setDescription('');
                   setContent('');
                 }}
-                className="p-6 rounded-2xl border-2 border-dashed border-white/5 hover:border-indigo-500/30 hover:bg-indigo-950/5 transition cursor-pointer flex flex-col items-center justify-center py-12 text-center text-gray-500 group"
+                className="p-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/5 hover:border-indigo-500/40 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/5 transition cursor-pointer flex flex-col items-center justify-center py-12 text-center text-slate-500 dark:text-gray-500 group shadow-sm dark:shadow-none"
               >
-                <Plus className="w-8 h-8 text-gray-600 group-hover:text-indigo-400 transition mb-2" />
-                <h3 className="text-xs font-bold text-gray-400 group-hover:text-white transition">Create Draft Policy</h3>
-                <p className="text-[10px] text-gray-600 max-w-[180px] mt-0.5">Draft guidelines for code, data access, or passwords.</p>
+                <Plus className="w-8 h-8 text-slate-400 dark:text-gray-600 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition mb-2" />
+                <h3 className="text-xs font-bold text-slate-700 dark:text-gray-400 group-hover:text-slate-900 dark:group-hover:text-white transition">Create Draft Policy</h3>
+                <p className="text-[10px] text-slate-400 dark:text-gray-600 max-w-[180px] mt-0.5">Draft guidelines for code, data access, or passwords.</p>
               </div>
             </div>
           )}

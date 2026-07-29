@@ -371,11 +371,11 @@ export default function IntegrationsPage() {
           {/* Header */}
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                <Layers className="w-6 h-6 text-indigo-400" />
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Layers className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                 <span>Integrations Hub</span>
               </h2>
-              <p className="text-gray-400 text-sm">
+              <p className="text-slate-600 dark:text-gray-400 text-sm">
                 Connect external Cloud, Identity, or VCS providers to collect compliance evidence automatically.
               </p>
             </div>
@@ -389,7 +389,7 @@ export default function IntegrationsPage() {
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-500 gap-3">
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-gray-500 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
               <p className="text-sm">Loading integration connectors...</p>
             </div>
@@ -400,28 +400,28 @@ export default function IntegrationsPage() {
                 return (
                   <div
                     key={p.id}
-                    className={`p-6 rounded-2xl border transition duration-300 flex flex-col justify-between min-h-[220px] ${
+                    className={`p-6 rounded-2xl border transition duration-300 flex flex-col justify-between min-h-[220px] shadow-sm dark:shadow-none ${
                       conn
-                        ? 'border-indigo-500/20 bg-indigo-950/5 hover:border-indigo-500/35'
-                        : 'border-white/5 bg-gray-900/20 hover:border-white/10'
+                        ? 'border-indigo-500/30 dark:border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-950/5 hover:border-indigo-500/50'
+                        : 'border-slate-200 dark:border-white/5 bg-white dark:bg-gray-900/20 hover:border-slate-300 dark:hover:border-white/10'
                     }`}
                   >
                     <div>
                       <div className="flex justify-between items-start mb-4">
                         {renderProviderIcon(p.name)}
                         {conn ? (
-                          <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
                             Connected
                           </span>
                         ) : (
-                          <span className="text-[9px] font-bold text-gray-500 bg-white/5 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <span className="text-[9px] font-bold text-slate-500 dark:text-gray-500 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 px-2 py-0.5 rounded-full uppercase tracking-wider">
                             Available
                           </span>
                         )}
                       </div>
 
-                      <h3 className="text-base font-bold text-white mb-1">{p.name}</h3>
-                      <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-3">
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">{p.name}</h3>
+                      <p className="text-[10px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-wider mb-3">
                         {p.category}
                       </p>
                     </div>
@@ -430,7 +430,7 @@ export default function IntegrationsPage() {
                       {conn ? (
                         <button
                           onClick={() => handleOpenDetails(conn)}
-                          className="w-full flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-950/60 hover:bg-indigo-600 border border-white/5 text-xs font-semibold rounded-xl text-gray-300 hover:text-white transition"
+                          className="w-full flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-100 dark:bg-gray-950/60 hover:bg-indigo-600 border border-slate-200 dark:border-white/5 text-xs font-semibold rounded-xl text-slate-700 dark:text-gray-300 hover:text-white transition"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>View Logs & Sync</span>

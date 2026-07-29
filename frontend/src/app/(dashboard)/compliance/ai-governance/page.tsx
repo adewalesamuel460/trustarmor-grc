@@ -202,11 +202,11 @@ export default function AIGovernancePage() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2.5">
-            <Brain className="w-6.5 h-6.5 text-indigo-400" />
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <Brain className="w-6.5 h-6.5 text-indigo-600 dark:text-indigo-400" />
             <span>AI Asset Inventory & Shadow AI Governance</span>
           </h2>
-          <p className="text-gray-400 text-sm">
+          <p className="text-slate-600 dark:text-gray-400 text-sm">
             Track AI services used by employees, review compliance parameters, and govern acceptable use policies (ISO 42001 / NIST AI RMF).
           </p>
         </div>
@@ -223,29 +223,29 @@ export default function AIGovernancePage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-24 text-gray-500 gap-2">
-          <Loader2 className="w-6 h-6 animate-spin" />
+        <div className="flex justify-center py-24 text-slate-400 dark:text-gray-500 gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
           <span>Synchronizing tool lists...</span>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* LEFT SIDEBAR: DONUT PIE DISTRIBUTION CHART */}
-          <div className="p-6 bg-gray-950/40 border border-white/5 rounded-2xl flex flex-col justify-between min-h-[300px] gap-6">
+          <div className="p-6 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 rounded-2xl flex flex-col justify-between min-h-[300px] gap-6 shadow-sm dark:shadow-none">
             <div className="space-y-1">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider">Classification Breakdown</h4>
-              <p className="text-[10px] text-gray-500">Breakdown of cataloged tools by sensitivity levels.</p>
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Classification Breakdown</h4>
+              <p className="text-[10px] text-slate-500 dark:text-gray-500">Breakdown of cataloged tools by sensitivity levels.</p>
             </div>
 
             {total === 0 ? (
-              <p className="text-xs text-gray-500 italic text-center py-10">No tools logged</p>
+              <p className="text-xs text-slate-400 dark:text-gray-500 italic text-center py-10">No tools logged</p>
             ) : (
               <div className="flex flex-col sm:flex-row lg:flex-col gap-6 items-center justify-around flex-1">
                 
                 {/* Custom Donut Circle */}
                 <div className="relative w-28 h-28 flex items-center justify-center">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="#1f2937" strokeWidth="2.5" />
+                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="currentColor" className="text-slate-200 dark:text-gray-800" strokeWidth="2.5" />
                     {(() => {
                       let accumulatedPercentage = 0;
                       return classes.map((cls) => {

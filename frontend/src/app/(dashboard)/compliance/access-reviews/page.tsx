@@ -257,11 +257,11 @@ export default function AccessReviewsPage() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2.5">
-            <Users2 className="w-6 h-6 text-indigo-400" />
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <Users2 className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             <span>Personnel & Access Reviews</span>
           </h2>
-          <p className="text-gray-400 text-sm">
+          <p className="text-slate-600 dark:text-gray-400 text-sm">
             Automate quarterly User Access Reviews (UAR) and track mandatory employee compliance security training.
           </p>
         </div>
@@ -279,17 +279,17 @@ export default function AccessReviewsPage() {
 
       {/* Pending Reviews Manager Banner */}
       {!loading && pendingItems.length > 0 && activeTab !== 'my_reviews' && (
-        <div className="p-4.5 bg-amber-500/10 border border-amber-500/25 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-pulse">
+        <div className="p-4.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/25 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-pulse">
           <div className="flex gap-3">
-            <ShieldAlert className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+            <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-bold text-white">Action Required: Access Review Campaign Pending</p>
-              <p className="text-[11px] text-amber-300/80 mt-0.5">You have {pendingItems.length} access privilege reviews assigned to your account.</p>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">Action Required: Access Review Campaign Pending</p>
+              <p className="text-[11px] text-amber-800 dark:text-amber-300/80 mt-0.5">You have {pendingItems.length} access privilege reviews assigned to your account.</p>
             </div>
           </div>
           <button
             onClick={() => setActiveTab('my_reviews')}
-            className="px-3.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold text-xs rounded-xl transition flex items-center gap-1"
+            className="px-3.5 py-1.5 bg-amber-100 dark:bg-amber-500/20 hover:bg-amber-200 dark:hover:bg-amber-500/30 text-amber-900 dark:text-amber-300 font-semibold text-xs rounded-xl transition flex items-center gap-1"
           >
             <span>Start Swiping</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -298,13 +298,13 @@ export default function AccessReviewsPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-white/5 pb-px">
+      <div className="flex gap-2 border-b border-slate-200 dark:border-white/5 pb-px">
         <button
           onClick={() => setActiveTab('campaigns')}
           className={`px-4 py-2.5 text-xs font-bold transition border-b-2 -mb-px ${
             activeTab === 'campaigns'
-              ? 'text-indigo-400 border-indigo-500'
-              : 'text-gray-400 border-transparent hover:text-white'
+              ? 'text-indigo-600 dark:text-indigo-400 border-indigo-600 dark:border-indigo-500'
+              : 'text-slate-500 dark:text-gray-400 border-transparent hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           UAR Campaigns
@@ -314,8 +314,8 @@ export default function AccessReviewsPage() {
           onClick={() => setActiveTab('my_reviews')}
           className={`px-4 py-2.5 text-xs font-bold transition border-b-2 -mb-px flex items-center gap-2 ${
             activeTab === 'my_reviews'
-              ? 'text-indigo-400 border-indigo-500'
-              : 'text-gray-400 border-transparent hover:text-white'
+              ? 'text-indigo-600 dark:text-indigo-400 border-indigo-600 dark:border-indigo-500'
+              : 'text-slate-500 dark:text-gray-400 border-transparent hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <span>Keep or Revoke Swipe</span>

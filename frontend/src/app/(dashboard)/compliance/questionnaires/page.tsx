@@ -436,7 +436,7 @@ export default function QuestionnairesPage() {
   return (
     <div className="space-y-8 pb-12 min-h-screen">
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400 text-sm">
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-600 dark:text-red-400 text-sm">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <p>{error}</p>
         </div>
@@ -445,11 +445,11 @@ export default function QuestionnairesPage() {
       {/* Page Title */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2.5">
-            <HelpCircle className="w-6 h-6 text-indigo-400" />
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <HelpCircle className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             <span>Security Questionnaires Workspace</span>
           </h2>
-          <p className="text-gray-400 text-sm">Upload buyer security Excel/CSV questionnaires, auto-generate answers using RAG, and verify drafts.</p>
+          <p className="text-slate-600 dark:text-gray-400 text-sm">Upload buyer security Excel/CSV questionnaires, auto-generate answers using RAG, and verify drafts.</p>
         </div>
         <button
           onClick={() => setIsUploading(true)}
@@ -462,14 +462,14 @@ export default function QuestionnairesPage() {
 
       {/* Projects Grid */}
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-gray-500 gap-2">
-          <Loader2 className="w-6 h-6 animate-spin" />
+        <div className="flex items-center justify-center py-20 text-slate-400 dark:text-gray-500 gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
           <span>Loading questionnaires...</span>
         </div>
       ) : projects.length === 0 ? (
-        <div className="p-12 text-center border border-white/5 bg-gray-900/10 rounded-2xl">
-          <FileText className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-          <p className="text-xs text-gray-500">No questionnaires uploaded yet. Upload a CSV file to get started.</p>
+        <div className="p-12 text-center border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-900/10 rounded-2xl shadow-sm dark:shadow-none">
+          <FileText className="w-8 h-8 text-slate-400 dark:text-gray-600 mx-auto mb-2" />
+          <p className="text-xs text-slate-500 dark:text-gray-500">No questionnaires uploaded yet. Upload a CSV file to get started.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -479,19 +479,19 @@ export default function QuestionnairesPage() {
               <div 
                 key={proj.id}
                 onClick={() => handleSelectProject(proj)}
-                className="p-5 border border-white/5 bg-gray-950/40 rounded-2xl space-y-4 hover:border-white/10 transition cursor-pointer flex flex-col justify-between"
+                className="p-5 border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-950/40 rounded-2xl space-y-4 hover:border-slate-300 dark:hover:border-white/10 transition cursor-pointer flex flex-col justify-between shadow-sm dark:shadow-none"
               >
                 <div className="flex justify-between items-start gap-4">
                   <div className="space-y-1">
-                    <h4 className="text-sm font-bold text-white leading-relaxed truncate max-w-xs">{proj.name}</h4>
-                    <p className="text-[10px] text-gray-500">Uploaded {new Date(proj.created_at).toLocaleDateString()}</p>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-relaxed truncate max-w-xs">{proj.name}</h4>
+                    <p className="text-[10px] text-slate-500 dark:text-gray-500">Uploaded {new Date(proj.created_at).toLocaleDateString()}</p>
                   </div>
                   <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                     proj.status === 'generating'
-                      ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400 animate-pulse'
+                      ? 'bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 animate-pulse'
                       : proj.status === 'completed'
-                      ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                      : 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+                      : 'bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400'
                   }`}>
                     {proj.status}
                   </span>
@@ -499,14 +499,14 @@ export default function QuestionnairesPage() {
 
                 {/* Progress bar */}
                 <div className="space-y-1.5">
-                  <div className="flex justify-between text-[10px] text-gray-400">
+                  <div className="flex justify-between text-[10px] text-slate-500 dark:text-gray-400">
                     <span>Progress</span>
-                    <span className="font-bold text-white font-mono">{proj.completed_questions} / {proj.total_questions} ({progress}%)</span>
+                    <span className="font-bold text-slate-900 dark:text-white font-mono">{proj.completed_questions} / {proj.total_questions} ({progress}%)</span>
                   </div>
-                  <div className="w-full bg-gray-950 border border-white/5 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-slate-100 dark:bg-gray-950 border border-slate-200 dark:border-white/5 h-2 rounded-full overflow-hidden">
                     <div 
                       className={`h-full rounded-full transition-all duration-300 ${
-                        proj.status === 'generating' ? 'bg-amber-500' : 'bg-indigo-500'
+                        proj.status === 'generating' ? 'bg-amber-500' : 'bg-indigo-600 dark:bg-indigo-500'
                       }`}
                       style={{ width: `${progress}%` }}
                     />

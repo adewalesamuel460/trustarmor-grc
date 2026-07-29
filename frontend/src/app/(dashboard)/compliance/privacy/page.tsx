@@ -247,11 +247,11 @@ export default function PrivacyNDPRPage() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2.5">
-            <Globe className="w-6.5 h-6.5 text-indigo-400" />
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <Globe className="w-6.5 h-6.5 text-indigo-600 dark:text-indigo-400" />
             <span>NDPR Privacy & Data Transfers Map</span>
           </h2>
-          <p className="text-gray-400 text-sm">
+          <p className="text-slate-600 dark:text-gray-400 text-sm">
             Govern cross-border data transfer pipelines and track annual NDPC / NITDA compliance audit filings.
           </p>
         </div>
@@ -268,8 +268,8 @@ export default function PrivacyNDPRPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-24 text-gray-500 gap-2">
-          <Loader2 className="w-6 h-6 animate-spin" />
+        <div className="flex justify-center py-24 text-slate-400 dark:text-gray-500 gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
           <span>Synchronizing NDPR data...</span>
         </div>
       ) : (
@@ -277,21 +277,21 @@ export default function PrivacyNDPRPage() {
           
           {/* TOP WIDGET: NEXT REGULATORY FILINGS DEADLINE */}
           {nextFiling && (
-            <div className="p-6 bg-gradient-to-r from-indigo-950/20 via-gray-950/40 to-gray-950/40 border border-indigo-500/15 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl relative overflow-hidden group">
+            <div className="p-6 bg-gradient-to-r from-indigo-50/80 via-white to-white dark:from-indigo-950/20 dark:via-gray-950/40 dark:to-gray-950/40 border border-indigo-200 dark:border-indigo-500/15 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm dark:shadow-xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl" />
               
               <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-2.5">
                   <span className="w-2.5 h-2.5 bg-amber-500 rounded-full animate-ping" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">NITDA / NDPC Annual Audit Filing</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400">NITDA / NDPC Annual Audit Filing</span>
                 </div>
-                <h3 className="text-lg font-black text-white">{nextFiling.regulator} ({nextFiling.filing_year})</h3>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white">{nextFiling.regulator} ({nextFiling.filing_year})</h3>
                 
                 <div className="flex items-center gap-4 text-xs">
-                  <span className="text-gray-400">Filing Deadline: <strong className="text-gray-200">{nextFiling.due_date}</strong></span>
-                  <span className="text-gray-500">•</span>
+                  <span className="text-slate-600 dark:text-gray-400">Filing Deadline: <strong className="text-slate-900 dark:text-gray-200">{nextFiling.due_date}</strong></span>
+                  <span className="text-slate-400 dark:text-gray-500">•</span>
                   <span className={`font-bold ${
-                    nextFiling.status === 'overdue' ? 'text-red-400' : 'text-amber-400'
+                    nextFiling.status === 'overdue' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
                   }`}>
                     {getFilingCountdownText(nextFiling.due_date)}
                   </span>

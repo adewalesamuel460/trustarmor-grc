@@ -119,17 +119,17 @@ export default function TasksPage() {
 
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-white flex items-center gap-2.5">
-          <CheckSquare className="w-6.5 h-6.5 text-indigo-400" />
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+          <CheckSquare className="w-6.5 h-6.5 text-indigo-600 dark:text-indigo-400" />
           <span>Incident Remediation Tasks</span>
         </h2>
-        <p className="text-gray-400 text-sm">
+        <p className="text-slate-600 dark:text-gray-400 text-sm">
           Track and resolve auto-generated compliance issues, expiring vendor paperwork, or critical risk mitigations.
         </p>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-24 text-gray-500 gap-2">
+        <div className="flex justify-center py-24 text-slate-400 dark:text-gray-500 gap-2">
           <Loader2 className="w-6 h-6 animate-spin" />
           <span>Syncing tasks queue...</span>
         </div>
@@ -140,25 +140,25 @@ export default function TasksPage() {
             return (
               <div 
                 key={col.id} 
-                className={`p-4 border border-white/5 rounded-2xl flex flex-col min-h-[500px] border-t-2 ${col.border} ${col.bg}`}
+                className={`p-4 border border-slate-200 dark:border-white/5 rounded-2xl flex flex-col min-h-[500px] border-t-2 bg-slate-50/50 dark:bg-gray-950/20 ${col.border}`}
               >
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-gray-300">{col.title}</h3>
-                  <span className="px-2 py-0.5 bg-white/5 rounded-full text-[10px] text-gray-400 font-bold">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-gray-300">{col.title}</h3>
+                  <span className="px-2 py-0.5 bg-slate-200 dark:bg-white/5 rounded-full text-[10px] text-slate-600 dark:text-gray-400 font-bold">
                     {colTasks.length}
                   </span>
                 </div>
 
                 <div className="space-y-4 flex-1 overflow-y-auto max-h-[600px] pr-1">
                   {colTasks.length === 0 ? (
-                    <div className="h-28 border border-dashed border-white/5 rounded-xl flex items-center justify-center text-gray-600 text-[10px] italic">
+                    <div className="h-28 border border-dashed border-slate-200 dark:border-white/5 rounded-xl flex items-center justify-center text-slate-400 dark:text-gray-600 text-[10px] italic">
                       No tasks in {col.title}
                     </div>
                   ) : (
                     colTasks.map((task) => (
                       <div 
                         key={task.id} 
-                        className="p-4 bg-gray-950/70 border border-white/5 rounded-xl space-y-3 hover:border-white/10 transition shadow flex flex-col justify-between"
+                        className="p-4 bg-white dark:bg-gray-950/70 border border-slate-200 dark:border-white/5 rounded-xl space-y-3 hover:border-slate-300 dark:hover:border-white/10 transition shadow-sm dark:shadow flex flex-col justify-between"
                       >
                         <div className="space-y-2">
                           <div className="flex justify-between items-start gap-2">
@@ -166,16 +166,16 @@ export default function TasksPage() {
                               {task.priority}
                             </span>
                             {task.due_date && (
-                              <span className="text-[9px] text-gray-500 flex items-center gap-1">
+                              <span className="text-[9px] text-slate-400 dark:text-gray-500 flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
                                 <span>{new Date(task.due_date).toLocaleDateString()}</span>
                               </span>
                             )}
                           </div>
 
-                          <h4 className="text-xs font-bold text-white leading-relaxed">{task.title}</h4>
+                          <h4 className="text-xs font-bold text-slate-900 dark:text-white leading-relaxed">{task.title}</h4>
                           {task.description && (
-                            <p className="text-[10px] text-gray-400 line-clamp-3">{task.description}</p>
+                            <p className="text-[10px] text-slate-500 dark:text-gray-400 line-clamp-3">{task.description}</p>
                           )}
                         </div>
 

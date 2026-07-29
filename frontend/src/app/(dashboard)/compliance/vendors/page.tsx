@@ -275,11 +275,11 @@ export default function VendorsPage() {
       {/* Page Title */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2.5">
-            <Building className="w-6 h-6 text-indigo-400" />
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <Building className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             <span>Vendors / Third-Party Risk Management</span>
           </h2>
-          <p className="text-gray-400 text-sm">Manage vendor inventory profiles, assign risk tiers, and verify continuous compliance documents.</p>
+          <p className="text-slate-600 dark:text-gray-400 text-sm">Manage vendor inventory profiles, assign risk tiers, and verify continuous compliance documents.</p>
         </div>
         <button
           onClick={() => setIsCreating(true)}
@@ -293,31 +293,31 @@ export default function VendorsPage() {
       {/* Inventory Search & Table */}
       <div className="space-y-4">
         <div className="relative max-w-md">
-          <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-3.5" />
+          <Search className="w-4 h-4 text-slate-400 dark:text-gray-500 absolute left-3.5 top-3.5" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search vendors by name or domain..."
-            className="w-full pl-10 pr-4 py-3 bg-gray-900/30 border border-white/5 focus:border-indigo-500 rounded-xl text-sm text-white outline-none transition"
+            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900/30 border border-slate-200 dark:border-white/5 focus:border-indigo-500 rounded-xl text-sm text-slate-900 dark:text-white outline-none transition shadow-sm dark:shadow-none"
           />
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20 text-gray-500 gap-2">
+          <div className="flex items-center justify-center py-20 text-slate-400 dark:text-gray-500 gap-2">
             <Loader2 className="w-6 h-6 animate-spin" />
             <span>Loading vendors catalog...</span>
           </div>
         ) : filteredVendors.length === 0 ? (
-          <div className="p-12 text-center border border-white/5 bg-gray-900/10 rounded-2xl">
-            <Building className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-            <p className="text-xs text-gray-500">No vendors registered in workspace.</p>
+          <div className="p-12 text-center border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-900/10 rounded-2xl shadow-sm dark:shadow-none">
+            <Building className="w-8 h-8 text-slate-400 dark:text-gray-600 mx-auto mb-2" />
+            <p className="text-xs text-slate-500 dark:text-gray-500">No vendors registered in workspace.</p>
           </div>
         ) : (
-          <div className="rounded-2xl border border-white/5 bg-gray-950/40 overflow-hidden">
+          <div className="rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-950/40 overflow-hidden shadow-sm dark:shadow-none">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/5 bg-gray-950/60 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-gray-950/60 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">
                   <th className="px-6 py-4 w-12">Alert</th>
                   <th className="px-6 py-4">Vendor Name</th>
                   <th className="px-6 py-4">Domain</th>
@@ -327,27 +327,27 @@ export default function VendorsPage() {
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-xs text-gray-300">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs text-slate-700 dark:text-gray-300">
                 {filteredVendors.map((vendor) => (
-                  <tr key={vendor.id} className="hover:bg-white/5 transition">
+                  <tr key={vendor.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition">
                     <td className="px-6 py-4.5">
                       {vendor.has_expiring_docs ? (
                         <span title="Vendor has expired or expiring compliance documents!">
-                          <AlertTriangle className="w-4 h-4 text-red-400 animate-bounce" />
+                          <AlertTriangle className="w-4 h-4 text-red-500 animate-bounce" />
                         </span>
                       ) : (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                       )}
                     </td>
-                    <td className="px-6 py-4.5 font-bold text-white truncate max-w-xs">
+                    <td className="px-6 py-4.5 font-bold text-slate-900 dark:text-white truncate max-w-xs">
                       {vendor.name}
                     </td>
-                    <td className="px-6 py-4.5 text-gray-400 font-mono select-all">{vendor.domain || 'N/A'}</td>
+                    <td className="px-6 py-4.5 text-slate-500 dark:text-gray-400 font-mono select-all">{vendor.domain || 'N/A'}</td>
                     <td className="px-6 py-4.5">{getRiskTierBadge(vendor.risk_tier)}</td>
                     <td className="px-6 py-4.5">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${
                         vendor.status === 'active'
-                          ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                          ? 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
                           : vendor.status === 'under_review'
                           ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
                           : 'bg-gray-500/10 border border-gray-500/20 text-gray-400'

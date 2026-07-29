@@ -326,13 +326,13 @@ export default function AuditHubPage() {
       
       {/* Messages */}
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400 text-sm">
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-600 dark:text-red-400 text-sm">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <p>{error}</p>
         </div>
       )}
       {success && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 text-emerald-400 text-sm">
+        <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 text-emerald-700 dark:text-emerald-400 text-sm">
           <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
           <p>{success}</p>
         </div>
@@ -341,11 +341,11 @@ export default function AuditHubPage() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2.5">
-            <ScrollText className="w-6 h-6 text-indigo-400" />
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <ScrollText className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             <span>{isAuditor ? 'Auditor Portal' : 'Audit Hub & Workspaces'}</span>
           </h2>
-          <p className="text-gray-400 text-sm">
+          <p className="text-slate-600 dark:text-gray-400 text-sm">
             {isAuditor 
               ? 'Select an assigned audit workspace to review mapped controls, view evidence logs, and request clarifications.' 
               : 'Prepare and manage compliance workspace portals for external auditors.'}
@@ -365,8 +365,8 @@ export default function AuditHubPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-24 text-gray-500 gap-2">
-          <Loader2 className="w-6 h-6 animate-spin" />
+        <div className="flex justify-center py-24 text-slate-400 dark:text-gray-500 gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
           <span>Fetching audits...</span>
         </div>
       ) : !selectedRun ? (
@@ -374,7 +374,7 @@ export default function AuditHubPage() {
         /* AUDIT RUNS LIST VIEW */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {runs.length === 0 ? (
-            <div className="col-span-full p-12 text-center border border-white/5 bg-gray-950/40 rounded-2xl text-gray-500 italic">
+            <div className="col-span-full p-12 text-center border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-950/40 rounded-2xl text-slate-400 dark:text-gray-500 italic shadow-sm dark:shadow-none">
               No audit workspaces assigned or created yet.
             </div>
           ) : (
@@ -385,36 +385,36 @@ export default function AuditHubPage() {
                   setSelectedRun(run);
                   fetchRunDetails(run.id);
                 }}
-                className="p-6 border border-white/5 bg-gray-950/40 hover:border-white/10 rounded-2xl space-y-4 cursor-pointer transition shadow-md group"
+                className="p-6 border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-950/40 hover:border-slate-300 dark:hover:border-white/10 rounded-2xl space-y-4 cursor-pointer transition shadow-sm dark:shadow-md group"
               >
                 <div className="flex justify-between items-start">
                   <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${
                     run.status === 'in_progress'
-                      ? 'bg-blue-500/10 border border-blue-500/20 text-blue-400'
+                      ? 'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400'
                       : run.status === 'completed'
-                      ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                      : 'bg-gray-500/10 border border-gray-500/20 text-gray-400'
+                      ? 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+                      : 'bg-slate-100 dark:bg-gray-500/10 border border-slate-200 dark:border-gray-500/20 text-slate-600 dark:text-gray-400'
                   }`}>
                     {run.status.replace('_', ' ')}
                   </span>
-                  <Calendar className="w-4 h-4 text-gray-500 group-hover:text-indigo-400 transition" />
+                  <Calendar className="w-4 h-4 text-slate-400 dark:text-gray-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition" />
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-white group-hover:text-indigo-300 transition text-sm">{run.name}</h4>
-                  <p className="text-xs text-gray-400 mt-1">Audited Standard: <strong className="text-gray-300">{run.framework_name}</strong></p>
-                  <p className="text-xs text-gray-400">Auditor Firm: <strong className="text-gray-300">{run.auditor_firm || 'N/A'}</strong></p>
+                  <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition text-sm">{run.name}</h4>
+                  <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">Audited Standard: <strong className="text-slate-700 dark:text-gray-300">{run.framework_name}</strong></p>
+                  <p className="text-xs text-slate-500 dark:text-gray-400">Auditor Firm: <strong className="text-slate-700 dark:text-gray-300">{run.auditor_firm || 'N/A'}</strong></p>
                 </div>
 
                 {/* Progress bar */}
                 <div className="space-y-1.5 pt-2">
-                  <div className="flex justify-between text-[10px] font-mono text-gray-500">
+                  <div className="flex justify-between text-[10px] font-mono text-slate-400 dark:text-gray-500">
                     <span>Evidence Accepted Progress</span>
                     <span>{(run.accepted_percentage || 0).toFixed(0)}%</span>
                   </div>
-                  <div className="w-full bg-gray-900 rounded-full h-1.5 overflow-hidden">
+                  <div className="w-full bg-slate-100 dark:bg-gray-900 rounded-full h-1.5 overflow-hidden">
                     <div
-                      className="bg-indigo-500 h-1.5 rounded-full transition-all"
+                      className="bg-indigo-600 dark:bg-indigo-500 h-1.5 rounded-full transition-all"
                       style={{ width: `${run.accepted_percentage || 0}%` }}
                     />
                   </div>

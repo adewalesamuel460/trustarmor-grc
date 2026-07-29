@@ -268,11 +268,11 @@ export default function IncidentsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <AlertTriangle className="w-6 h-6 text-red-500" />
             <span>Incidents & Breaches</span>
           </h2>
-          <p className="text-gray-400 text-sm">
+          <p className="text-slate-600 dark:text-gray-400 text-sm">
             Track active security incidents, timeline logs, and GDPR/NDPR regulatory breach timelines.
           </p>
         </div>
@@ -286,20 +286,20 @@ export default function IncidentsPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm">
+        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-sm">
           {error}
         </div>
       )}
 
       {/* Main Datatable */}
-      <div className="bg-gray-900 border border-white/5 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white dark:bg-gray-900 border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-500 gap-3">
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-gray-500 gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-red-500" />
             <p className="text-sm">Loading incidents catalogue...</p>
           </div>
         ) : incidents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-500 gap-2">
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-gray-500 gap-2">
             <CheckCircle2 className="w-10 h-10 text-emerald-500/40" />
             <p className="text-sm">Clean sheet! No active security incidents found.</p>
           </div>
@@ -307,7 +307,7 @@ export default function IncidentsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/5 text-[11px] font-bold text-gray-400 uppercase tracking-wider bg-gray-950/20">
+                <tr className="border-b border-slate-200 dark:border-white/5 text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider bg-slate-50 dark:bg-gray-950/20">
                   <th className="px-6 py-4">Incident Details</th>
                   <th className="px-6 py-4">Severity</th>
                   <th className="px-6 py-4">Status</th>
@@ -316,7 +316,7 @@ export default function IncidentsPage() {
                   <th className="px-6 py-4">Discovered At</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-sm">
                 {incidents.map((inc) => (
                   <tr
                     key={inc.id}
