@@ -329,11 +329,11 @@ export default function TrustCenterAdminPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-white/5">
+      <div className="flex border-b border-slate-200 dark:border-white/5">
         <button
           onClick={() => setActiveTab('config')}
           className={`pb-2.5 px-6 text-xs font-bold border-b-2 transition ${
-            activeTab === 'config' ? 'border-indigo-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+            activeTab === 'config' ? 'border-indigo-600 dark:border-indigo-500 text-slate-900 dark:text-white font-extrabold' : 'border-transparent text-slate-500 dark:text-gray-500 hover:text-slate-900 dark:hover:text-gray-300'
           }`}
         >
           Branding & Settings
@@ -341,7 +341,7 @@ export default function TrustCenterAdminPage() {
         <button
           onClick={() => setActiveTab('resources')}
           className={`pb-2.5 px-6 text-xs font-bold border-b-2 transition ${
-            activeTab === 'resources' ? 'border-indigo-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+            activeTab === 'resources' ? 'border-indigo-600 dark:border-indigo-500 text-slate-900 dark:text-white font-extrabold' : 'border-transparent text-slate-500 dark:text-gray-500 hover:text-slate-900 dark:hover:text-gray-300'
           }`}
         >
           Mapped Resources ({resources.length})
@@ -352,7 +352,7 @@ export default function TrustCenterAdminPage() {
             fetchRequests();
           }}
           className={`pb-2.5 px-6 text-xs font-bold border-b-2 transition ${
-            activeTab === 'requests' ? 'border-indigo-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+            activeTab === 'requests' ? 'border-indigo-600 dark:border-indigo-500 text-slate-900 dark:text-white font-extrabold' : 'border-transparent text-slate-500 dark:text-gray-500 hover:text-slate-900 dark:hover:text-gray-300'
           }`}
         >
           NDA Access Requests ({requests.length})
@@ -360,8 +360,8 @@ export default function TrustCenterAdminPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-gray-500 gap-2">
-          <Loader2 className="w-6 h-6 animate-spin" />
+        <div className="flex items-center justify-center py-20 text-slate-400 dark:text-gray-500 gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
           <span>Fetching configs...</span>
         </div>
       ) : (
@@ -369,12 +369,12 @@ export default function TrustCenterAdminPage() {
           
           {/* TAB 1: CONFIG FORM */}
           {activeTab === 'config' && (
-            <form onSubmit={handleUpdateConfig} className="p-8 bg-gray-950/40 border border-white/5 rounded-2xl max-w-2xl space-y-6">
+            <form onSubmit={handleUpdateConfig} className="p-8 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 rounded-2xl max-w-2xl space-y-6 shadow-sm dark:shadow-none">
               <div className="grid grid-cols-2 gap-6">
                 <div className="col-span-2">
-                  <label className="block text-xs text-gray-400 mb-1.5 font-semibold uppercase tracking-wider">Public Slug URL</label>
-                  <div className="flex items-stretch rounded-xl border border-white/10 bg-gray-950/50 overflow-hidden">
-                    <span className="px-4 flex items-center bg-gray-900 border-r border-white/10 text-xs text-gray-500 select-none">
+                  <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-semibold uppercase tracking-wider">Public Slug URL</label>
+                  <div className="flex items-stretch rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-gray-950/50 overflow-hidden shadow-sm dark:shadow-none">
+                    <span className="px-4 flex items-center bg-slate-100 dark:bg-gray-900 border-r border-slate-200 dark:border-white/10 text-xs text-slate-500 dark:text-gray-400 select-none font-mono">
                       trust.app.com/trust/
                     </span>
                     <input
@@ -383,24 +383,24 @@ export default function TrustCenterAdminPage() {
                       value={urlSlug}
                       onChange={(e) => setUrlSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ''))}
                       placeholder="acme-corp"
-                      className="flex-1 px-4 py-2.5 bg-transparent text-xs text-white outline-none"
+                      className="flex-1 px-4 py-2.5 bg-transparent text-xs text-slate-900 dark:text-white outline-none font-semibold"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1.5 font-semibold uppercase tracking-wider">Hero Title</label>
+                  <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-semibold uppercase tracking-wider">Hero Title</label>
                   <input
                     type="text"
                     required
                     value={heroTitle}
                     onChange={(e) => setHeroTitle(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-gray-950/50 border border-white/10 rounded-xl text-xs text-white outline-none focus:border-indigo-500 transition"
+                    className="w-full px-4 py-2.5 bg-white dark:bg-gray-950/50 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition shadow-sm dark:shadow-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-400 mb-1.5 font-semibold uppercase tracking-wider">Primary Theme Color</label>
+                  <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-semibold uppercase tracking-wider">Primary Theme Color</label>
                   <div className="flex gap-3 items-center">
                     <input
                       type="color"
@@ -412,40 +412,40 @@ export default function TrustCenterAdminPage() {
                       type="text"
                       value={primaryColor}
                       onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="flex-1 px-4 py-2.5 bg-gray-950/50 border border-white/10 rounded-xl text-xs text-white outline-none"
+                      className="flex-1 px-4 py-2.5 bg-white dark:bg-gray-950/50 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white outline-none shadow-sm dark:shadow-none"
                     />
                   </div>
                 </div>
 
                 <div className="col-span-2">
-                  <label className="block text-xs text-gray-400 mb-1.5 font-semibold uppercase tracking-wider">Portal Description Text</label>
+                  <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-semibold uppercase tracking-wider">Portal Description Text</label>
                   <textarea
                     value={heroDescription}
                     onChange={(e) => setHeroDescription(e.target.value)}
                     placeholder="Verify our continuous compliance frameworks and subprocessors below."
-                    className="w-full px-4 py-3 bg-gray-950/50 border border-white/10 rounded-xl text-xs text-white outline-none focus:border-indigo-500 transition h-28 resize-none"
+                    className="w-full px-4 py-3 bg-white dark:bg-gray-950/50 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition h-28 resize-none shadow-sm dark:shadow-none"
                   />
                 </div>
 
-                <div className="col-span-2 flex items-center gap-2.5 p-3.5 bg-white/5 border border-white/10 rounded-xl">
+                <div className="col-span-2 flex items-center gap-2.5 p-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl">
                   <input
                     type="checkbox"
                     id="isPublished"
                     checked={isPublished}
                     onChange={(e) => setIsPublished(e.target.checked)}
-                    className="w-4 h-4 rounded border-white/10 bg-gray-950 text-indigo-600 focus:ring-indigo-500"
+                    className="w-4 h-4 rounded border-slate-300 dark:border-white/10 bg-white dark:bg-gray-950 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                   />
-                  <label htmlFor="isPublished" className="text-xs text-gray-300 font-semibold select-none cursor-pointer">
+                  <label htmlFor="isPublished" className="text-xs text-slate-800 dark:text-gray-300 font-semibold select-none cursor-pointer">
                     Publish Trust Center portal publicly (Anyone can visit url link slug)
                   </label>
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-white/5">
+              <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-white/5">
                 <button
                   type="submit"
                   disabled={configSaving}
-                  className="flex items-center gap-1.5 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition"
+                  className="flex items-center gap-1.5 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg"
                 >
                   {configSaving ? 'Saving Configurations...' : 'Save Portal Settings'}
                 </button>
@@ -458,16 +458,16 @@ export default function TrustCenterAdminPage() {
             <div className="space-y-6">
               
               {/* Map resource form */}
-              <form onSubmit={handleAddResource} className="p-6 bg-gray-950/40 border border-white/5 rounded-2xl max-w-4xl space-y-4">
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">Map Resource to Trust Center</h3>
+              <form onSubmit={handleAddResource} className="p-6 bg-white dark:bg-gray-950/40 border border-slate-200 dark:border-white/5 rounded-2xl max-w-4xl space-y-4 shadow-sm dark:shadow-none">
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Map Resource to Trust Center</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                   <div>
-                    <label className="block text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Resource Type</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Resource Type</label>
                     <select
                       value={selectedResourceType}
                       onChange={(e) => setSelectedResourceType(e.target.value as any)}
-                      className="w-full bg-gray-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
+                      className="w-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none shadow-sm dark:shadow-none"
                     >
                       <option value="FRAMEWORK">Compliance Framework</option>
                       <option value="VENDOR">Vendor / Subprocessor</option>
@@ -476,11 +476,11 @@ export default function TrustCenterAdminPage() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Select Resource Item</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Select Resource Item</label>
                     <select
                       value={selectedResourceID}
                       onChange={(e) => setSelectedResourceID(e.target.value)}
-                      className="w-full bg-gray-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
+                      className="w-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none shadow-sm dark:shadow-none"
                       disabled={workspaceItems.filter(i => i.type === selectedResourceType).length === 0}
                     >
                       {workspaceItems.filter(i => i.type === selectedResourceType).length === 0 ? (
@@ -496,11 +496,11 @@ export default function TrustCenterAdminPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Public Visibility</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-gray-500 font-semibold uppercase tracking-wider mb-1.5">Public Visibility</label>
                     <select
                       value={selectedVisibility}
                       onChange={(e) => setSelectedVisibility(e.target.value)}
-                      className="w-full bg-gray-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
+                      className="w-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none shadow-sm dark:shadow-none"
                     >
                       <option value="public">Publicly Visible</option>
                       <option value="gated">Gated (Requires NDA request review)</option>
@@ -520,10 +520,10 @@ export default function TrustCenterAdminPage() {
               </form>
 
               {/* Mapped Resources Table */}
-              <div className="rounded-2xl border border-white/5 bg-gray-950/40 overflow-hidden">
+              <div className="rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-950/40 overflow-hidden shadow-sm dark:shadow-none">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-white/5 bg-gray-950/60 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-gray-950/60 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">
                       <th className="px-6 py-4">Resource Name</th>
                       <th className="px-6 py-4">Resource Type</th>
                       <th className="px-6 py-4">Branding details</th>
@@ -531,34 +531,34 @@ export default function TrustCenterAdminPage() {
                       <th className="px-6 py-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 text-xs text-gray-300">
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs text-slate-700 dark:text-gray-300">
                     {resources.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500 italic">
+                        <td colSpan={5} className="px-6 py-8 text-center text-slate-400 dark:text-gray-500 italic">
                           No resources mapped to public portal yet.
                         </td>
                       </tr>
                     ) : (
                       resources.map((res) => (
-                        <tr key={res.id} className="hover:bg-white/5 transition">
-                          <td className="px-6 py-4.5 font-bold text-white">{res.resource_name}</td>
+                        <tr key={res.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition">
+                          <td className="px-6 py-4.5 font-bold text-slate-900 dark:text-white">{res.resource_name}</td>
                           <td className="px-6 py-4.5">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                               res.resource_type === 'FRAMEWORK'
-                                ? 'bg-blue-500/10 border border-blue-500/20 text-blue-400'
+                                ? 'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400'
                                 : res.resource_type === 'VENDOR'
-                                ? 'bg-purple-500/10 border border-purple-500/20 text-purple-400'
-                                : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                                ? 'bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 text-purple-700 dark:text-purple-400'
+                                : 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
                             }`}>
                               {res.resource_type}
                             </span>
                           </td>
-                          <td className="px-6 py-4.5 text-gray-400 font-mono">{res.resource_details || 'N/A'}</td>
+                          <td className="px-6 py-4.5 text-slate-500 dark:text-gray-400 font-mono">{res.resource_details || 'N/A'}</td>
                           <td className="px-6 py-4.5">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${
                               res.visibility === 'public'
-                                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                                : 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
+                                ? 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+                                : 'bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400'
                             }`}>
                               {res.visibility}
                             </span>
@@ -566,7 +566,7 @@ export default function TrustCenterAdminPage() {
                           <td className="px-6 py-4.5 text-right">
                             <button
                               onClick={() => handleRemoveResource(res.resource_id)}
-                              className="p-1.5 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-lg transition"
+                              className="p-1.5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 rounded-lg transition"
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
@@ -583,10 +583,10 @@ export default function TrustCenterAdminPage() {
 
           {/* TAB 3: ACCESS REQUESTS */}
           {activeTab === 'requests' && (
-            <div className="rounded-2xl border border-white/5 bg-gray-950/40 overflow-hidden">
+            <div className="rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-950/40 overflow-hidden shadow-sm dark:shadow-none">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/5 bg-gray-950/60 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                  <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-gray-950/60 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">
                     <th className="px-6 py-4">Requester</th>
                     <th className="px-6 py-4">Company</th>
                     <th className="px-6 py-4">Document Requested</th>
@@ -595,25 +595,25 @@ export default function TrustCenterAdminPage() {
                     <th className="px-6 py-4 text-right">Actions / Secure Link</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 text-xs text-gray-300">
+                <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-xs text-slate-700 dark:text-gray-300">
                   {requests.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500 italic">
+                      <td colSpan={6} className="px-6 py-8 text-center text-slate-400 dark:text-gray-500 italic">
                         No NDA document access requests recorded yet.
                       </td>
                     </tr>
                   ) : (
                     requests.map((req) => (
-                      <tr key={req.id} className="hover:bg-white/5 transition">
-                        <td className="px-6 py-4.5 font-bold text-white">{req.requester_email}</td>
-                        <td className="px-6 py-4.5">{req.requester_company}</td>
-                        <td className="px-6 py-4.5 text-indigo-300 font-semibold">{req.document_title}</td>
-                        <td className="px-6 py-4.5 text-gray-400 max-w-xs truncate" title={req.reason}>{req.reason || 'N/A'}</td>
+                      <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition">
+                        <td className="px-6 py-4.5 font-bold text-slate-900 dark:text-white">{req.requester_email}</td>
+                        <td className="px-6 py-4.5 text-slate-700 dark:text-gray-300">{req.requester_company}</td>
+                        <td className="px-6 py-4.5 text-indigo-600 dark:text-indigo-300 font-semibold">{req.document_title}</td>
+                        <td className="px-6 py-4.5 text-slate-500 dark:text-gray-400 max-w-xs truncate" title={req.reason}>{req.reason || 'N/A'}</td>
                         <td className="px-6 py-4.5">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${
                             req.status === 'approved'
-                              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                              : 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
+                              ? 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+                              : 'bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400'
                           }`}>
                             {req.status}
                           </span>
@@ -631,12 +631,12 @@ export default function TrustCenterAdminPage() {
                               {req.secure_link && (
                                 <button
                                   onClick={() => handleCopyLink(req.secure_link!, req.id)}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 border border-white/10 hover:border-indigo-500 text-gray-300 hover:text-white rounded-lg transition"
+                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-white/10 hover:border-indigo-500 text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white rounded-lg transition"
                                 >
                                   {copiedId === req.id ? (
                                     <>
-                                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                                      <span className="text-[10px] text-emerald-400">Copied!</span>
+                                      <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400">Copied!</span>
                                     </>
                                   ) : (
                                     <>
@@ -646,7 +646,7 @@ export default function TrustCenterAdminPage() {
                                   )}
                                 </button>
                               )}
-                              <span className="text-[9px] text-gray-500 italic">Expires {new Date(req.expires_at!).toLocaleDateString()}</span>
+                              <span className="text-[9px] text-slate-400 dark:text-gray-500 italic">Expires {new Date(req.expires_at!).toLocaleDateString()}</span>
                             </div>
                           )}
                         </td>
