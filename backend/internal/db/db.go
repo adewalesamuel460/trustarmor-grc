@@ -75,7 +75,11 @@ var seedWorkspaceDemoDataSQL string
 //go:embed migrations/000021_product_compliance.up.sql
 var productComplianceSQL string
 
+//go:embed migrations/000022_dynamic_product_suites.up.sql
+var dynamicProductSuitesSQL string
+
 type PgxPoolIface interface {
+
 
 	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
@@ -252,7 +256,14 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 		return fmt.Errorf("failed to execute migration 000021: %w", err)
 	}
 
+	log.Println("Running database migrations (000022)...")
+	_, err = db.Pool.Exec(ctx, dynamicProductSuitesSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000022: %w", err)
+	}
+
 	log.Println("Migrations executed successfully")
 	return nil
 }
+
 

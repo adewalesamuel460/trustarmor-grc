@@ -4,12 +4,12 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import api from '@/lib/api';
-import { Package, ShieldCheck, Layers, Plus, X, ArrowRight, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Package, Plus, X, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 
 interface Product {
   id: string;
   workspace_id: string;
-  suite: 'ERP' | 'Nvuto';
+  suite: string;
   name: string;
   description: string;
   created_at: string;
@@ -32,6 +32,8 @@ interface ProductPosture {
   framework_postures: FrameworkPostureSummary[];
 }
 
+const PRESET_SUITES = ['ERP', 'Nvuto', 'FinTech', 'Infrastructure', 'AI & Analytics', 'Custom'];
+
 export default function ProductsPage() {
   const { activeWorkspace } = useWorkspace();
   const [products, setProducts] = useState<Product[]>([]);
@@ -41,7 +43,8 @@ export default function ProductsPage() {
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
-  const [suite, setSuite] = useState<'ERP' | 'Nvuto'>('ERP');
+  const [selectedSuiteOption, setSelectedSuiteOption] = useState<string>('ERP');
+  const [customSuiteName, setCustomSuiteName] = useState<string>('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [creating, setCreating] = useState(false);
@@ -91,17 +94,25 @@ export default function ProductsPage() {
     e.preventDefault();
     if (!activeWorkspace || !name.trim()) return;
 
+    const finalSuite = selectedSuiteOption === 'Custom' ? customSuiteName.trim() : selectedSuiteOption;
+    if (!finalSuite) {
+      setError('Please provide a suite name');
+      return;
+    }
+
     setCreating(true);
     setError(null);
     try {
       await api.post(`/workspaces/${activeWorkspace.id}/products`, {
-        suite,
+        suite: finalSuite,
         name: name.trim(),
         description: description.trim(),
       });
       setShowModal(false);
       setName('');
       setDescription('');
+      setCustomSuiteName('');
+      setSelectedSuiteOption('ERP');
       await fetchProductsAndPostures();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create product');
@@ -110,8 +121,13 @@ export default function ProductsPage() {
     }
   };
 
-  const erpProducts = products.filter((p) => p.suite === 'ERP');
-  const nvutoProducts = products.filter((p) => p.suite === 'Nvuto');
+  // Group products dynamically by suite
+  const suiteGroups = products.reduce((acc, p) => {
+    const key = p.suite || 'General';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(p);
+    return acc;
+  }, {} as Record<string, Product[]>);
 
   const getOverallPosture = (posture?: ProductPosture) => {
     if (!posture || !posture.framework_postures || posture.framework_postures.length === 0) return 0;
@@ -131,7 +147,7 @@ export default function ProductsPage() {
             <h1 className="text-xl font-bold text-slate-900 dark:text-white">Product Compliance</h1>
           </div>
           <p className="text-sm text-slate-600 dark:text-gray-400 mt-1">
-            Monitor security controls, coverage, and posture across ERP & Nvuto application suites.
+            Monitor security controls, coverage, and posture across all enterprise software suites.
           </p>
         </div>
 
@@ -156,25 +172,23 @@ export default function ProductsPage() {
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
           <p className="text-sm">Calculating product compliance posture...</p>
         </div>
+      ) : Object.keys(suiteGroups).length === 0 ? (
+        <div className="p-12 text-center bg-white dark:bg-gray-900/40 rounded-2xl border border-slate-200 dark:border-white/5 text-slate-500 dark:text-gray-400 text-sm space-y-3">
+          <Package className="w-8 h-8 mx-auto text-slate-400 dark:text-gray-600" />
+          <p>No products registered yet. Click "Add Product" to create your first product.</p>
+        </div>
       ) : (
         <div className="space-y-10">
-          {/* ERP Suite Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-bold uppercase tracking-wider rounded-lg">
-                ERP Suite
-              </span>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Enterprise Resource Planning</h2>
-              <span className="text-xs text-slate-500 dark:text-gray-400">({erpProducts.length} Products)</span>
-            </div>
-
-            {erpProducts.length === 0 ? (
-              <div className="p-8 text-center bg-white dark:bg-gray-900/40 rounded-2xl border border-slate-200 dark:border-white/5 text-slate-500 dark:text-gray-400 text-sm">
-                No ERP suite products found. Click "Add Product" to register one.
+          {Object.entries(suiteGroups).map(([suiteName, suiteProducts]) => (
+            <div key={suiteName} className="space-y-4">
+              <div className="flex items-center gap-3">
+                <SuiteBadge suite={suiteName} size="lg" />
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">{suiteName} Suite</h2>
+                <span className="text-xs text-slate-500 dark:text-gray-400">({suiteProducts.length} Products)</span>
               </div>
-            ) : (
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {erpProducts.map((prod) => {
+                {suiteProducts.map((prod) => {
                   const posture = postures[prod.id];
                   const score = getOverallPosture(posture);
                   return (
@@ -182,35 +196,8 @@ export default function ProductsPage() {
                   );
                 })}
               </div>
-            )}
-          </div>
-
-          {/* Nvuto Suite Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider rounded-lg">
-                Nvuto Suite
-              </span>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Nvuto Business Applications</h2>
-              <span className="text-xs text-slate-500 dark:text-gray-400">({nvutoProducts.length} Products)</span>
             </div>
-
-            {nvutoProducts.length === 0 ? (
-              <div className="p-8 text-center bg-white dark:bg-gray-900/40 rounded-2xl border border-slate-200 dark:border-white/5 text-slate-500 dark:text-gray-400 text-sm">
-                No Nvuto suite products found. Click "Add Product" to register one.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {nvutoProducts.map((prod) => {
-                  const posture = postures[prod.id];
-                  const score = getOverallPosture(posture);
-                  return (
-                    <ProductCard key={prod.id} product={prod} posture={posture} overallScore={score} />
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          ))}
         </div>
       )}
 
@@ -236,30 +223,33 @@ export default function ProductsPage() {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">
                   Application Suite
                 </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setSuite('ERP')}
-                    className={`py-2.5 rounded-xl border text-sm font-semibold transition ${
-                      suite === 'ERP'
-                        ? 'bg-purple-50 dark:bg-purple-600/20 border-purple-500 text-purple-700 dark:text-purple-300 shadow-sm'
-                        : 'bg-white dark:bg-gray-950/40 border-slate-200 dark:border-white/5 text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    ERP Suite
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSuite('Nvuto')}
-                    className={`py-2.5 rounded-xl border text-sm font-semibold transition ${
-                      suite === 'Nvuto'
-                        ? 'bg-emerald-50 dark:bg-emerald-600/20 border-emerald-500 text-emerald-700 dark:text-emerald-300 shadow-sm'
-                        : 'bg-white dark:bg-gray-950/40 border-slate-200 dark:border-white/5 text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    Nvuto Suite
-                  </button>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {PRESET_SUITES.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setSelectedSuiteOption(preset)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                        selectedSuiteOption === preset
+                          ? 'bg-indigo-50 dark:bg-indigo-600/20 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-sm'
+                          : 'bg-white dark:bg-gray-950/40 border-slate-200 dark:border-white/5 text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
                 </div>
+
+                {selectedSuiteOption === 'Custom' && (
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter custom suite name (e.g. FinTech, Healthcare, Logistics)..."
+                    value={customSuiteName}
+                    onChange={(e) => setCustomSuiteName(e.target.value)}
+                    className="w-full mt-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-gray-950/40 text-slate-900 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                )}
               </div>
 
               <div>
@@ -269,7 +259,7 @@ export default function ProductsPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. HustleX or Payroll"
+                  placeholder="e.g. HustleX, SCM, or Payroll"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-gray-950/40 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -315,8 +305,6 @@ export default function ProductsPage() {
 }
 
 function ProductCard({ product, posture, overallScore }: { product: Product; posture?: ProductPosture; overallScore: number }) {
-  const isErp = product.suite === 'ERP';
-
   return (
     <div className="bg-white dark:bg-gray-900/60 rounded-2xl border border-slate-200 dark:border-white/10 p-6 flex flex-col justify-between hover:border-indigo-500/40 transition shadow-sm group">
       <div className="space-y-4">
@@ -327,15 +315,7 @@ function ProductCard({ product, posture, overallScore }: { product: Product; pos
               <h3 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
                 {product.name}
               </h3>
-              <span
-                className={`px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md ${
-                  isErp
-                    ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/20'
-                    : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20'
-                }`}
-              >
-                {product.suite}
-              </span>
+              <SuiteBadge suite={product.suite} />
             </div>
             <p className="text-xs text-slate-500 dark:text-gray-400 mt-1 line-clamp-2">
               {product.description || 'No description provided.'}
@@ -407,4 +387,25 @@ function ProductCard({ product, posture, overallScore }: { product: Product; pos
       </div>
     </div>
   );
+}
+
+function SuiteBadge({ suite, size = 'sm' }: { suite: string; size?: 'sm' | 'lg' }) {
+  const normalized = (suite || 'General').toLowerCase();
+
+  let style = 'bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-gray-300 border-slate-200 dark:border-white/10';
+  if (normalized.includes('erp')) {
+    style = 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-500/20';
+  } else if (normalized.includes('nvuto')) {
+    style = 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20';
+  } else if (normalized.includes('fintech') || normalized.includes('finance')) {
+    style = 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/20';
+  } else if (normalized.includes('infra')) {
+    style = 'bg-cyan-50 dark:bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-500/20';
+  } else if (normalized.includes('ai') || normalized.includes('analytic')) {
+    style = 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20';
+  }
+
+  const padding = size === 'lg' ? 'px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-lg' : 'px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md';
+
+  return <span className={`${padding} border ${style}`}>{suite} Suite</span>;
 }

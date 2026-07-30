@@ -158,15 +158,10 @@ export default function ProductDetailPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{posture.product_name}</h1>
-                    <span
-                      className={`px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider rounded-md ${
-                        posture.suite === 'ERP'
-                          ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/20'
-                          : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20'
-                      }`}
-                    >
+                    <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider rounded-md bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20">
                       {posture.suite} Suite
                     </span>
+
                   </div>
                   <p className="text-sm text-slate-600 dark:text-gray-400 mt-0.5">
                     {posture.description || 'No description provided for this product.'}

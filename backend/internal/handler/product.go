@@ -52,15 +52,15 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Name == "" || req.Suite == "" {
-		h.respondError(w, http.StatusBadRequest, "Name and Suite ('ERP' or 'Nvuto') are required fields")
+	if req.Name == "" {
+		h.respondError(w, http.StatusBadRequest, "Product Name is required")
 		return
 	}
 
-	if req.Suite != "ERP" && req.Suite != "Nvuto" {
-		h.respondError(w, http.StatusBadRequest, "Suite must be either 'ERP' or 'Nvuto'")
-		return
+	if req.Suite == "" {
+		req.Suite = "General"
 	}
+
 
 	p := models.Product{
 		WorkspaceID: workspaceID,
