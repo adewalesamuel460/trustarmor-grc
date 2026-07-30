@@ -78,7 +78,11 @@ var productComplianceSQL string
 //go:embed migrations/000022_dynamic_product_suites.up.sql
 var dynamicProductSuitesSQL string
 
+//go:embed migrations/000023_update_nvuto_erp_products.up.sql
+var updateNvutoErpProductsSQL string
+
 type PgxPoolIface interface {
+
 
 
 	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
@@ -260,6 +264,12 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 	_, err = db.Pool.Exec(ctx, dynamicProductSuitesSQL)
 	if err != nil {
 		return fmt.Errorf("failed to execute migration 000022: %w", err)
+	}
+
+	log.Println("Running database migrations (000023)...")
+	_, err = db.Pool.Exec(ctx, updateNvutoErpProductsSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000023: %w", err)
 	}
 
 	log.Println("Migrations executed successfully")

@@ -17,14 +17,15 @@ func (r *Repository) GetProducts(ctx context.Context, workspaceID string) ([]mod
 	if count == 0 {
 		_, _ = r.db.Pool.Exec(ctx, `
 			INSERT INTO products (workspace_id, suite, name, description) VALUES
-			($1, 'ERP', 'SCM', 'Supply Chain Management module for tracking logistics, inventory, and procurement.'),
-			($1, 'ERP', 'CRM', 'Customer Relationship Management for client onboarding and account management.'),
-			($1, 'ERP', 'HustleX', 'Freelance & gig workforce operations and billing manager.'),
-			($1, 'ERP', 'Webhosting', 'Cloud infrastructure hosting and domain provisioning engine.'),
-			($1, 'Nvuto', 'Finance', 'Financial accounting, general ledger, and payment processing suite.'),
-			($1, 'Nvuto', 'Mail', 'Enterprise email messaging and secure attachment exchange service.'),
-			($1, 'Nvuto', 'HR', 'Human resources management, payroll, and employee records portal.')
+			($1, 'Nvuto ERP', 'SCM', 'Supply Chain Management module for tracking logistics, inventory, and procurement.'),
+			($1, 'Nvuto ERP', 'CRM', 'Customer Relationship Management for client onboarding and account management.'),
+			($1, 'Nvuto ERP', 'Webhosting', 'Cloud infrastructure hosting and domain provisioning engine.'),
+			($1, 'Nvuto ERP', 'Finance', 'Financial accounting, general ledger, and payment processing suite.'),
+			($1, 'Nvuto ERP', 'Mail', 'Enterprise email messaging and secure attachment exchange service.'),
+			($1, 'Nvuto ERP', 'HR', 'Human resources management, payroll, and employee records portal.'),
+			($1, 'HustleX', 'HustleX', 'Freelance & gig workforce operations and billing manager.')
 			ON CONFLICT (workspace_id, name) DO NOTHING;
+
 		`, workspaceID)
 
 		// Link existing controls in this workspace to newly seeded products
