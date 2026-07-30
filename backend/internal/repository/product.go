@@ -11,6 +11,32 @@ import (
 
 // GetProducts retrieves all products registered for a workspace
 func (r *Repository) GetProducts(ctx context.Context, workspaceID string) ([]models.Product, error) {
+	// Auto-seed default suite products if workspace has no products yet
+	var count int
+	_ = r.db.Pool.QueryRow(ctx, `SELECT COUNT(*) FROM products WHERE workspace_id = $1`, workspaceID).Scan(&count)
+	if count == 0 {
+		_, _ = r.db.Pool.Exec(ctx, `
+			INSERT INTO products (workspace_id, suite, name, description) VALUES
+			($1, 'ERP', 'SCM', 'Supply Chain Management module for tracking logistics, inventory, and procurement.'),
+			($1, 'ERP', 'CRM', 'Customer Relationship Management for client onboarding and account management.'),
+			($1, 'ERP', 'HustleX', 'Freelance & gig workforce operations and billing manager.'),
+			($1, 'ERP', 'Webhosting', 'Cloud infrastructure hosting and domain provisioning engine.'),
+			($1, 'Nvuto', 'Finance', 'Financial accounting, general ledger, and payment processing suite.'),
+			($1, 'Nvuto', 'Mail', 'Enterprise email messaging and secure attachment exchange service.'),
+			($1, 'Nvuto', 'HR', 'Human resources management, payroll, and employee records portal.')
+			ON CONFLICT (workspace_id, name) DO NOTHING;
+		`, workspaceID)
+
+		// Link existing controls in this workspace to newly seeded products
+		_, _ = r.db.Pool.Exec(ctx, `
+			INSERT INTO control_products (control_id, product_id, coverage)
+			SELECT c.id, p.id, 'full'
+			FROM controls c, products p
+			WHERE c.workspace_id = $1 AND p.workspace_id = $1
+			ON CONFLICT DO NOTHING;
+		`, workspaceID)
+	}
+
 	rows, err := r.db.Pool.Query(ctx, `
 		SELECT id, workspace_id, suite, name, COALESCE(description, ''), created_at
 		FROM products
@@ -36,6 +62,7 @@ func (r *Repository) GetProducts(ctx context.Context, workspaceID string) ([]mod
 	}
 	return products, nil
 }
+
 
 // CreateProduct creates a new product in a workspace
 func (r *Repository) CreateProduct(ctx context.Context, p *models.Product) error {
