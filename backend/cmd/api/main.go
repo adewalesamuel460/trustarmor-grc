@@ -196,6 +196,15 @@ func main() {
 		r.Post("/workspaces/{id}/controls/{control_id}/map", h.MapControl)
 		r.Get("/workspaces/{id}/frameworks/{framework_id}/posture", h.GetCompliancePosture)
 
+		// Product Compliance
+		r.Get("/workspaces/{id}/products", h.GetProducts)
+		r.Post("/workspaces/{id}/products", h.CreateProduct)
+		r.Get("/workspaces/{id}/products/{productId}", h.GetProductDetail)
+		r.Get("/workspaces/{id}/products/{productId}/posture", h.GetProductPosture)
+		r.Post("/controls/{controlId}/products", h.LinkControlProducts)
+		r.Post("/workspaces/{id}/controls/{controlId}/products", h.LinkControlProducts)
+
+
 		// Integrations & Background Workers
 		r.Get("/integrations/providers", h.GetIntegrationProviders)
 		r.Post("/integrations/providers", h.CreateIntegrationProvider)

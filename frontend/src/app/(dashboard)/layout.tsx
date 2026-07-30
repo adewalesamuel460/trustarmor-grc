@@ -6,7 +6,7 @@ import Link from 'next/link';
 import WorkspaceSwitcher from '@/components/WorkspaceSwitcher';
 import api from '@/lib/api';
 import { useTheme } from '@/context/ThemeContext';
-import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle, CheckSquare, Bell, Bug, User, Sun, Moon } from 'lucide-react';
+import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle, CheckSquare, Bell, Bug, User, Sun, Moon, Package } from 'lucide-react';
 import { isDemoMode, disableDemoMode, DEMO_USER, DEMO_WORKSPACE } from '@/lib/demo-mode';
 
 export default function DashboardLayout({
@@ -148,7 +148,9 @@ export default function DashboardLayout({
       title: 'Compliance',
       items: [
         { name: 'Frameworks', path: '/compliance/frameworks', icon: ShieldCheck },
+        { name: 'Products', path: '/compliance/products', icon: Package },
         { name: 'Controls', path: '/compliance/controls', icon: Sliders },
+
         { name: 'Integrations', path: '/compliance/integrations', icon: Layers },
         { name: 'Vulnerabilities', path: '/compliance/vulnerabilities', icon: Bug },
         { name: 'Policies', path: '/compliance/policies', icon: ScrollText },

@@ -577,3 +577,48 @@ type Asset struct {
 	LastDiscovered time.Time              `json:"last_discovered"`
 }
 
+type Product struct {
+	ID          string    `json:"id"`
+	WorkspaceID string    `json:"workspace_id"`
+	Suite       string    `json:"suite"` // 'ERP', 'Nvuto'
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+type ControlProduct struct {
+	ControlID string    `json:"control_id"`
+	ProductID string    `json:"product_id"`
+	Coverage  string    `json:"coverage"` // 'full', 'partial'
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type FrameworkPostureSummary struct {
+	FrameworkID          string  `json:"framework_id"`
+	FrameworkName        string  `json:"framework_name"`
+	FrameworkVersion     string  `json:"framework_version"`
+	CompliancePercentage float64 `json:"compliance_percentage"`
+	TotalRequirements    int     `json:"total_requirements"`
+	CoveredRequirements  int     `json:"covered_requirements"`
+}
+
+type ProductPosture struct {
+	ProductID         string                    `json:"product_id"`
+	ProductName       string                    `json:"product_name"`
+	Suite             string                    `json:"suite"`
+	Description       string                    `json:"description"`
+	FrameworkPostures []FrameworkPostureSummary `json:"framework_postures"`
+}
+
+type ProductControlDetail struct {
+	ControlID     string     `json:"control_id"`
+	Title         string     `json:"title"`
+	Description   string     `json:"description"`
+	Type          string     `json:"type"`
+	Frequency     string     `json:"frequency"`
+	CurrentStatus string     `json:"current_status"`
+	Coverage      string     `json:"coverage"`
+	LastTestedAt  *time.Time `json:"last_tested_at"`
+}
+
+
