@@ -117,6 +117,9 @@ type WorkspaceIntegration struct {
 	ID                   string     `json:"id"`
 	WorkspaceID          string     `json:"workspace_id"`
 	ProviderID           string     `json:"provider_id"`
+	ProductID            *string    `json:"product_id,omitempty"`
+	APIKeyHash           *string    `json:"-"`
+	APIKey               *string    `json:"api_key,omitempty"`
 	Status               string     `json:"status"`
 	EncryptedCredentials []byte     `json:"-"`
 	LastSyncAt           *time.Time `json:"last_sync_at"`
@@ -125,6 +128,7 @@ type WorkspaceIntegration struct {
 	ProviderName         string     `json:"provider_name,omitempty"`
 	ProviderCategory     string     `json:"provider_category,omitempty"`
 }
+
 
 type SyncLog struct {
 	ID                     string    `json:"id"`

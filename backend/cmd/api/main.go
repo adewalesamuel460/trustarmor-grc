@@ -212,8 +212,10 @@ func main() {
 		r.Post("/integrations/providers", h.CreateIntegrationProvider)
 		r.Get("/workspaces/{id}/integrations", h.GetWorkspaceIntegrations)
 		r.Post("/workspaces/{id}/integrations/connect", h.ConnectIntegration)
+		r.Post("/workspaces/{id}/integrations/{connectionId}/assets", h.IngestInternalAppAssets)
 		r.Post("/workspaces/{id}/integrations/{integration_id}/sync", h.SyncIntegration)
 		r.Get("/workspaces/{id}/integrations/{integration_id}/sync-logs", h.GetSyncLogs)
+
 
 		// Evidence & Continuous Monitoring
 		r.Post("/workspaces/{id}/controls/{control_id}/evidence/upload", h.UploadEvidence)

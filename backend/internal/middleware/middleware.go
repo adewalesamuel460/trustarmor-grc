@@ -65,10 +65,14 @@ func CSRF(next http.Handler) http.Handler {
 				strings.HasPrefix(path, "/auth/refresh") ||
 				strings.HasPrefix(path, "/auth/forgot-password") ||
 				strings.HasPrefix(path, "/auth/reset-password") ||
-				strings.HasPrefix(path, "/public/") {
+				strings.HasPrefix(path, "/public/") ||
+				strings.HasSuffix(path, "/assets") ||
+				strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") ||
+				r.Header.Get("X-API-Key") != "" {
 				next.ServeHTTP(w, r)
 				return
 			}
+
 
 			csrfHeader := r.Header.Get("X-CSRF-Token")
 			if csrfHeader == "" {

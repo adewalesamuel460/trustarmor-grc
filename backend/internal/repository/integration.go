@@ -38,7 +38,7 @@ func (r *Repository) GetIntegrationProviders(ctx context.Context) ([]models.Inte
 // GetWorkspaceIntegrations lists connected integrations for a workspace
 func (r *Repository) GetWorkspaceIntegrations(ctx context.Context, workspaceID string) ([]models.WorkspaceIntegration, error) {
 	rows, err := r.db.Pool.Query(ctx, `
-		SELECT wi.id, wi.workspace_id, wi.provider_id, wi.status, wi.encrypted_credentials, wi.last_sync_at, wi.created_at, wi.updated_at,
+		SELECT wi.id, wi.workspace_id, wi.provider_id, wi.product_id, wi.api_key_hash, wi.status, wi.encrypted_credentials, wi.last_sync_at, wi.created_at, wi.updated_at,
 		       ip.name as provider_name, ip.category as provider_category
 		FROM workspace_integrations wi
 		JOIN integration_providers ip ON wi.provider_id = ip.id
@@ -54,7 +54,7 @@ func (r *Repository) GetWorkspaceIntegrations(ctx context.Context, workspaceID s
 	for rows.Next() {
 		var wi models.WorkspaceIntegration
 		err := rows.Scan(
-			&wi.ID, &wi.WorkspaceID, &wi.ProviderID, &wi.Status, &wi.EncryptedCredentials, 
+			&wi.ID, &wi.WorkspaceID, &wi.ProviderID, &wi.ProductID, &wi.APIKeyHash, &wi.Status, &wi.EncryptedCredentials, 
 			&wi.LastSyncAt, &wi.CreatedAt, &wi.UpdatedAt, &wi.ProviderName, &wi.ProviderCategory,
 		)
 		if err != nil {
@@ -70,13 +70,13 @@ func (r *Repository) GetWorkspaceIntegrations(ctx context.Context, workspaceID s
 func (r *Repository) GetWorkspaceIntegrationByID(ctx context.Context, id string) (*models.WorkspaceIntegration, error) {
 	var wi models.WorkspaceIntegration
 	err := r.db.Pool.QueryRow(ctx, `
-		SELECT wi.id, wi.workspace_id, wi.provider_id, wi.status, wi.encrypted_credentials, wi.last_sync_at, wi.created_at, wi.updated_at,
+		SELECT wi.id, wi.workspace_id, wi.provider_id, wi.product_id, wi.api_key_hash, wi.status, wi.encrypted_credentials, wi.last_sync_at, wi.created_at, wi.updated_at,
 		       ip.name as provider_name, ip.category as provider_category
 		FROM workspace_integrations wi
 		JOIN integration_providers ip ON wi.provider_id = ip.id
 		WHERE wi.id = $1;
 	`, id).Scan(
-		&wi.ID, &wi.WorkspaceID, &wi.ProviderID, &wi.Status, &wi.EncryptedCredentials, 
+		&wi.ID, &wi.WorkspaceID, &wi.ProviderID, &wi.ProductID, &wi.APIKeyHash, &wi.Status, &wi.EncryptedCredentials, 
 		&wi.LastSyncAt, &wi.CreatedAt, &wi.UpdatedAt, &wi.ProviderName, &wi.ProviderCategory,
 	)
 	if err != nil {
@@ -84,6 +84,28 @@ func (r *Repository) GetWorkspaceIntegrationByID(ctx context.Context, id string)
 			return nil, fmt.Errorf("workspace integration not found: %w", err)
 		}
 		return nil, fmt.Errorf("failed to get workspace integration: %w", err)
+	}
+	return &wi, nil
+}
+
+// GetIntegrationByAPIKeyHash retrieves an internal app connection by its SHA-256 API key hash
+func (r *Repository) GetIntegrationByAPIKeyHash(ctx context.Context, apiKeyHash string) (*models.WorkspaceIntegration, error) {
+	var wi models.WorkspaceIntegration
+	err := r.db.Pool.QueryRow(ctx, `
+		SELECT wi.id, wi.workspace_id, wi.provider_id, wi.product_id, wi.api_key_hash, wi.status, wi.encrypted_credentials, wi.last_sync_at, wi.created_at, wi.updated_at,
+		       ip.name as provider_name, ip.category as provider_category
+		FROM workspace_integrations wi
+		JOIN integration_providers ip ON wi.provider_id = ip.id
+		WHERE wi.api_key_hash = $1;
+	`, apiKeyHash).Scan(
+		&wi.ID, &wi.WorkspaceID, &wi.ProviderID, &wi.ProductID, &wi.APIKeyHash, &wi.Status, &wi.EncryptedCredentials, 
+		&wi.LastSyncAt, &wi.CreatedAt, &wi.UpdatedAt, &wi.ProviderName, &wi.ProviderCategory,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("invalid or unrecognized API key: %w", err)
+		}
+		return nil, fmt.Errorf("failed to authenticate API key: %w", err)
 	}
 	return &wi, nil
 }
@@ -96,15 +118,35 @@ func (r *Repository) ConnectIntegration(ctx context.Context, workspaceID, provid
 		VALUES ($1, $2, 'connected', $3)
 		ON CONFLICT (workspace_id, provider_id)
 		DO UPDATE SET status = 'connected', encrypted_credentials = $3, updated_at = CURRENT_TIMESTAMP
-		RETURNING id, workspace_id, provider_id, status, encrypted_credentials, last_sync_at, created_at, updated_at;
+		RETURNING id, workspace_id, provider_id, product_id, api_key_hash, status, encrypted_credentials, last_sync_at, created_at, updated_at;
 	`, workspaceID, providerID, encryptedCredentials).Scan(
-		&wi.ID, &wi.WorkspaceID, &wi.ProviderID, &wi.Status, &wi.EncryptedCredentials, &wi.LastSyncAt, &wi.CreatedAt, &wi.UpdatedAt,
+		&wi.ID, &wi.WorkspaceID, &wi.ProviderID, &wi.ProductID, &wi.APIKeyHash, &wi.Status, &wi.EncryptedCredentials, &wi.LastSyncAt, &wi.CreatedAt, &wi.UpdatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect workspace integration: %w", err)
 	}
 	return &wi, nil
 }
+
+// ConnectInternalAppIntegration inserts or updates an internal_app workspace connection with product_id and api_key_hash
+func (r *Repository) ConnectInternalAppIntegration(ctx context.Context, workspaceID string, productID *string, apiKeyHash string) (*models.WorkspaceIntegration, error) {
+	var wi models.WorkspaceIntegration
+	err := r.db.Pool.QueryRow(ctx, `
+		INSERT INTO workspace_integrations (workspace_id, provider_id, product_id, api_key_hash, status)
+		VALUES ($1, 'c0000000-0000-0000-0000-000000000004', $2, $3, 'connected')
+		ON CONFLICT (workspace_id, provider_id)
+		DO UPDATE SET product_id = EXCLUDED.product_id, api_key_hash = EXCLUDED.api_key_hash, status = 'connected', updated_at = CURRENT_TIMESTAMP
+		RETURNING id, workspace_id, provider_id, product_id, api_key_hash, status, encrypted_credentials, last_sync_at, created_at, updated_at;
+	`, workspaceID, productID, apiKeyHash).Scan(
+		&wi.ID, &wi.WorkspaceID, &wi.ProviderID, &wi.ProductID, &wi.APIKeyHash, &wi.Status, &wi.EncryptedCredentials, &wi.LastSyncAt, &wi.CreatedAt, &wi.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect internal app integration: %w", err)
+	}
+	return &wi, nil
+}
+
+
 
 // UpdateIntegrationStatus updates status and last_sync_at fields
 func (r *Repository) UpdateIntegrationStatus(ctx context.Context, id string, status string, lastSyncAt time.Time) error {

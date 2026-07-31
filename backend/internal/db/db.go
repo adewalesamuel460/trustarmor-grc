@@ -84,7 +84,11 @@ var updateNvutoErpProductsSQL string
 //go:embed migrations/000024_fix_selective_control_products.up.sql
 var fixSelectiveControlProductsSQL string
 
+//go:embed migrations/000025_internal_app_integration.up.sql
+var internalAppIntegrationSQL string
+
 type PgxPoolIface interface {
+
 
 
 
@@ -282,9 +286,16 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 		return fmt.Errorf("failed to execute migration 000024: %w", err)
 	}
 
+	log.Println("Running database migrations (000025)...")
+	_, err = db.Pool.Exec(ctx, internalAppIntegrationSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000025: %w", err)
+	}
+
 	log.Println("Migrations executed successfully")
 	return nil
 }
+
 
 
 
