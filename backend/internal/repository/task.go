@@ -83,6 +83,37 @@ func (r *Repository) UpdateTaskStatus(ctx context.Context, id string, status str
 	return err
 }
 
+// UpdateTask modifies task properties (title, description, priority, status, assignee, due date)
+func (r *Repository) UpdateTask(ctx context.Context, t *models.Task) error {
+	var resolvedAt *time.Time
+	if t.Status == "done" {
+		now := time.Now()
+		resolvedAt = &now
+	}
+
+	_, err := r.db.Pool.Exec(ctx, `
+		UPDATE tasks
+		SET title = $1, description = $2, priority = $3, status = $4, assignee_id = $5, due_date = $6, resolved_at = $7, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $8 AND workspace_id = $9;
+	`, t.Title, t.Description, t.Priority, t.Status, t.AssigneeID, t.DueDate, resolvedAt, t.ID, t.WorkspaceID)
+	if err != nil {
+		return fmt.Errorf("failed to update task: %w", err)
+	}
+	return nil
+}
+
+// DeleteTask removes a task by ID
+func (r *Repository) DeleteTask(ctx context.Context, workspaceID string, taskID string) error {
+	_, err := r.db.Pool.Exec(ctx, `
+		DELETE FROM tasks WHERE id = $1 AND workspace_id = $2;
+	`, taskID, workspaceID)
+	if err != nil {
+		return fmt.Errorf("failed to delete task: %w", err)
+	}
+	return nil
+}
+
+
 // CreateNotificationRule registers trigger alerts destination
 func (r *Repository) CreateNotificationRule(ctx context.Context, nr *models.NotificationRule) error {
 	err := r.db.Pool.QueryRow(ctx, `

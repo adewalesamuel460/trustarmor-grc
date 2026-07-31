@@ -34,6 +34,93 @@ func (h *Handler) ListTasks(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tasks)
 }
 
+// CreateTask creates a new manual or automated task
+func (h *Handler) CreateTask(w http.ResponseWriter, r *http.Request) {
+	workspaceID := chi.URLParam(r, "id")
+	if workspaceID == "" {
+		http.Error(w, "Missing workspace ID parameter", http.StatusBadRequest)
+		return
+	}
+
+	var task models.Task
+	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	if task.Title == "" {
+		http.Error(w, "Task title is required", http.StatusBadRequest)
+		return
+	}
+
+	task.WorkspaceID = workspaceID
+	if task.Status == "" {
+		task.Status = "todo"
+	}
+	if task.Priority == "" {
+		task.Priority = "medium"
+	}
+
+	if err := h.repo.CreateTask(r.Context(), &task); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(task)
+}
+
+// UpdateTask updates an existing task's title, description, status, priority, assignee, or due date
+func (h *Handler) UpdateTask(w http.ResponseWriter, r *http.Request) {
+	workspaceID := chi.URLParam(r, "id")
+	taskID := chi.URLParam(r, "task_id")
+	if workspaceID == "" || taskID == "" {
+		http.Error(w, "Missing workspace ID or task ID parameter", http.StatusBadRequest)
+		return
+	}
+
+	var task models.Task
+	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	if task.Title == "" {
+		http.Error(w, "Task title is required", http.StatusBadRequest)
+		return
+	}
+
+	task.ID = taskID
+	task.WorkspaceID = workspaceID
+
+	if err := h.repo.UpdateTask(r.Context(), &task); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Task updated successfully"})
+}
+
+// DeleteTask removes a task
+func (h *Handler) DeleteTask(w http.ResponseWriter, r *http.Request) {
+	workspaceID := chi.URLParam(r, "id")
+	taskID := chi.URLParam(r, "task_id")
+	if workspaceID == "" || taskID == "" {
+		http.Error(w, "Missing workspace ID or task ID parameter", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.repo.DeleteTask(r.Context(), workspaceID, taskID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Task deleted successfully"})
+}
+
 // UpdateTaskStatus patches task status and registers resolved timestamp
 func (h *Handler) UpdateTaskStatus(w http.ResponseWriter, r *http.Request) {
 	var input struct {
@@ -66,6 +153,7 @@ func (h *Handler) UpdateTaskStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateNotificationRule configures trigger event alert routes
+
 func (h *Handler) CreateNotificationRule(w http.ResponseWriter, r *http.Request) {
 	workspaceID := chi.URLParam(r, "id")
 	if workspaceID == "" {

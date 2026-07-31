@@ -299,7 +299,11 @@ func main() {
 
 		// Tasks & Remediation Queue (Phase 14)
 		r.Get("/workspaces/{id}/tasks", h.ListTasks)
+		r.Post("/workspaces/{id}/tasks", h.CreateTask)
+		r.Put("/workspaces/{id}/tasks/{task_id}", h.UpdateTask)
 		r.Patch("/workspaces/{id}/tasks/{task_id}", h.UpdateTaskStatus)
+		r.Delete("/workspaces/{id}/tasks/{task_id}", h.DeleteTask)
+
 
 		// Notification Alerts Setup
 		r.Get("/workspaces/{id}/notification-rules", h.ListNotificationRules)
