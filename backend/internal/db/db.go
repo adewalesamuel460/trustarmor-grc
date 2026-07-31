@@ -93,6 +93,9 @@ var moreFrameworksDedupSQL string
 //go:embed migrations/000027_dedupe_framework_requirements.up.sql
 var dedupeFrameworkRequirementsSQL string
 
+//go:embed migrations/000028_seed_expanded_framework_controls.up.sql
+var seedExpandedFrameworkControlsSQL string
+
 
 
 type PgxPoolIface interface {
@@ -310,6 +313,12 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 	_, err = db.Pool.Exec(ctx, dedupeFrameworkRequirementsSQL)
 	if err != nil {
 		return fmt.Errorf("failed to execute migration 000027: %w", err)
+	}
+
+	log.Println("Running database migrations (000028)...")
+	_, err = db.Pool.Exec(ctx, seedExpandedFrameworkControlsSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000028: %w", err)
 	}
 
 	log.Println("Migrations executed successfully")
