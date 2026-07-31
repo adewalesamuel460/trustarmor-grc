@@ -26,9 +26,12 @@ interface Task {
 }
 
 interface WorkspaceMember {
-  id: string;
-  email: string;
-  role: string;
+  user_id?: string;
+  user_email?: string;
+  role_name?: string;
+  id?: string;
+  email?: string;
+  role?: string;
 }
 
 export default function TasksPage() {
@@ -137,8 +140,8 @@ export default function TasksPage() {
     setSuccess(null);
 
     // Resolve assignee_id if email matches a workspace member
-    const matchedMember = members.find((m) => m.email.toLowerCase() === formData.assignee_email.trim().toLowerCase());
-    const assigneeId = matchedMember ? matchedMember.id : undefined;
+    const matchedMember = members.find((m) => (m.user_email || m.email || '').toLowerCase() === formData.assignee_email.trim().toLowerCase());
+    const assigneeId = matchedMember ? (matchedMember.user_id || matchedMember.id) : undefined;
 
     const payload = {
       title: formData.title,
@@ -492,11 +495,15 @@ export default function TasksPage() {
                       className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-white/10 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                     >
                       <option value="">Unassigned</option>
-                      {members.map((m) => (
-                        <option key={m.id} value={m.email}>
-                          {m.email} ({m.role})
-                        </option>
-                      ))}
+                      {members.map((m) => {
+                        const memberEmail = m.user_email || m.email || '';
+                        const memberRole = m.role_name || m.role || '';
+                        return (
+                          <option key={m.user_id || m.id || memberEmail} value={memberEmail}>
+                            {memberEmail}{memberRole ? ` (${memberRole})` : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                   ) : (
                     <input

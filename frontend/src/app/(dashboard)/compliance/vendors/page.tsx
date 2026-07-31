@@ -37,9 +37,12 @@ interface Vendor {
 }
 
 interface WorkspaceMember {
-  id: string;
-  email: string;
-  role: string;
+  user_id?: string;
+  user_email?: string;
+  role_name?: string;
+  id?: string;
+  email?: string;
+  role?: string;
 }
 
 export default function VendorsPage() {
@@ -454,11 +457,16 @@ export default function VendorsPage() {
                   className="w-full px-4 py-2.5 bg-slate-50 dark:bg-gray-950 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition"
                 >
                   <option value="">Unassigned (No Owner)</option>
-                  {members.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.email} ({m.role})
-                    </option>
-                  ))}
+                  {members.map((m) => {
+                    const memberId = m.user_id || m.id || '';
+                    const memberEmail = m.user_email || m.email || '';
+                    const memberRole = m.role_name || m.role || '';
+                    return (
+                      <option key={memberId} value={memberId}>
+                        {memberEmail}{memberRole ? ` (${memberRole})` : ''}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -563,11 +571,16 @@ export default function VendorsPage() {
                       className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition"
                     >
                       <option value="">Unassigned (No Owner)</option>
-                      {members.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.email} ({m.role})
-                        </option>
-                      ))}
+                      {members.map((m) => {
+                        const memberId = m.user_id || m.id || '';
+                        const memberEmail = m.user_email || m.email || '';
+                        const memberRole = m.role_name || m.role || '';
+                        return (
+                          <option key={memberId} value={memberId}>
+                            {memberEmail}{memberRole ? ` (${memberRole})` : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
 
