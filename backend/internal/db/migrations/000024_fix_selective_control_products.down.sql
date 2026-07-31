@@ -1,0 +1,2 @@
+-- Down migration for 000024
+-- No-op or keep selective mappings

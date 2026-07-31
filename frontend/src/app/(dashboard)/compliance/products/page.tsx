@@ -4,16 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import api from '@/lib/api';
-import { Package, Plus, X, ArrowRight, Loader2, AlertCircle, Search } from 'lucide-react';
-
-interface Product {
-  id: string;
-  workspace_id: string;
-  suite: string;
-  name: string;
-  description: string;
-  created_at: string;
-}
+import { Package, Plus, X, ArrowRight, Loader2, AlertCircle, Search, ShieldAlert, Link as LinkIcon } from 'lucide-react';
 
 interface FrameworkPostureSummary {
   framework_id: string;
@@ -24,11 +15,14 @@ interface FrameworkPostureSummary {
   covered_requirements: number;
 }
 
-interface ProductPosture {
+interface ProductPostureSummary {
   product_id: string;
   product_name: string;
   suite: string;
   description: string;
+  has_linked_controls: boolean;
+  linked_controls_count: number;
+  overall_percentage: number;
   framework_postures: FrameworkPostureSummary[];
 }
 
@@ -36,8 +30,7 @@ const PRESET_SUITES = ['Nvuto ERP', 'HustleX', 'Standalone', 'Security', 'Custom
 
 export default function ProductsPage() {
   const { activeWorkspace } = useWorkspace();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [postures, setPostures] = useState<Record<string, ProductPosture>>({});
+  const [postureList, setPostureList] = useState<ProductPostureSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,25 +51,11 @@ export default function ProductsPage() {
     setLoading(true);
     setError(null);
     try {
-      const { data: prodList } = await api.get(`/workspaces/${activeWorkspace.id}/products`);
-      const list: Product[] = prodList || [];
-      setProducts(list);
-
-      // Fetch posture for each product
-      const postureMap: Record<string, ProductPosture> = {};
-      await Promise.all(
-        list.map(async (p) => {
-          try {
-            const { data } = await api.get(`/workspaces/${activeWorkspace.id}/products/${p.id}/posture`);
-            postureMap[p.id] = data;
-          } catch (e) {
-            console.error(`Failed posture query for product ${p.id}:`, e);
-          }
-        })
-      );
-      setPostures(postureMap);
+      // Single bulk API call for all product postures (avoiding N+1 calls)
+      const { data } = await api.get(`/workspaces/${activeWorkspace.id}/products/posture`);
+      setPostureList(data || []);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to fetch products');
+      setError(err.response?.data?.error || 'Failed to fetch product postures');
     } finally {
       setLoading(false);
     }
@@ -126,23 +105,17 @@ export default function ProductsPage() {
   };
 
   // Distinct suite names for filter bar
-  const availableSuites = Array.from(new Set(products.map((p) => p.suite || 'General')));
+  const availableSuites = Array.from(new Set(postureList.map((p) => p.suite || 'General')));
 
   // Filtered products list
-  const filteredProducts = products.filter((p) => {
+  const filteredPostures = postureList.filter((p) => {
     const matchesSearch =
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.suite.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesSuite = selectedSuiteFilter === 'All' || p.suite === selectedSuiteFilter;
     return matchesSearch && matchesSuite;
   });
-
-  const getOverallPosture = (posture?: ProductPosture) => {
-    if (!posture || !posture.framework_postures || posture.framework_postures.length === 0) return 0;
-    const sum = posture.framework_postures.reduce((acc, f) => acc + f.compliance_percentage, 0);
-    return Math.round(sum / posture.framework_postures.length);
-  };
 
   return (
     <div className="space-y-8">
@@ -156,7 +129,7 @@ export default function ProductsPage() {
             <h1 className="text-xl font-bold text-slate-900 dark:text-white">Product Compliance</h1>
           </div>
           <p className="text-sm text-slate-600 dark:text-gray-400 mt-1">
-            Monitor security controls, coverage, and posture across all products and enterprise modules.
+            Monitor real security control coverage and posture across all enterprise modules and products.
           </p>
         </div>
 
@@ -188,7 +161,7 @@ export default function ProductsPage() {
                 : 'bg-white dark:bg-gray-900/60 border-slate-200 dark:border-white/10 text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-white/5'
             }`}
           >
-            All Products ({products.length})
+            All Products ({postureList.length})
           </button>
           {availableSuites.map((sName) => (
             <button
@@ -200,7 +173,7 @@ export default function ProductsPage() {
                   : 'bg-white dark:bg-gray-900/60 border-slate-200 dark:border-white/10 text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-white/5'
               }`}
             >
-              {sName} ({products.filter((p) => p.suite === sName).length})
+              {sName} ({postureList.filter((p) => p.suite === sName).length})
             </button>
           ))}
         </div>
@@ -221,9 +194,9 @@ export default function ProductsPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-500 dark:text-gray-400">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
-          <p className="text-sm">Calculating product compliance posture...</p>
+          <p className="text-sm">Calculating real product posture scores...</p>
         </div>
-      ) : filteredProducts.length === 0 ? (
+      ) : filteredPostures.length === 0 ? (
         <div className="p-12 text-center bg-white dark:bg-gray-900/40 rounded-2xl border border-slate-200 dark:border-white/5 text-slate-500 dark:text-gray-400 text-sm space-y-3">
           <Package className="w-8 h-8 mx-auto text-slate-400 dark:text-gray-600" />
           <p>No products match your current filters. Click "Add Product" to create one.</p>
@@ -231,11 +204,9 @@ export default function ProductsPage() {
       ) : (
         /* Unified All Products Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((prod) => {
-            const posture = postures[prod.id];
-            const score = getOverallPosture(posture);
-            return <ProductCard key={prod.id} product={prod} posture={posture} overallScore={score} />;
-          })}
+          {filteredPostures.map((posture) => (
+            <ProductCard key={posture.product_id} posture={posture} />
+          ))}
         </div>
       )}
 
@@ -342,7 +313,10 @@ export default function ProductsPage() {
   );
 }
 
-function ProductCard({ product, posture, overallScore }: { product: Product; posture?: ProductPosture; overallScore: number }) {
+function ProductCard({ posture }: { posture: ProductPostureSummary }) {
+  const isMapped = posture.has_linked_controls && posture.linked_controls_count > 0;
+  const overallScore = Math.round(posture.overall_percentage);
+
   return (
     <div className="bg-white dark:bg-gray-900/60 rounded-2xl border border-slate-200 dark:border-white/10 p-6 flex flex-col justify-between hover:border-indigo-500/40 transition shadow-sm group">
       <div className="space-y-4">
@@ -351,34 +325,55 @@ function ProductCard({ product, posture, overallScore }: { product: Product; pos
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
-                {product.name}
+                {posture.product_name}
               </h3>
-              <SuiteBadge suite={product.suite} />
+              <SuiteBadge suite={posture.suite} />
             </div>
             <p className="text-xs text-slate-500 dark:text-gray-400 mt-1 line-clamp-2">
-              {product.description || 'No description provided.'}
+              {posture.description || 'No description provided.'}
             </p>
           </div>
 
+          {/* Posture Score / Unmapped Badge */}
           <div className="text-right shrink-0">
-            <span className="text-2xl font-extrabold text-slate-900 dark:text-white">{overallScore}%</span>
-            <p className="text-[10px] text-slate-400 dark:text-gray-500 uppercase font-semibold">Posture</p>
+            {isMapped ? (
+              <>
+                <span className="text-2xl font-extrabold text-slate-900 dark:text-white">{overallScore}%</span>
+                <p className="text-[10px] text-slate-400 dark:text-gray-500 uppercase font-semibold">Posture</p>
+              </>
+            ) : (
+              <div className="flex flex-col items-end gap-1">
+                <span className="px-2.5 py-1 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/20 text-[10px] font-bold uppercase tracking-wider rounded-lg flex items-center gap-1">
+                  <ShieldAlert className="w-3 h-3 shrink-0" />
+                  <span>Not Yet Mapped</span>
+                </span>
+                <p className="text-[10px] text-slate-400 dark:text-gray-500 font-medium">0 Controls</p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Score Progress Bar */}
-        <div className="w-full bg-slate-100 dark:bg-white/5 rounded-full h-2 overflow-hidden">
-          <div
-            className={`h-full transition-all duration-500 rounded-full ${
-              overallScore >= 80
-                ? 'bg-emerald-500'
-                : overallScore >= 50
-                ? 'bg-amber-500'
-                : 'bg-rose-500'
-            }`}
-            style={{ width: `${Math.max(overallScore, 4)}%` }}
-          />
-        </div>
+        {/* Progress Bar (Only if Mapped) */}
+        {isMapped ? (
+          <div className="w-full bg-slate-100 dark:bg-white/5 rounded-full h-2 overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 rounded-full ${
+                overallScore >= 80
+                  ? 'bg-emerald-500'
+                  : overallScore >= 50
+                  ? 'bg-amber-500'
+                  : 'bg-rose-500'
+              }`}
+              style={{ width: `${Math.max(overallScore, 4)}%` }}
+            />
+          </div>
+        ) : (
+          <div className="p-3 bg-slate-50 dark:bg-white/5 border border-dashed border-slate-200 dark:border-white/10 rounded-xl text-center">
+            <p className="text-xs text-slate-500 dark:text-gray-400">
+              No security controls linked to this product yet.
+            </p>
+          </div>
+        )}
 
         {/* Framework Breakdown Pills */}
         <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-white/5">
@@ -386,7 +381,7 @@ function ProductCard({ product, posture, overallScore }: { product: Product; pos
             Framework Coverage
           </span>
           <div className="flex flex-wrap gap-2">
-            {posture?.framework_postures && posture.framework_postures.length > 0 ? (
+            {isMapped && posture.framework_postures && posture.framework_postures.length > 0 ? (
               posture.framework_postures.map((f) => (
                 <div
                   key={f.framework_id}
@@ -407,19 +402,24 @@ function ProductCard({ product, posture, overallScore }: { product: Product; pos
                 </div>
               ))
             ) : (
-              <span className="text-xs text-slate-400 dark:text-gray-500 italic">No activated frameworks.</span>
+              <span className="text-xs text-slate-400 dark:text-gray-500 italic">
+                {isMapped ? 'No activated frameworks.' : 'Unmapped — map controls to measure posture.'}
+              </span>
             )}
           </div>
         </div>
       </div>
 
       {/* Footer Link */}
-      <div className="pt-4 mt-4 border-t border-slate-100 dark:border-white/5 flex justify-end">
+      <div className="pt-4 mt-4 border-t border-slate-100 dark:border-white/5 flex justify-between items-center">
+        <span className="text-[11px] text-slate-400 dark:text-gray-500 font-medium">
+          {posture.linked_controls_count} {posture.linked_controls_count === 1 ? 'Control' : 'Controls'} Linked
+        </span>
         <Link
-          href={`/compliance/products/${product.id}`}
+          href={`/compliance/products/${posture.product_id}`}
           className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition"
         >
-          <span>Control Coverage Details</span>
+          <span>{isMapped ? 'Control Details' : 'Link Controls'}</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>

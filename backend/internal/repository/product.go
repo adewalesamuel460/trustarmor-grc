@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/adewalesamuel460/trustarmor-grc/backend/internal/models"
 	"github.com/jackc/pgx/v5"
@@ -112,6 +113,26 @@ func (r *Repository) GetProductPosture(ctx context.Context, workspaceID string, 
 		FrameworkPostures: []models.FrameworkPostureSummary{},
 	}
 
+	// Check if product has any linked controls
+	var linkedCount int
+	err = r.db.Pool.QueryRow(ctx, `
+		SELECT COUNT(*)
+		FROM control_products cp
+		JOIN controls c ON cp.control_id = c.id
+		WHERE cp.product_id = $1 AND c.workspace_id = $2;
+	`, productID, workspaceID).Scan(&linkedCount)
+	if err != nil {
+		linkedCount = 0
+	}
+
+	posture.LinkedControlsCount = linkedCount
+	posture.HasLinkedControls = linkedCount > 0
+
+	if !posture.HasLinkedControls {
+		posture.OverallPercentage = 0
+		return posture, nil
+	}
+
 	// Fetch activated frameworks for workspace
 	rows, err := r.db.Pool.Query(ctx, `
 		SELECT f.id, f.name, f.version
@@ -138,6 +159,9 @@ func (r *Repository) GetProductPosture(ctx context.Context, workspaceID string, 
 		}
 	}
 
+	var sumPercentages float64
+	var countedFws int
+
 	for _, f := range activatedFws {
 		var total int
 		err := r.db.Pool.QueryRow(ctx, `
@@ -162,13 +186,16 @@ func (r *Repository) GetProductPosture(ctx context.Context, workspaceID string, 
 			JOIN control_mappings cm ON fr.id = cm.requirement_id
 			JOIN controls c ON cm.control_id = c.id
 			JOIN control_products cp ON c.id = cp.control_id
-			WHERE fr.framework_id = $1 AND c.workspace_id = $2 AND cp.product_id = $3;
+			WHERE fr.framework_id = $1 AND c.workspace_id = $2 AND cp.product_id = $3 AND c.current_status = 'passing';
 		`, f.ID, workspaceID, productID).Scan(&covered)
 		if err != nil {
 			covered = 0
 		}
 
 		percentage := (float64(covered) / float64(total)) * 100.0
+		sumPercentages += percentage
+		countedFws++
+
 		posture.FrameworkPostures = append(posture.FrameworkPostures, models.FrameworkPostureSummary{
 			FrameworkID:          f.ID,
 			FrameworkName:        f.Name,
@@ -179,8 +206,41 @@ func (r *Repository) GetProductPosture(ctx context.Context, workspaceID string, 
 		})
 	}
 
+	if countedFws > 0 {
+		posture.OverallPercentage = sumPercentages / float64(countedFws)
+	}
+
 	return posture, nil
 }
+
+// GetAllProductsPosture retrieves the compliance posture for all products in a workspace
+func (r *Repository) GetAllProductsPosture(ctx context.Context, workspaceID string) ([]models.ProductPosture, error) {
+	products, err := r.GetProducts(ctx, workspaceID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get products for posture calculation: %w", err)
+	}
+
+	postures := make([]models.ProductPosture, 0, len(products))
+	for _, p := range products {
+		posture, err := r.GetProductPosture(ctx, workspaceID, p.ID)
+		if err != nil {
+			log.Printf("Warning: failed to calculate posture for product %s (%s): %v", p.Name, p.ID, err)
+			posture = models.ProductPosture{
+				ProductID:           p.ID,
+				ProductName:         p.Name,
+				Suite:               p.Suite,
+				Description:         p.Description,
+				HasLinkedControls:   false,
+				LinkedControlsCount: 0,
+				OverallPercentage:   0,
+				FrameworkPostures:   []models.FrameworkPostureSummary{},
+			}
+		}
+		postures = append(postures, posture)
+	}
+	return postures, nil
+}
+
 
 // LinkControlProducts maps a control to one or more products
 func (r *Repository) LinkControlProducts(ctx context.Context, controlID string, productIDs []string, coverage string) error {

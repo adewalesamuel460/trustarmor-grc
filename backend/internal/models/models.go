@@ -603,12 +603,16 @@ type FrameworkPostureSummary struct {
 }
 
 type ProductPosture struct {
-	ProductID         string                    `json:"product_id"`
-	ProductName       string                    `json:"product_name"`
-	Suite             string                    `json:"suite"`
-	Description       string                    `json:"description"`
-	FrameworkPostures []FrameworkPostureSummary `json:"framework_postures"`
+	ProductID           string                    `json:"product_id"`
+	ProductName         string                    `json:"product_name"`
+	Suite               string                    `json:"suite"`
+	Description         string                    `json:"description"`
+	HasLinkedControls   bool                      `json:"has_linked_controls"`
+	LinkedControlsCount int                       `json:"linked_controls_count"`
+	OverallPercentage   float64                   `json:"overall_percentage"`
+	FrameworkPostures   []FrameworkPostureSummary `json:"framework_postures"`
 }
+
 
 type ProductControlDetail struct {
 	ControlID     string     `json:"control_id"`

@@ -53,6 +53,12 @@ func (s *Service) GetProductPosture(ctx context.Context, workspaceID string, pro
 	return s.repo.GetProductPosture(ctx, workspaceID, productID)
 }
 
+// GetAllProductsPosture returns the compliance posture summary for all products in a workspace
+func (s *Service) GetAllProductsPosture(ctx context.Context, workspaceID string) ([]models.ProductPosture, error) {
+	return s.repo.GetAllProductsPosture(ctx, workspaceID)
+}
+
+
 // LinkControlProducts links a control to one or more products and records an audit log
 func (s *Service) LinkControlProducts(ctx context.Context, workspaceID, controlID string, productIDs []string, coverage, actorID, ipAddress string) error {
 	err := s.repo.LinkControlProducts(ctx, controlID, productIDs, coverage)

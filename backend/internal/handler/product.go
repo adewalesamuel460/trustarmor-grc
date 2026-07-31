@@ -111,7 +111,29 @@ func (h *Handler) GetProductPosture(w http.ResponseWriter, r *http.Request) {
 	h.respondJSON(w, http.StatusOK, posture)
 }
 
+// GetAllProductsPosture handles GET /workspaces/{id}/products/posture
+func (h *Handler) GetAllProductsPosture(w http.ResponseWriter, r *http.Request) {
+	workspaceID := chi.URLParam(r, "id")
+	if workspaceID == "" {
+		workspaceID = middleware.GetWorkspaceID(r.Context())
+	}
+
+	if workspaceID == "" {
+		h.respondError(w, http.StatusBadRequest, "Workspace ID is required")
+		return
+	}
+
+	postures, err := h.svc.GetAllProductsPosture(r.Context(), workspaceID)
+	if err != nil {
+		h.respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.respondJSON(w, http.StatusOK, postures)
+}
+
 // GetProductDetail handles GET /workspaces/{id}/products/{productId}
+
 func (h *Handler) GetProductDetail(w http.ResponseWriter, r *http.Request) {
 	workspaceID := chi.URLParam(r, "id")
 	if workspaceID == "" {
