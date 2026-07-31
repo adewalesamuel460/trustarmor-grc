@@ -87,6 +87,10 @@ var fixSelectiveControlProductsSQL string
 //go:embed migrations/000025_internal_app_integration.up.sql
 var internalAppIntegrationSQL string
 
+//go:embed migrations/000026_more_frameworks_dedup.up.sql
+var moreFrameworksDedupSQL string
+
+
 type PgxPoolIface interface {
 
 
@@ -292,9 +296,16 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 		return fmt.Errorf("failed to execute migration 000025: %w", err)
 	}
 
+	log.Println("Running database migrations (000026)...")
+	_, err = db.Pool.Exec(ctx, moreFrameworksDedupSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000026: %w", err)
+	}
+
 	log.Println("Migrations executed successfully")
 	return nil
 }
+
 
 
 
