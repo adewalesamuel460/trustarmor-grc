@@ -163,6 +163,7 @@ func (r *Repository) CreateGlobalRequirement(ctx context.Context, req *models.Re
 	err := r.db.Pool.QueryRow(ctx, `
 		INSERT INTO framework_requirements (framework_id, identifier, title, description)
 		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (framework_id, identifier) DO UPDATE SET title = EXCLUDED.title, description = EXCLUDED.description
 		RETURNING id, created_at;
 	`, req.FrameworkID, req.Identifier, req.Title, req.Description).Scan(&req.ID, &req.CreatedAt)
 	if err != nil {

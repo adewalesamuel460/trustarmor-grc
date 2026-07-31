@@ -1,0 +1,1 @@
+ALTER TABLE framework_requirements DROP CONSTRAINT IF EXISTS framework_requirements_framework_identifier_key;

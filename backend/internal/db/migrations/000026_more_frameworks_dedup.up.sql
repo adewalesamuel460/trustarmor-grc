@@ -25,10 +25,32 @@ BEGIN
         );
         DELETE FROM workspace_frameworks WHERE framework_id = ANY(dup.ids[2:]);
 
-        -- Remap framework_requirements to master_id
+        -- Remap framework_requirements to master_id if requirement identifier does not already exist on master_id
         UPDATE framework_requirements
         SET framework_id = master_id
-        WHERE framework_id = ANY(dup.ids[2:]);
+        WHERE framework_id = ANY(dup.ids[2:])
+        AND NOT EXISTS (
+            SELECT 1 FROM framework_requirements fr2 
+            WHERE fr2.framework_id = master_id 
+            AND fr2.identifier = framework_requirements.identifier
+        );
+        -- Remap control_mappings for any remaining duplicate requirements to master requirement before deletion
+        UPDATE control_mappings cm
+        SET requirement_id = fr_master.id
+        FROM framework_requirements fr_dup
+        JOIN framework_requirements fr_master 
+            ON fr_dup.identifier = fr_master.identifier AND fr_master.framework_id = master_id
+        WHERE cm.requirement_id = fr_dup.id
+        AND fr_dup.framework_id = ANY(dup.ids[2:])
+        AND NOT EXISTS (
+            SELECT 1 FROM control_mappings cm2 
+            WHERE cm2.control_id = cm.control_id AND cm2.requirement_id = fr_master.id
+        );
+        DELETE FROM control_mappings WHERE requirement_id IN (
+            SELECT id FROM framework_requirements WHERE framework_id = ANY(dup.ids[2:])
+        );
+        DELETE FROM framework_requirements WHERE framework_id = ANY(dup.ids[2:]);
+
 
         -- Remap audit_runs to master_id if column exists
         BEGIN
