@@ -6,7 +6,7 @@ import api from '@/lib/api';
 import { 
   Building, Plus, Search, Edit2, Shield, Calendar, Users, Eye, Check,
   X, Loader2, ArrowLeft, Filter, AlertTriangle, AlertCircle, Save, Download, 
-  Trash2, Upload, FileText, CheckCircle2, ShieldAlert
+  Trash2, Upload, FileText, CheckCircle2, ShieldAlert, User
 } from 'lucide-react';
 
 interface VendorDocument {
@@ -36,10 +36,17 @@ interface Vendor {
   documents: VendorDocument[];
 }
 
+interface WorkspaceMember {
+  id: string;
+  email: string;
+  role: string;
+}
+
 export default function VendorsPage() {
   const { activeWorkspace } = useWorkspace();
 
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,12 +61,14 @@ export default function VendorsPage() {
   const [domain, setDomain] = useState('');
   const [description, setDescription] = useState('');
   const [riskTier, setRiskTier] = useState('medium');
+  const [ownerId, setOwnerId] = useState('');
   const [formLoading, setFormLoading] = useState(false);
 
   // Edit states inside Drawer
   const [editTier, setEditTier] = useState('medium');
   const [editDescription, setEditDescription] = useState('');
   const [editStatus, setEditStatus] = useState('active');
+  const [editOwnerId, setEditOwnerId] = useState('');
   const [editLoading, setEditLoading] = useState(false);
 
   // Upload States
@@ -83,8 +92,19 @@ export default function VendorsPage() {
     }
   };
 
+  const fetchMembers = async () => {
+    if (!activeWorkspace) return;
+    try {
+      const { data } = await api.get(`/workspaces/${activeWorkspace.id}/members`);
+      setMembers(data || []);
+    } catch (err) {
+      console.error('Failed to fetch workspace members:', err);
+    }
+  };
+
   useEffect(() => {
     fetchVendors();
+    fetchMembers();
   }, [activeWorkspace]);
 
   useEffect(() => {
@@ -92,6 +112,7 @@ export default function VendorsPage() {
       setSelectedVendor(null);
       setIsCreating(false);
       fetchVendors();
+      fetchMembers();
     };
     window.addEventListener('workspace-changed', handleWorkspaceChange);
     return () => window.removeEventListener('workspace-changed', handleWorkspaceChange);
@@ -108,12 +129,14 @@ export default function VendorsPage() {
         domain,
         description,
         risk_tier: riskTier,
+        owner_id: ownerId || null,
       });
       setIsCreating(false);
       setName('');
       setDomain('');
       setDescription('');
       setRiskTier('medium');
+      setOwnerId('');
       await fetchVendors();
 
       // Open new vendor details
@@ -132,10 +155,15 @@ export default function VendorsPage() {
       setEditTier(data.risk_tier);
       setEditDescription(data.description || '');
       setEditStatus(data.status);
+      setEditOwnerId(data.owner_id || '');
       setActiveTab('overview');
     } catch (err) {
       console.error(err);
       setSelectedVendor(v);
+      setEditTier(v.risk_tier);
+      setEditDescription(v.description || '');
+      setEditStatus(v.status);
+      setEditOwnerId(v.owner_id || '');
     }
   };
 
@@ -148,20 +176,15 @@ export default function VendorsPage() {
         risk_tier: editTier,
         description: editDescription,
         status: editStatus,
+        owner_id: editOwnerId || null,
       });
-      
-      const updatedVendor = { 
-        ...selectedVendor, 
-        risk_tier: data.risk_tier, 
-        description: data.description, 
-        status: data.status, 
-        updated_at: data.updated_at 
-      };
+
+      const updatedDocs = selectedVendor.documents;
+      const updatedVendor = { ...data, documents: updatedDocs };
       setSelectedVendor(updatedVendor);
-      setVendors(prev => prev.map(item => item.id === selectedVendor.id ? updatedVendor : item));
-      await fetchVendors(); // Refresh has_expiring_docs computed indicator
+      await fetchVendors();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update vendor');
+      setError(err.response?.data?.error || 'Failed to update vendor settings');
     } finally {
       setEditLoading(false);
     }
@@ -170,6 +193,7 @@ export default function VendorsPage() {
   const handleUploadDocument = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeWorkspace || !selectedVendor || !uploadFile) return;
+
     setUploadLoading(true);
     setError(null);
     try {
@@ -178,24 +202,24 @@ export default function VendorsPage() {
       formData.append('document_type', docType);
       formData.append('title', docTitle);
       if (docExpiresAt) {
-        formData.append('expires_at', docExpiresAt);
+        formData.append('expires_at', new Date(docExpiresAt).toISOString());
       }
 
-      const { data } = await api.post(
+      const { data: newDoc } = await api.post(
         `/workspaces/${activeWorkspace.id}/vendors/${selectedVendor.id}/documents`,
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }
       );
 
-      // Append new document to vendor nested docs list
-      const updatedDocs = [...selectedVendor.documents, data];
+      const updatedDocs = [...(selectedVendor.documents || []), newDoc];
       const updatedVendor = { ...selectedVendor, documents: updatedDocs };
       setSelectedVendor(updatedVendor);
-
-      // Refresh list
-      setUploadFile(null);
+      
       setDocTitle('');
       setDocExpiresAt('');
+      setUploadFile(null);
       await fetchVendors();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to upload compliance document');
@@ -266,9 +290,14 @@ export default function VendorsPage() {
   return (
     <div className="space-y-8 pb-12 min-h-screen">
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-400 text-sm">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <p>{error}</p>
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-between gap-3 text-red-400 text-sm">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <p>{error}</p>
+          </div>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -279,7 +308,7 @@ export default function VendorsPage() {
             <Building className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             <span>Vendors / Third-Party Risk Management</span>
           </h2>
-          <p className="text-slate-600 dark:text-gray-400 text-sm">Manage vendor inventory profiles, assign risk tiers, and verify continuous compliance documents.</p>
+          <p className="text-slate-600 dark:text-gray-400 text-sm">Manage vendor inventory profiles, assign responsible owners & risk tiers, and verify compliance artifacts.</p>
         </div>
         <button
           onClick={() => setIsCreating(true)}
@@ -355,13 +384,20 @@ export default function VendorsPage() {
                         {vendor.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4.5 text-gray-400 truncate max-w-[140px]" title={vendor.owner_email || ''}>
-                      {vendor.owner_email || 'Unassigned'}
+                    <td className="px-6 py-4.5 text-slate-600 dark:text-gray-400 truncate max-w-[160px]" title={vendor.owner_email || 'Unassigned'}>
+                      {vendor.owner_email ? (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-slate-100 dark:bg-white/5 rounded-lg text-slate-800 dark:text-gray-200 font-medium">
+                          <User className="w-3 h-3 text-indigo-500" />
+                          <span className="truncate">{vendor.owner_email}</span>
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 dark:text-gray-500 italic">Unassigned</span>
+                      )}
                     </td>
                     <td className="px-6 py-4.5 text-right">
                       <button
                         onClick={() => handleSelectVendor(vendor)}
-                        className="p-1.5 bg-white/5 border border-white/10 text-gray-300 hover:text-white rounded-lg transition"
+                        className="p-1.5 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white rounded-lg transition"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
@@ -379,53 +415,69 @@ export default function VendorsPage() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <form
             onSubmit={handleCreateVendor}
-            className="w-full max-w-lg p-8 rounded-2xl border border-white/5 bg-gray-900 shadow-2xl space-y-6"
+            className="w-full max-w-lg p-8 rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-900 shadow-2xl space-y-6"
           >
             <div>
-              <h3 className="text-lg font-bold text-white">Register Third-Party Vendor</h3>
-              <p className="text-gray-400 text-xs mt-0.5">Scaffold a new vendor profile card and assign default risk tiers.</p>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Register Third-Party Vendor</h3>
+              <p className="text-slate-500 dark:text-gray-400 text-xs mt-0.5">Scaffold a new vendor profile card, assign a responsible owner, and set risk tiers.</p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Vendor Name</label>
+                <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-medium">Vendor Name <span className="text-red-400">*</span></label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Amazon Web Services"
-                  className="w-full px-4 py-2.5 bg-gray-950/50 border border-white/10 rounded-xl text-xs text-white outline-none focus:border-indigo-500 transition"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-gray-950/50 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Domain URL</label>
+                <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-medium">Domain URL</label>
                 <input
                   type="text"
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
                   placeholder="e.g. aws.amazon.com"
-                  className="w-full px-4 py-2.5 bg-gray-950/50 border border-white/10 rounded-xl text-xs text-white outline-none focus:border-indigo-500 transition"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-gray-950/50 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Description</label>
+                <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-medium">Responsible Owner</label>
+                <select
+                  value={ownerId}
+                  onChange={(e) => setOwnerId(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-gray-950 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition"
+                >
+                  <option value="">Unassigned (No Owner)</option>
+                  {members.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.email} ({m.role})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-medium">Description</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe scope of vendor services and data access..."
-                  className="w-full px-4 py-3 bg-gray-950/50 border border-white/10 rounded-xl text-xs text-white outline-none focus:border-indigo-500 transition h-20 resize-none"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-gray-950/50 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition h-20 resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Risk Tier Assessment</label>
+                <label className="block text-xs text-slate-700 dark:text-gray-400 mb-1.5 font-medium">Risk Tier Assessment</label>
                 <select
                   value={riskTier}
                   onChange={(e) => setRiskTier(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-950 border border-white/10 rounded-xl text-xs text-white outline-none focus:border-indigo-500 transition"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-gray-950 border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition"
                 >
                   <option value="critical">Critical (Accesses production database / customer PII)</option>
                   <option value="high">High (Accesses production infrastructure / logs)</option>
@@ -435,11 +487,11 @@ export default function VendorsPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-white/5 pt-4">
+            <div className="flex justify-end gap-3 border-t border-slate-100 dark:border-white/5 pt-4">
               <button
                 type="button"
                 onClick={() => setIsCreating(false)}
-                className="px-5 py-2.5 bg-gray-950/40 hover:bg-gray-950/60 border border-white/10 text-white font-semibold text-xs rounded-xl transition"
+                className="px-5 py-2.5 bg-slate-100 dark:bg-gray-950/40 hover:bg-slate-200 dark:hover:bg-gray-950/60 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-semibold text-xs rounded-xl transition"
               >
                 Cancel
               </button>
@@ -458,41 +510,41 @@ export default function VendorsPage() {
       {/* VENDOR PROFILE DRAWER */}
       {selectedVendor && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end animate-fade-in">
-          <div className="w-full max-w-xl h-full bg-gray-950 border-l border-white/10 shadow-2xl flex flex-col p-6 space-y-6 overflow-y-auto">
+          <div className="w-full max-w-xl h-full bg-white dark:bg-gray-950 border-l border-slate-200 dark:border-white/10 shadow-2xl flex flex-col p-6 space-y-6 overflow-y-auto">
             
             {/* Drawer Header */}
-            <div className="flex justify-between items-start border-b border-white/5 pb-4">
+            <div className="flex justify-between items-start border-b border-slate-100 dark:border-white/5 pb-4">
               <div className="space-y-1">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Building className="w-5 h-5 text-indigo-400" />
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Building className="w-5 h-5 text-indigo-500" />
                   <span>{selectedVendor.name}</span>
                 </h3>
                 {selectedVendor.domain && (
-                  <p className="text-xs text-gray-500 font-mono">{selectedVendor.domain}</p>
+                  <p className="text-xs text-slate-500 dark:text-gray-500 font-mono">{selectedVendor.domain}</p>
                 )}
               </div>
               <button
                 onClick={() => setSelectedVendor(null)}
-                className="p-1.5 hover:bg-white/5 rounded-lg border border-white/5 text-gray-400 hover:text-white"
+                className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg border border-slate-200 dark:border-white/5 text-slate-400 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Tab selection */}
-            <div className="flex border-b border-white/5">
+            <div className="flex border-b border-slate-200 dark:border-white/5">
               <button
                 onClick={() => setActiveTab('overview')}
                 className={`pb-2.5 px-4 text-xs font-semibold border-b-2 transition ${
-                  activeTab === 'overview' ? 'border-indigo-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+                  activeTab === 'overview' ? 'border-indigo-500 text-indigo-600 dark:text-white' : 'border-transparent text-slate-500 dark:text-gray-500 hover:text-slate-800 dark:hover:text-gray-300'
                 }`}
               >
-                Overview
+                Overview & Settings
               </button>
               <button
                 onClick={() => setActiveTab('documents')}
                 className={`pb-2.5 px-4 text-xs font-semibold border-b-2 transition ${
-                  activeTab === 'documents' ? 'border-indigo-500 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+                  activeTab === 'documents' ? 'border-indigo-500 text-indigo-600 dark:text-white' : 'border-transparent text-slate-500 dark:text-gray-500 hover:text-slate-800 dark:hover:text-gray-300'
                 }`}
               >
                 Due Diligence / Documents ({selectedVendor.documents?.length || 0})
@@ -504,11 +556,27 @@ export default function VendorsPage() {
               <form onSubmit={handleUpdateVendor} className="space-y-6 flex-1 flex flex-col justify-between">
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-1">Risk Tier Assessment</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-gray-500 uppercase tracking-wider font-semibold mb-1">Responsible Owner</label>
+                    <select
+                      value={editOwnerId}
+                      onChange={(e) => setEditOwnerId(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition"
+                    >
+                      <option value="">Unassigned (No Owner)</option>
+                      {members.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.email} ({m.role})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-slate-500 dark:text-gray-500 uppercase tracking-wider font-semibold mb-1">Risk Tier Assessment</label>
                     <select
                       value={editTier}
                       onChange={(e) => setEditTier(e.target.value)}
-                      className="w-full bg-gray-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-indigo-500 transition"
+                      className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition"
                     >
                       <option value="critical">Critical</option>
                       <option value="high">High</option>
@@ -518,11 +586,11 @@ export default function VendorsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-1">Lifecycle Status</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-gray-500 uppercase tracking-wider font-semibold mb-1">Lifecycle Status</label>
                     <select
                       value={editStatus}
                       onChange={(e) => setEditStatus(e.target.value)}
-                      className="w-full bg-gray-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-indigo-500 transition"
+                      className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition"
                     >
                       <option value="active">Active</option>
                       <option value="under_review">Under Review</option>
@@ -531,20 +599,20 @@ export default function VendorsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-1">Objective Scope</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-gray-500 uppercase tracking-wider font-semibold mb-1">Objective Scope & Description</label>
                     <textarea
                       value={editDescription}
                       onChange={(e) => setEditDescription(e.target.value)}
-                      className="w-full bg-gray-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-indigo-500 transition h-32 resize-none"
+                      className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition h-32 resize-none"
                     />
                   </div>
                 </div>
 
-                <div className="border-t border-white/5 pt-4 flex justify-end gap-3">
+                <div className="border-t border-slate-100 dark:border-white/5 pt-4 flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setSelectedVendor(null)}
-                    className="px-5 py-2.5 bg-gray-950/40 hover:bg-gray-950/60 border border-white/10 text-white font-semibold text-xs rounded-xl transition"
+                    className="px-5 py-2.5 bg-slate-100 dark:bg-gray-950/40 hover:bg-slate-200 dark:hover:bg-gray-950/60 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-semibold text-xs rounded-xl transition"
                   >
                     Cancel
                   </button>
@@ -562,19 +630,19 @@ export default function VendorsPage() {
               <div className="space-y-6 flex-1 flex flex-col justify-between">
                 <div className="space-y-6">
                   {/* Upload Form */}
-                  <form onSubmit={handleUploadDocument} className="p-4 bg-gray-900/10 border border-white/5 rounded-2xl space-y-4">
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                      <Upload className="w-4 h-4 text-indigo-400" />
+                  <form onSubmit={handleUploadDocument} className="p-4 bg-slate-50 dark:bg-gray-900/10 border border-slate-200 dark:border-white/5 rounded-2xl space-y-4">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <Upload className="w-4 h-4 text-indigo-500" />
                       <span>Upload Vendor Artifact</span>
                     </h4>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[9px] text-gray-500 uppercase font-semibold mb-1">Doc Type</label>
+                        <label className="block text-[9px] text-slate-500 dark:text-gray-500 uppercase font-semibold mb-1">Doc Type</label>
                         <select
                           value={docType}
                           onChange={(e) => setDocType(e.target.value)}
-                          className="w-full bg-gray-950 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white"
+                          className="w-full bg-white dark:bg-gray-950 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-white"
                         >
                           <option value="SOC2">SOC 2 Report</option>
                           <option value="ISO27001">ISO 27001 Cert</option>
@@ -585,32 +653,32 @@ export default function VendorsPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[9px] text-gray-500 uppercase font-semibold mb-1 font-medium">Expires At</label>
+                        <label className="block text-[9px] text-slate-500 dark:text-gray-500 uppercase font-semibold mb-1">Expires At</label>
                         <input
                           type="date"
                           required
                           value={docExpiresAt}
                           onClick={(e) => (e.target as any).showPicker?.()}
                           onChange={(e) => setDocExpiresAt(e.target.value)}
-                          className="w-full bg-gray-950 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white focus:border-indigo-500 transition cursor-pointer [color-scheme:dark]"
+                          className="w-full bg-white dark:bg-gray-950 border border-slate-200 dark:border-white/10 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-white focus:border-indigo-500 transition cursor-pointer [color-scheme:dark]"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-[9px] text-gray-500 uppercase font-semibold mb-1">Artifact Title</label>
+                      <label className="block text-[9px] text-slate-500 dark:text-gray-500 uppercase font-semibold mb-1">Artifact Title</label>
                       <input
                         type="text"
                         required
                         value={docTitle}
                         onChange={(e) => setDocTitle(e.target.value)}
                         placeholder="e.g. AWS FY26 SOC 2 Type II"
-                        className="w-full bg-gray-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white outline-none focus:border-indigo-500 transition"
+                        className="w-full bg-white dark:bg-gray-950 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition"
                       />
                     </div>
 
                     {/* Drag and Drop Box */}
-                    <div className="border border-dashed border-white/10 rounded-xl p-4 flex flex-col items-center justify-center bg-gray-950/20 text-center relative hover:bg-white/5 transition cursor-pointer">
+                    <div className="border border-dashed border-slate-300 dark:border-white/10 rounded-xl p-4 flex flex-col items-center justify-center bg-white dark:bg-gray-950/20 text-center relative hover:bg-slate-100 dark:hover:bg-white/5 transition cursor-pointer">
                       <input
                         type="file"
                         required
@@ -618,11 +686,11 @@ export default function VendorsPage() {
                         onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                         className="absolute inset-0 opacity-0 cursor-pointer"
                       />
-                      <FileText className="w-8 h-8 text-gray-600 mb-1" />
+                      <FileText className="w-8 h-8 text-slate-400 dark:text-gray-600 mb-1" />
                       {uploadFile ? (
-                        <p className="text-[10px] text-emerald-400 font-semibold">{uploadFile.name}</p>
+                        <p className="text-[10px] text-emerald-500 font-semibold">{uploadFile.name}</p>
                       ) : (
-                        <p className="text-[10px] text-gray-500">Select PDF Compliance Document (Max 10MB)</p>
+                        <p className="text-[10px] text-slate-500 dark:text-gray-500">Select PDF Compliance Document (Max 10MB)</p>
                       )}
                     </div>
 
@@ -649,9 +717,9 @@ export default function VendorsPage() {
 
                   {/* Documents Grid */}
                   <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Compliance Inventory</h4>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Compliance Inventory</h4>
                     {selectedVendor.documents?.length === 0 ? (
-                      <p className="text-[10px] text-gray-500 italic">No artifacts uploaded yet.</p>
+                      <p className="text-[10px] text-slate-400 dark:text-gray-500 italic">No artifacts uploaded yet.</p>
                     ) : (
                       <div className="space-y-2">
                         {selectedVendor.documents.map((doc) => {
@@ -661,18 +729,18 @@ export default function VendorsPage() {
                               key={doc.id}
                               className={`p-3.5 rounded-xl border flex justify-between items-center text-xs transition ${
                                 expiring
-                                  ? 'border-red-500/20 bg-red-500/5 text-red-200'
-                                  : 'border-white/5 bg-gray-900/10 text-gray-300'
+                                  ? 'border-red-500/20 bg-red-500/5 text-red-700 dark:text-red-200'
+                                  : 'border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-gray-900/10 text-slate-700 dark:text-gray-300'
                               }`}
                             >
                               <div className="space-y-1">
                                 <p className="font-bold flex items-center gap-1.5">
                                   <span>{doc.title}</span>
                                   {expiring && (
-                                    <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
+                                    <ShieldAlert className="w-3.5 h-3.5 text-red-500" />
                                   )}
                                 </p>
-                                <div className="flex gap-4 text-[10px] text-gray-500 font-mono">
+                                <div className="flex gap-4 text-[10px] text-slate-500 dark:text-gray-500 font-mono">
                                   <span>Type: {doc.document_type}</span>
                                   {doc.expires_at && (
                                     <span>Expires: {new Date(doc.expires_at).toLocaleDateString()}</span>
@@ -685,13 +753,13 @@ export default function VendorsPage() {
                                   href={doc.file_url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="p-1.5 hover:bg-white/5 rounded-lg border border-white/5 text-gray-400 hover:text-white"
+                                  className="p-1.5 hover:bg-slate-200 dark:hover:bg-white/5 rounded-lg border border-slate-200 dark:border-white/5 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white"
                                 >
                                   <Download className="w-3.5 h-3.5" />
                                 </a>
                                 <button
                                   onClick={() => handleDeleteDocument(doc.id)}
-                                  className="p-1.5 hover:bg-red-500/20 rounded-lg border border-white/5 text-gray-400 hover:text-red-400"
+                                  className="p-1.5 hover:bg-red-500/20 rounded-lg border border-slate-200 dark:border-white/5 text-slate-400 dark:text-gray-400 hover:text-red-500"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
