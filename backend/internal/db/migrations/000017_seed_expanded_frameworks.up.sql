@@ -14,6 +14,7 @@ WITH inserted_frameworks AS (
     ('PCI DSS', 'v4.0', 'A global information security standard designed to prevent fraud and secure cardholder transaction data.'),
     ('General Data Protection Regulation (GDPR)', 'Regulation (EU) 2016/679', 'Regulates data protection and privacy for all individuals within the European Union and the European Economic Area.'),
     ('HIPAA Security Rule', '45 CFR Part 160/164', 'Establishes national standards to protect individuals electronic personal health information created, received, used, or maintained by a covered entity.')
+    ON CONFLICT (name) DO UPDATE SET version = EXCLUDED.version, description = EXCLUDED.description
     RETURNING id, name
 ),
 nist_id AS (SELECT id FROM inserted_frameworks WHERE name = 'NIST Cybersecurity Framework'),
@@ -64,4 +65,5 @@ INSERT INTO framework_requirements (framework_id, identifier, title, description
 ((SELECT id FROM hipaa_id), '164.310(a)(1)', 'Facility Access Controls', 'Limit physical access to electronic information systems and the facility in which they are housed.'),
 ((SELECT id FROM hipaa_id), '164.310(d)(1)', 'Device and Media Controls', 'Govern the receipt, disposal, and movement of hardware and media containing electronic protected health information.'),
 ((SELECT id FROM hipaa_id), '164.312(a)(1)', 'Access Control', 'Implement mechanisms that allow only authorized persons to access electronic protected health information.'),
-((SELECT id FROM hipaa_id), '164.312(e)(1)', 'Transmission Security', 'Guard against unauthorized access to electronic protected health information while it is being transmitted over a network.');
+((SELECT id FROM hipaa_id), '164.312(e)(1)', 'Transmission Security', 'Guard against unauthorized access to electronic protected health information while it is being transmitted over a network.')
+ON CONFLICT DO NOTHING;
