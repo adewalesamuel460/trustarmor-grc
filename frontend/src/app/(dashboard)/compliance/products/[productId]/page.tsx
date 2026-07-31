@@ -5,7 +5,33 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useWorkspace } from '@/context/WorkspaceContext';
 import api from '@/lib/api';
-import { Package, ArrowLeft, ShieldCheck, CheckCircle2, AlertCircle, Clock, Loader2, Plus, X, Layers, Sliders } from 'lucide-react';
+import {
+  Package,
+  ArrowLeft,
+  ShieldCheck,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Loader2,
+  Plus,
+  X,
+  Sliders,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Search,
+  Check,
+} from 'lucide-react';
+
+interface RequirementCoverageDetail {
+  id: string;
+  requirement_code: string;
+  title: string;
+  description: string;
+  is_covered: boolean;
+  covering_control_id?: string;
+  covering_control_title?: string;
+}
 
 interface FrameworkPostureSummary {
   framework_id: string;
@@ -14,6 +40,7 @@ interface FrameworkPostureSummary {
   compliance_percentage: number;
   total_requirements: number;
   covered_requirements: number;
+  requirements?: RequirementCoverageDetail[];
 }
 
 interface ProductPosture {
@@ -21,6 +48,9 @@ interface ProductPosture {
   product_name: string;
   suite: string;
   description: string;
+  has_linked_controls: boolean;
+  linked_controls_count: number;
+  overall_percentage: number;
   framework_postures: FrameworkPostureSummary[];
 }
 
@@ -33,6 +63,7 @@ interface ProductControlDetail {
   current_status: string;
   coverage: string;
   last_tested_at: string | null;
+  mapped_requirement_codes?: string[];
 }
 
 interface ControlOption {
@@ -50,6 +81,11 @@ export default function ProductDetailPage() {
   const [allWorkspaceControls, setAllWorkspaceControls] = useState<ControlOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Interactive Framework Requirements State
+  const [expandedFrameworkId, setExpandedFrameworkId] = useState<string | null>(null);
+  const [reqFilter, setReqFilter] = useState<'all' | 'covered' | 'missing'>('all');
+  const [reqSearch, setReqSearch] = useState('');
 
   // Link Control Modal State
   const [showLinkModal, setShowLinkModal] = useState(false);
@@ -87,7 +123,6 @@ export default function ProductDetailPage() {
     setLinking(true);
     setError(null);
     try {
-      // Find existing products linked to this control or map this product
       await api.post(`/controls/${selectedControlId}/products`, {
         product_ids: [productId],
         coverage,
@@ -128,6 +163,20 @@ export default function ProductDetailPage() {
     }
   };
 
+  const selectedFramework = posture?.framework_postures.find((f) => f.framework_id === expandedFrameworkId);
+
+  const filteredRequirements = (selectedFramework?.requirements || []).filter((req) => {
+    const matchesSearch =
+      req.requirement_code.toLowerCase().includes(reqSearch.toLowerCase()) ||
+      req.title.toLowerCase().includes(reqSearch.toLowerCase()) ||
+      req.description.toLowerCase().includes(reqSearch.toLowerCase());
+
+    if (!matchesSearch) return false;
+    if (reqFilter === 'covered') return req.is_covered;
+    if (reqFilter === 'missing') return !req.is_covered;
+    return true;
+  });
+
   return (
     <div className="space-y-8">
       {/* Back Button & Navigation */}
@@ -144,7 +193,7 @@ export default function ProductDetailPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-500 dark:text-gray-400">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
-          <p className="text-sm">Loading product details and linked controls...</p>
+          <p className="text-sm">Loading product details and framework requirements...</p>
         </div>
       ) : posture ? (
         <>
@@ -161,7 +210,6 @@ export default function ProductDetailPage() {
                     <span className="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider rounded-md bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20">
                       {posture.suite} Suite
                     </span>
-
                   </div>
                   <p className="text-sm text-slate-600 dark:text-gray-400 mt-0.5">
                     {posture.description || 'No description provided for this product.'}
@@ -186,52 +234,216 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Framework Compliance Cards */}
+          {/* Framework Compliance Posture Cards */}
           <div className="space-y-3">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500">
-              Framework Compliance Posture
-            </h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500">
+                Framework Compliance Posture
+              </h2>
+              <span className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+                Click any card to inspect covered vs. missing requirements
+              </span>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {posture.framework_postures.map((fw) => (
-                <div
-                  key={fw.framework_id}
-                  className="bg-white dark:bg-gray-900/60 p-5 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm space-y-3"
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-bold text-sm text-slate-900 dark:text-white">{fw.framework_name}</h3>
-                      <p className="text-xs text-slate-500 dark:text-gray-400">Version {fw.framework_version}</p>
+              {posture.framework_postures.map((fw) => {
+                const isExpanded = expandedFrameworkId === fw.framework_id;
+                return (
+                  <div
+                    key={fw.framework_id}
+                    onClick={() => setExpandedFrameworkId(isExpanded ? null : fw.framework_id)}
+                    className={`bg-white dark:bg-gray-900/60 p-5 rounded-2xl border transition cursor-pointer shadow-sm space-y-3 ${
+                      isExpanded
+                        ? 'border-indigo-500 ring-2 ring-indigo-500/20 dark:border-indigo-500'
+                        : 'border-slate-200 dark:border-white/10 hover:border-indigo-300 dark:hover:border-white/20'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>{fw.framework_name}</span>
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-gray-400">Version {fw.framework_version}</p>
+                      </div>
+                      <span className="text-xl font-extrabold text-slate-900 dark:text-white">
+                        {Math.round(fw.compliance_percentage)}%
+                      </span>
                     </div>
-                    <span className="text-xl font-extrabold text-slate-900 dark:text-white">
-                      {Math.round(fw.compliance_percentage)}%
-                    </span>
-                  </div>
 
-                  <div className="w-full bg-slate-100 dark:bg-white/5 rounded-full h-2 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all ${
-                        fw.compliance_percentage >= 80
-                          ? 'bg-emerald-500'
-                          : fw.compliance_percentage >= 50
-                          ? 'bg-amber-500'
-                          : 'bg-rose-500'
-                      }`}
-                      style={{ width: `${Math.max(fw.compliance_percentage, 4)}%` }}
-                    />
-                  </div>
+                    <div className="w-full bg-slate-100 dark:bg-white/5 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          fw.compliance_percentage >= 80
+                            ? 'bg-emerald-500'
+                            : fw.compliance_percentage >= 50
+                            ? 'bg-amber-500'
+                            : 'bg-rose-500'
+                        }`}
+                        style={{ width: `${Math.max(fw.compliance_percentage, 4)}%` }}
+                      />
+                    </div>
 
-                  <div className="flex justify-between items-center text-xs text-slate-500 dark:text-gray-400 pt-1">
-                    <span>Requirements Covered</span>
-                    <span className="font-semibold text-slate-700 dark:text-gray-300">
-                      {fw.covered_requirements} / {fw.total_requirements}
-                    </span>
+                    <div className="flex justify-between items-center text-xs pt-1">
+                      <span className="text-slate-500 dark:text-gray-400">Requirements Covered</span>
+                      <div className="flex items-center gap-1.5 font-bold text-indigo-600 dark:text-indigo-400">
+                        <span>
+                          {fw.covered_requirements} / {fw.total_requirements}
+                        </span>
+                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
-          {/* Linked Controls Table */}
+          {/* Interactive Framework Requirements Breakdown Section */}
+          {selectedFramework && (
+            <div className="bg-white dark:bg-gray-900/80 rounded-2xl border border-indigo-500/30 p-6 shadow-xl space-y-5 backdrop-blur-xl animate-in fade-in duration-200">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-slate-200 dark:border-white/10">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                      {selectedFramework.framework_name} Requirements Coverage
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-gray-400">
+                    Showing requirement mappings for product{' '}
+                    <span className="font-semibold text-slate-700 dark:text-gray-200">
+                      {posture.product_name}
+                    </span>{' '}
+                    ({selectedFramework.covered_requirements} of {selectedFramework.total_requirements} satisfied by linked passing controls)
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                  {/* Search input */}
+                  <div className="relative flex-1 md:w-64">
+                    <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search requirements..."
+                      value={reqSearch}
+                      onChange={(e) => setReqSearch(e.target.value)}
+                      className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-gray-950/50 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  {/* Filter tabs */}
+                  <div className="flex items-center p-1 bg-slate-100 dark:bg-gray-950/60 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-semibold">
+                    <button
+                      onClick={() => setReqFilter('all')}
+                      className={`px-3 py-1 rounded-lg transition ${
+                        reqFilter === 'all'
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      All ({selectedFramework.requirements?.length || 0})
+                    </button>
+                    <button
+                      onClick={() => setReqFilter('covered')}
+                      className={`px-3 py-1 rounded-lg transition ${
+                        reqFilter === 'covered'
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Covered ({selectedFramework.covered_requirements})
+                    </button>
+                    <button
+                      onClick={() => setReqFilter('missing')}
+                      className={`px-3 py-1 rounded-lg transition ${
+                        reqFilter === 'missing'
+                          ? 'bg-rose-600 text-white shadow-sm'
+                          : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Missing ({selectedFramework.total_requirements - selectedFramework.covered_requirements})
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => setExpandedFrameworkId(null)}
+                    className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg transition"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Requirements Grid */}
+              {filteredRequirements.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-500 dark:text-gray-400">
+                  No framework requirements found matching your search filter.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[420px] overflow-y-auto pr-1">
+                  {filteredRequirements.map((req) => (
+                    <div
+                      key={req.id}
+                      className={`p-4 rounded-xl border transition flex flex-col justify-between gap-3 ${
+                        req.is_covered
+                          ? 'bg-emerald-50/30 dark:bg-emerald-500/5 border-emerald-200 dark:border-emerald-500/20'
+                          : 'bg-slate-50/50 dark:bg-white/5 border-slate-200 dark:border-white/10'
+                      }`}
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="px-2 py-0.5 text-xs font-bold font-mono rounded bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20">
+                            {req.requirement_code}
+                          </span>
+                          {req.is_covered ? (
+                            <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold rounded-md flex items-center gap-1">
+                              <Check className="w-3 h-3" />
+                              <span>Covered</span>
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[11px] font-semibold rounded-md flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              <span>Not Covered</span>
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-white">{req.title}</h4>
+                        {req.description && (
+                          <p className="text-[11px] text-slate-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                            {req.description}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between text-[11px]">
+                        {req.is_covered ? (
+                          <div className="flex items-center gap-1.5 text-slate-700 dark:text-gray-300 font-medium">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            <span className="truncate max-w-[200px]">
+                              Satisfied by: <span className="font-semibold">{req.covering_control_title}</span>
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 dark:text-gray-500 italic">No control mapped for this product</span>
+                        )}
+
+                        {!req.is_covered && (
+                          <button
+                            onClick={() => setShowLinkModal(true)}
+                            className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-[11px] transition shadow-xs"
+                          >
+                            + Link Control
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Linked Security Controls Table */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <div>
@@ -263,6 +475,7 @@ export default function ProductDetailPage() {
                     <thead>
                       <tr className="border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500">
                         <th className="py-3.5 px-6">Control Title</th>
+                        <th className="py-3.5 px-6">Mapped Requirements</th>
                         <th className="py-3.5 px-6">Type</th>
                         <th className="py-3.5 px-6">Frequency</th>
                         <th className="py-3.5 px-6">Coverage</th>
@@ -278,6 +491,22 @@ export default function ProductDetailPage() {
                               <div className="text-[11px] font-normal text-slate-500 dark:text-gray-400 line-clamp-1 mt-0.5">
                                 {c.description}
                               </div>
+                            )}
+                          </td>
+                          <td className="py-4 px-6">
+                            {c.mapped_requirement_codes && c.mapped_requirement_codes.length > 0 ? (
+                              <div className="flex flex-wrap gap-1 max-w-xs">
+                                {c.mapped_requirement_codes.map((code) => (
+                                  <span
+                                    key={code}
+                                    className="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20"
+                                  >
+                                    {code}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 dark:text-gray-500 italic text-[11px]">Unmapped</span>
                             )}
                           </td>
                           <td className="py-4 px-6">
@@ -350,16 +579,16 @@ export default function ProductDetailPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">
-                  Coverage Scope
+                  Coverage Degree
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setCoverage('full')}
-                    className={`py-2.5 rounded-xl border text-sm font-semibold transition ${
+                    className={`py-2.5 px-4 rounded-xl border text-xs font-semibold transition ${
                       coverage === 'full'
-                        ? 'bg-indigo-50 dark:bg-indigo-600/20 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-sm'
-                        : 'bg-white dark:bg-gray-950/40 border-slate-200 dark:border-white/5 text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-white/5'
+                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
+                        : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-gray-400 hover:border-slate-300'
                     }`}
                   >
                     Full Coverage
@@ -367,10 +596,10 @@ export default function ProductDetailPage() {
                   <button
                     type="button"
                     onClick={() => setCoverage('partial')}
-                    className={`py-2.5 rounded-xl border text-sm font-semibold transition ${
+                    className={`py-2.5 px-4 rounded-xl border text-xs font-semibold transition ${
                       coverage === 'partial'
-                        ? 'bg-amber-50 dark:bg-amber-600/20 border-amber-500 text-amber-700 dark:text-amber-300 shadow-sm'
-                        : 'bg-white dark:bg-gray-950/40 border-slate-200 dark:border-white/5 text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-white/5'
+                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                        : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-gray-400 hover:border-slate-300'
                     }`}
                   >
                     Partial Coverage
@@ -378,21 +607,21 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t border-slate-200 dark:border-white/10">
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => setShowLinkModal(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/5 text-sm font-semibold transition"
+                  className="px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 text-slate-700 dark:text-gray-300 rounded-xl text-xs font-semibold transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={linking}
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold shadow-md shadow-indigo-600/20 transition flex items-center gap-2"
+                  disabled={linking || !selectedControlId}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition disabled:opacity-50 flex items-center gap-2"
                 >
-                  {linking && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>Link Control</span>
+                  {linking && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Save Link</span>
                 </button>
               </div>
             </form>

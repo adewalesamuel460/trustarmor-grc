@@ -597,13 +597,24 @@ type ControlProduct struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type RequirementCoverageDetail struct {
+	ID                   string `json:"id"`
+	RequirementCode      string `json:"requirement_code"`
+	Title                string `json:"title"`
+	Description          string `json:"description"`
+	IsCovered            bool   `json:"is_covered"`
+	CoveringControlID    string `json:"covering_control_id,omitempty"`
+	CoveringControlTitle string `json:"covering_control_title,omitempty"`
+}
+
 type FrameworkPostureSummary struct {
-	FrameworkID          string  `json:"framework_id"`
-	FrameworkName        string  `json:"framework_name"`
-	FrameworkVersion     string  `json:"framework_version"`
-	CompliancePercentage float64 `json:"compliance_percentage"`
-	TotalRequirements    int     `json:"total_requirements"`
-	CoveredRequirements  int     `json:"covered_requirements"`
+	FrameworkID          string                      `json:"framework_id"`
+	FrameworkName        string                      `json:"framework_name"`
+	FrameworkVersion     string                      `json:"framework_version"`
+	CompliancePercentage float64                     `json:"compliance_percentage"`
+	TotalRequirements    int                         `json:"total_requirements"`
+	CoveredRequirements  int                         `json:"covered_requirements"`
+	Requirements         []RequirementCoverageDetail `json:"requirements"`
 }
 
 type ProductPosture struct {
@@ -617,16 +628,17 @@ type ProductPosture struct {
 	FrameworkPostures   []FrameworkPostureSummary `json:"framework_postures"`
 }
 
-
 type ProductControlDetail struct {
-	ControlID     string     `json:"control_id"`
-	Title         string     `json:"title"`
-	Description   string     `json:"description"`
-	Type          string     `json:"type"`
-	Frequency     string     `json:"frequency"`
-	CurrentStatus string     `json:"current_status"`
-	Coverage      string     `json:"coverage"`
-	LastTestedAt  *time.Time `json:"last_tested_at"`
+	ControlID               string     `json:"control_id"`
+	Title                   string     `json:"title"`
+	Description             string     `json:"description"`
+	Type                    string     `json:"type"`
+	Frequency               string     `json:"frequency"`
+	CurrentStatus           string     `json:"current_status"`
+	Coverage                string     `json:"coverage"`
+	LastTestedAt            *time.Time `json:"last_tested_at"`
+	MappedRequirementCodes  []string   `json:"mapped_requirement_codes"`
 }
+
 
 

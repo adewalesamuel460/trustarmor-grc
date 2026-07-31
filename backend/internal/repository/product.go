@@ -163,36 +163,60 @@ func (r *Repository) GetProductPosture(ctx context.Context, workspaceID string, 
 	var countedFws int
 
 	for _, f := range activatedFws {
-		var total int
-		err := r.db.Pool.QueryRow(ctx, `
-			SELECT COUNT(*) FROM framework_requirements WHERE framework_id = $1;
-		`, f.ID).Scan(&total)
-		if err != nil || total == 0 {
-			posture.FrameworkPostures = append(posture.FrameworkPostures, models.FrameworkPostureSummary{
-				FrameworkID:          f.ID,
-				FrameworkName:        f.Name,
-				FrameworkVersion:     f.Version,
-				CompliancePercentage: 0,
-				TotalRequirements:    total,
-				CoveredRequirements:  0,
-			})
-			continue
-		}
-
-		var covered int
-		err = r.db.Pool.QueryRow(ctx, `
-			SELECT COUNT(DISTINCT fr.id)
+		reqRows, err := r.db.Pool.Query(ctx, `
+			SELECT 
+				fr.id,
+				fr.identifier,
+				fr.title,
+				COALESCE(fr.description, ''),
+				COALESCE(cov.control_id::text, ''),
+				COALESCE(cov.control_title, '')
 			FROM framework_requirements fr
-			JOIN control_mappings cm ON fr.id = cm.requirement_id
-			JOIN controls c ON cm.control_id = c.id
-			JOIN control_products cp ON c.id = cp.control_id
-			WHERE fr.framework_id = $1 AND c.workspace_id = $2 AND cp.product_id = $3 AND c.current_status = 'passing';
-		`, f.ID, workspaceID, productID).Scan(&covered)
-		if err != nil {
-			covered = 0
+			LEFT JOIN LATERAL (
+				SELECT c.id AS control_id, c.title AS control_title
+				FROM control_mappings cm
+				JOIN controls c ON cm.control_id = c.id
+				JOIN control_products cp ON c.id = cp.control_id
+				WHERE cm.requirement_id = fr.id
+				  AND c.workspace_id = $2
+				  AND cp.product_id = $3
+				  AND c.current_status = 'passing'
+				LIMIT 1
+			) cov ON true
+			WHERE fr.framework_id = $1
+			ORDER BY fr.identifier ASC;
+		`, f.ID, workspaceID, productID)
+
+		var reqDetails []models.RequirementCoverageDetail
+		var covered int
+		if err == nil {
+			for reqRows.Next() {
+				var rd models.RequirementCoverageDetail
+				var cID, cTitle string
+				if scanErr := reqRows.Scan(&rd.ID, &rd.RequirementCode, &rd.Title, &rd.Description, &cID, &cTitle); scanErr == nil {
+					if cID != "" {
+						rd.IsCovered = true
+						rd.CoveringControlID = cID
+						rd.CoveringControlTitle = cTitle
+						covered++
+					} else {
+						rd.IsCovered = false
+					}
+					reqDetails = append(reqDetails, rd)
+				}
+			}
+			reqRows.Close()
+		}
+		if reqDetails == nil {
+			reqDetails = []models.RequirementCoverageDetail{}
 		}
 
-		percentage := (float64(covered) / float64(total)) * 100.0
+		total := len(reqDetails)
+		var percentage float64
+		if total > 0 {
+			percentage = (float64(covered) / float64(total)) * 100.0
+		}
+
 		sumPercentages += percentage
 		countedFws++
 
@@ -203,6 +227,7 @@ func (r *Repository) GetProductPosture(ctx context.Context, workspaceID string, 
 			CompliancePercentage: percentage,
 			TotalRequirements:    total,
 			CoveredRequirements:  covered,
+			Requirements:         reqDetails,
 		})
 	}
 
@@ -295,6 +320,30 @@ func (r *Repository) GetProductControls(ctx context.Context, workspaceID string,
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan product control detail: %w", err)
 		}
+
+		// Query mapped requirement codes for control
+		reqCodeRows, _ := r.db.Pool.Query(ctx, `
+			SELECT DISTINCT fr.identifier
+			FROM control_mappings cm
+			JOIN framework_requirements fr ON cm.requirement_id = fr.id
+			WHERE cm.control_id = $1
+			ORDER BY fr.identifier ASC;
+		`, cd.ControlID)
+		var codes []string
+		if reqCodeRows != nil {
+			for reqCodeRows.Next() {
+				var code string
+				if reqCodeRows.Scan(&code) == nil {
+					codes = append(codes, code)
+				}
+			}
+			reqCodeRows.Close()
+		}
+		if codes == nil {
+			codes = []string{}
+		}
+		cd.MappedRequirementCodes = codes
+
 		controls = append(controls, cd)
 	}
 	if controls == nil {
@@ -302,3 +351,4 @@ func (r *Repository) GetProductControls(ctx context.Context, workspaceID string,
 	}
 	return controls, nil
 }
+
