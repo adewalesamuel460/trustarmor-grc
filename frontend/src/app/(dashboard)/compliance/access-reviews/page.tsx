@@ -6,8 +6,9 @@ import api from '@/lib/api';
 import { 
   Users2, Plus, Calendar, AlertCircle, CheckCircle2, Loader2, Play, 
   Check, X, FileText, ArrowRight, ShieldAlert, Sparkles, GraduationCap,
-  Award, Clock, ExternalLink
+  Award, Clock, ExternalLink, Edit2, Trash2, BookOpen, UserCheck
 } from 'lucide-react';
+
 
 interface Campaign {
   id: string;
@@ -79,12 +80,26 @@ export default function AccessReviewsPage() {
   // Finalizing loaders
   const [finalizingCampaignId, setFinalizingCampaignId] = useState<string | null>(null);
 
+  // Workspace Members for Assigning Training
+  const [members, setMembers] = useState<any[]>([]);
+
+  // Training Modals & Form state
+  const [showAssignTrainingModal, setShowAssignTrainingModal] = useState(false);
+  const [showEditTrainingModal, setShowEditTrainingModal] = useState(false);
+  const [editingTrainingRecord, setEditingTrainingRecord] = useState<TrainingRecord | null>(null);
+
+  const [trainingModuleName, setTrainingModuleName] = useState('Phishing Awareness 101');
+  const [trainingUserId, setTrainingUserId] = useState('');
+  const [trainingStatus, setTrainingStatus] = useState('assigned');
+  const [submittingTraining, setSubmittingTraining] = useState(false);
+
   const fetchUserRole = async () => {
     if (!activeWorkspace) return;
     const email = localStorage.getItem('user_email');
     setUserEmail(email || '');
     try {
       const { data } = await api.get(`/workspaces/${activeWorkspace.id}/members`);
+      setMembers(data || []);
       const me = data.find((m: any) => m.user_email === email);
       if (me) {
         setUserRole(me.role_name);
@@ -93,6 +108,7 @@ export default function AccessReviewsPage() {
       console.error(err);
     }
   };
+
 
   const fetchCampaigns = async () => {
     if (!activeWorkspace) return;
@@ -233,6 +249,74 @@ export default function AccessReviewsPage() {
       setError(err.response?.data?.error || 'Failed to complete training record');
     }
   };
+
+  const handleAssignTrainingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeWorkspace) return;
+    setSubmittingTraining(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.post(`/workspaces/${activeWorkspace.id}/training`, {
+        user_id: trainingUserId || undefined,
+        module_name: trainingModuleName,
+      });
+      setSuccess('New security training module assigned successfully!');
+      setShowAssignTrainingModal(false);
+      setTrainingModuleName('Phishing Awareness 101');
+      setTrainingUserId('');
+      fetchTraining();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to assign training module');
+    } finally {
+      setSubmittingTraining(false);
+    }
+  };
+
+  const handleEditTrainingClick = (record: TrainingRecord) => {
+    setEditingTrainingRecord(record);
+    setTrainingModuleName(record.module_name);
+    setTrainingUserId(record.user_id);
+    setTrainingStatus(record.status);
+    setShowEditTrainingModal(true);
+  };
+
+  const handleEditTrainingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeWorkspace || !editingTrainingRecord) return;
+    setSubmittingTraining(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.put(`/workspaces/${activeWorkspace.id}/training/${editingTrainingRecord.id}`, {
+        user_id: trainingUserId,
+        module_name: trainingModuleName,
+        status: trainingStatus,
+      });
+      setSuccess('Security training record updated successfully!');
+      setShowEditTrainingModal(false);
+      setEditingTrainingRecord(null);
+      fetchTraining();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update training record');
+    } finally {
+      setSubmittingTraining(false);
+    }
+  };
+
+  const handleDeleteTrainingRecord = async (recordID: string) => {
+    if (!activeWorkspace || !confirm('Are you sure you want to delete this training record?')) return;
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.delete(`/workspaces/${activeWorkspace.id}/training/${recordID}`);
+      setSuccess('Training record deleted successfully.');
+      fetchTraining();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to delete training record');
+    }
+  };
+
 
   const isAdmin = userRole === 'Admin' || userRole === 'Compliance Manager';
   const currentItem = pendingItems[0]; // Always review the top card in queue
@@ -534,6 +618,28 @@ export default function AccessReviewsPage() {
           {activeTab === 'training' && (
             <div className="space-y-6">
               
+              {/* Header Bar */}
+              <div className="flex justify-between items-center bg-gray-900/60 p-4 rounded-2xl border border-white/5">
+                <div>
+                  <h3 className="text-md font-bold text-white flex items-center gap-2">
+                    <GraduationCap className="w-5 h-5 text-indigo-400" />
+                    <span>Security Awareness Training Assignments</span>
+                  </h3>
+                  <p className="text-xs text-gray-400">Assign mandatory compliance training modules to workspace members and track completion proofs.</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setTrainingModuleName('Phishing Awareness 101');
+                    setTrainingUserId(members[0]?.user_id || '');
+                    setShowAssignTrainingModal(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition shadow-lg shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Assign Security Training</span>
+                </button>
+              </div>
+
               <div className="overflow-hidden border border-white/5 bg-gray-950/40 rounded-2xl">
                 <table className="w-full border-collapse text-left">
                   <thead>
@@ -589,14 +695,30 @@ export default function AccessReviewsPage() {
                             )}
                           </td>
                           <td className="p-4 text-right">
-                            {record.status !== 'completed' && (
+                            <div className="flex items-center justify-end gap-2">
+                              {record.status !== 'completed' && (
+                                <button
+                                  onClick={() => handleMarkTrainingComplete(record.id)}
+                                  className="px-3 py-1.5 bg-gray-900 border border-white/10 hover:border-indigo-500 text-[10px] font-bold text-gray-300 hover:text-white rounded-lg transition"
+                                >
+                                  Mark Complete
+                                </button>
+                              )}
                               <button
-                                onClick={() => handleMarkTrainingComplete(record.id)}
-                                className="px-3 py-1.5 bg-gray-900 border border-white/10 hover:border-indigo-500 text-[10px] font-bold text-gray-300 hover:text-white rounded-lg transition"
+                                onClick={() => handleEditTrainingClick(record)}
+                                title="Edit Training Assignment"
+                                className="p-1.5 bg-gray-900 hover:bg-white/5 border border-white/10 text-gray-400 hover:text-white rounded-lg transition"
                               >
-                                Mark Complete
+                                <Edit2 className="w-3.5 h-3.5" />
                               </button>
-                            )}
+                              <button
+                                onClick={() => handleDeleteTrainingRecord(record.id)}
+                                title="Delete Record"
+                                className="p-1.5 bg-gray-900 hover:bg-red-500/20 border border-white/10 text-gray-400 hover:text-red-400 rounded-lg transition"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -670,6 +792,162 @@ export default function AccessReviewsPage() {
         </div>
       )}
 
+      {/* MODAL: ASSIGN SECURITY TRAINING */}
+      {showAssignTrainingModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <form onSubmit={handleAssignTrainingSubmit} className="bg-gray-900 rounded-2xl border border-white/5 p-8 max-w-md w-full space-y-6">
+            <div className="flex justify-between items-start">
+              <h3 className="text-md font-bold text-white flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-indigo-400" />
+                <span>Assign Security Training Module</span>
+              </h3>
+              <button type="button" onClick={() => setShowAssignTrainingModal(false)} className="p-1 text-gray-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Select Training Module</label>
+                <select
+                  value={trainingModuleName}
+                  onChange={(e) => setTrainingModuleName(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-950 text-xs text-white border border-white/10 rounded-xl outline-none focus:border-indigo-500 transition [color-scheme:dark]"
+                >
+                  <option value="Phishing Awareness 101">Phishing Awareness 101</option>
+                  <option value="Secure Coding Standards">Secure Coding Standards</option>
+                  <option value="GDPR & HIPAA Compliance">GDPR & HIPAA Compliance</option>
+                  <option value="Data Protection & Encryption 2026">Data Protection & Encryption 2026</option>
+                  <option value="PCI-DSS Payment Security">PCI-DSS Payment Security</option>
+                  <option value="AI Governance & LLM Safety">AI Governance & LLM Safety</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Or Custom Module Title</label>
+                <input
+                  type="text"
+                  value={trainingModuleName}
+                  onChange={(e) => setTrainingModuleName(e.target.value)}
+                  placeholder="Enter module title..."
+                  className="w-full px-4 py-2.5 bg-gray-950 text-xs text-white border border-white/10 rounded-xl outline-none focus:border-indigo-500 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Assign To Employee Account</label>
+                <select
+                  value={trainingUserId}
+                  onChange={(e) => setTrainingUserId(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-950 text-xs text-white border border-white/10 rounded-xl outline-none focus:border-indigo-500 transition [color-scheme:dark]"
+                >
+                  <option value="">Current User / Self</option>
+                  {members.map((m) => (
+                    <option key={m.user_id} value={m.user_id}>
+                      {m.user_email} ({m.role_name || 'Member'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+              <button
+                type="button"
+                onClick={() => setShowAssignTrainingModal(false)}
+                className="px-4 py-2.5 bg-gray-950 hover:bg-white/5 border border-white/10 rounded-xl text-xs text-white font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submittingTraining}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs text-white font-bold flex items-center gap-2"
+              >
+                {submittingTraining && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>Assign Module</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* MODAL: EDIT SECURITY TRAINING */}
+      {showEditTrainingModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <form onSubmit={handleEditTrainingSubmit} className="bg-gray-900 rounded-2xl border border-white/5 p-8 max-w-md w-full space-y-6">
+            <div className="flex justify-between items-start">
+              <h3 className="text-md font-bold text-white flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-indigo-400" />
+                <span>Edit Training Assignment</span>
+              </h3>
+              <button type="button" onClick={() => setShowEditTrainingModal(false)} className="p-1 text-gray-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Training Module Title</label>
+                <input
+                  type="text"
+                  required
+                  value={trainingModuleName}
+                  onChange={(e) => setTrainingModuleName(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-950 text-xs text-white border border-white/10 rounded-xl outline-none focus:border-indigo-500 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Assigned Employee Account</label>
+                <select
+                  value={trainingUserId}
+                  onChange={(e) => setTrainingUserId(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-950 text-xs text-white border border-white/10 rounded-xl outline-none focus:border-indigo-500 transition [color-scheme:dark]"
+                >
+                  {members.map((m) => (
+                    <option key={m.user_id} value={m.user_id}>
+                      {m.user_email} ({m.role_name || 'Member'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Status</label>
+                <select
+                  value={trainingStatus}
+                  onChange={(e) => setTrainingStatus(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-950 text-xs text-white border border-white/10 rounded-xl outline-none focus:border-indigo-500 transition [color-scheme:dark]"
+                >
+                  <option value="assigned">ASSIGNED (Pending Completion)</option>
+                  <option value="completed">COMPLETED</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+              <button
+                type="button"
+                onClick={() => setShowEditTrainingModal(false)}
+                className="px-4 py-2.5 bg-gray-950 hover:bg-white/5 border border-white/10 rounded-xl text-xs text-white font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submittingTraining}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs text-white font-bold flex items-center gap-2"
+              >
+                {submittingTraining && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>Save Changes</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
     </div>
   );
 }
+

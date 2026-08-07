@@ -288,7 +288,11 @@ func main() {
 
 		// Security Training Records
 		r.Get("/workspaces/{id}/training", h.ListTrainingRecords)
+		r.Post("/workspaces/{id}/training", h.CreateTrainingRecord)
+		r.Put("/workspaces/{id}/training/{record_id}", h.UpdateTrainingRecord)
+		r.Delete("/workspaces/{id}/training/{record_id}", h.DeleteTrainingRecord)
 		r.Post("/workspaces/{id}/training/{record_id}/complete", h.CompleteTrainingRecord)
+
 
 		// AI Governance (ISO 42001)
 		r.Get("/workspaces/{id}/ai-assets", h.GetAIAssets)

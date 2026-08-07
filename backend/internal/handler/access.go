@@ -237,3 +237,89 @@ func (h *Handler) CompleteTrainingRecord(w http.ResponseWriter, r *http.Request)
 		"certificate_url": certURL,
 	})
 }
+
+// CreateTrainingRecord handles POST /workspaces/:workspace_id/training
+func (h *Handler) CreateTrainingRecord(w http.ResponseWriter, r *http.Request) {
+	workspaceID := chi.URLParam(r, "id")
+	var req struct {
+		UserID     string `json:"user_id"`
+		ModuleName string `json:"module_name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.respondError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	if req.ModuleName == "" {
+		h.respondError(w, http.StatusBadRequest, "Module name is required")
+		return
+	}
+
+	// If no user specified, assign to the requesting user
+	userID := req.UserID
+	if userID == "" {
+		userID = middleware.GetUserID(r.Context())
+	}
+
+	tr := models.TrainingRecord{
+		WorkspaceID: workspaceID,
+		UserID:      userID,
+		ModuleName:  req.ModuleName,
+	}
+
+	if err := h.repo.CreateTrainingRecord(r.Context(), &tr); err != nil {
+		h.respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.respondJSON(w, http.StatusCreated, tr)
+}
+
+// UpdateTrainingRecord handles PUT /workspaces/:workspace_id/training/:record_id
+func (h *Handler) UpdateTrainingRecord(w http.ResponseWriter, r *http.Request) {
+	recordID := chi.URLParam(r, "record_id")
+	var req struct {
+		UserID     string `json:"user_id"`
+		ModuleName string `json:"module_name"`
+		Status     string `json:"status"` // 'assigned', 'completed'
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.respondError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	if req.ModuleName == "" || req.UserID == "" {
+		h.respondError(w, http.StatusBadRequest, "Module name and assigned employee are required")
+		return
+	}
+
+	if req.Status == "" {
+		req.Status = "assigned"
+	}
+
+	if err := h.repo.UpdateTrainingRecord(r.Context(), recordID, req.ModuleName, req.UserID, req.Status); err != nil {
+		h.respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.respondJSON(w, http.StatusOK, map[string]string{
+		"message": "Training record updated successfully",
+	})
+}
+
+// DeleteTrainingRecord handles DELETE /workspaces/:workspace_id/training/:record_id
+func (h *Handler) DeleteTrainingRecord(w http.ResponseWriter, r *http.Request) {
+	recordID := chi.URLParam(r, "record_id")
+
+	if err := h.repo.DeleteTrainingRecord(r.Context(), recordID); err != nil {
+		h.respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.respondJSON(w, http.StatusOK, map[string]string{
+		"message": "Training record deleted successfully",
+	})
+}
+

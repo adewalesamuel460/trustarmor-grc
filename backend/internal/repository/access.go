@@ -205,6 +205,33 @@ func (r *Repository) CompleteTrainingRecord(ctx context.Context, id string, cert
 	return err
 }
 
+// UpdateTrainingRecord modifies module name, assigned user, or status
+func (r *Repository) UpdateTrainingRecord(ctx context.Context, id string, moduleName string, userID string, status string) error {
+	if status == "completed" {
+		_, err := r.db.Pool.Exec(ctx, `
+			UPDATE training_records
+			SET module_name = $1, user_id = $2, status = $3, completed_at = COALESCE(completed_at, CURRENT_TIMESTAMP)
+			WHERE id = $4;
+		`, moduleName, userID, status, id)
+		return err
+	}
+	_, err := r.db.Pool.Exec(ctx, `
+		UPDATE training_records
+		SET module_name = $1, user_id = $2, status = $3, completed_at = NULL, certificate_url = NULL
+		WHERE id = $4;
+	`, moduleName, userID, status, id)
+	return err
+}
+
+// DeleteTrainingRecord removes a training assignment record
+func (r *Repository) DeleteTrainingRecord(ctx context.Context, id string) error {
+	_, err := r.db.Pool.Exec(ctx, `
+		DELETE FROM training_records WHERE id = $1;
+	`, id)
+	return err
+}
+
+
 // GetAccessReviewControl retrieves a control matching access reviews to map evidence to
 func (r *Repository) GetAccessReviewControl(ctx context.Context, workspaceID string) (string, error) {
 	var controlID string
