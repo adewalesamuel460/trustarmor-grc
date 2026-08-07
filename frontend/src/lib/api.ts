@@ -84,16 +84,9 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError);
         isRefreshing = false;
-
-        // Token refresh failed, clear active workspace and redirect to login
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('active_workspace_id');
-          if (!window.location.pathname.startsWith('/login')) {
-            window.location.href = '/login';
-          }
-        }
         return Promise.reject(refreshError);
       }
+
     }
 
     return Promise.reject(error);

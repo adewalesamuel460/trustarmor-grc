@@ -129,12 +129,21 @@ export default function LoginPage() {
               {!loading && <ArrowRight className="w-4 h-4" />}
             </button>
 
-            <p className="text-gray-500 text-xs text-center mt-6">
-              Don't have an account?{' '}
-              <Link href="/register" className="text-indigo-400 hover:underline">
-                Create one
-              </Link>
+            <p className="text-gray-500 text-xs text-center mt-6 flex flex-col gap-2">
+              <span>
+                Don't have an account?{' '}
+                <Link href="/register" className="text-indigo-400 hover:underline">
+                  Create one
+                </Link>
+              </span>
+              <span className="pt-2 border-t border-white/5 text-[11px]">
+                Global Platform Administrator?{' '}
+                <Link href="/super-admin/login" className="text-purple-400 hover:underline font-semibold">
+                  Super Admin Portal →
+                </Link>
+              </span>
             </p>
+
           </form>
         ) : (
           <form onSubmit={handleVerifyMFA} className="space-y-5">
