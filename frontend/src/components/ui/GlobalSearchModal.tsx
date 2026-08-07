@@ -105,6 +105,8 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
         return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
       case 'framework':
         return <Shield className="w-4 h-4 text-indigo-500" />;
+      case 'requirement':
+        return <FileText className="w-4 h-4 text-sky-500" />;
       case 'vendor':
         return <Building2 className="w-4 h-4 text-purple-500" />;
       case 'policy':

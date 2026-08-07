@@ -3,12 +3,13 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 )
 
 type SearchResultItem struct {
 	ID       string `json:"id"`
-	Type     string `json:"type"`     // "control", "framework", "vendor", "policy", "product", "incident"
+	Type     string `json:"type"`     // "control", "framework", "requirement", "vendor", "policy", "product", "incident"
 	Title    string `json:"title"`
 	Subtitle string `json:"subtitle"`
 	URL      string `json:"url"`
@@ -21,16 +22,83 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 		return results, nil
 	}
 
-	searchPattern := "%" + query + "%"
+	// Normalize common typos (e.g. "hippa" -> "hipaa")
+	cleanQuery := strings.ToLower(query)
+	if strings.Contains(cleanQuery, "hippa") {
+		cleanQuery = strings.ReplaceAll(cleanQuery, "hippa", "hipaa")
+	}
 
-	// 1. Controls
+	searchPattern := "%" + cleanQuery + "%"
+
+	// 1. Frameworks Catalog (Global catalog + active status in workspace)
+	fwRows, err := r.db.Pool.Query(ctx, `
+		SELECT f.id, f.name, f.version, COALESCE(f.description, ''),
+		       EXISTS(SELECT 1 FROM workspace_frameworks wf WHERE wf.framework_id = f.id AND wf.workspace_id = $1) as is_active
+		FROM frameworks f
+		WHERE f.name ILIKE $2 OR f.description ILIKE $2
+		ORDER BY is_active DESC, f.name ASC LIMIT 8;
+	`, workspaceID, searchPattern)
+	if err != nil {
+		log.Printf("[GlobalSearch Error] Frameworks search failed: %v", err)
+	} else {
+		defer fwRows.Close()
+		for fwRows.Next() {
+			var id, name, version, desc string
+			var isActive bool
+			if err := fwRows.Scan(&id, &name, &version, &desc, &isActive); err == nil {
+				statusStr := "Inactive Standard"
+				if isActive {
+					statusStr = "Active Framework"
+				}
+				results = append(results, SearchResultItem{
+					ID:       id,
+					Type:     "framework",
+					Title:    name,
+					Subtitle: fmt.Sprintf("Framework • %s • %s", version, statusStr),
+					URL:      "/compliance/frameworks",
+				})
+			}
+		}
+		fwRows.Close()
+	}
+
+	// 2. Framework Requirements / Clauses (e.g. CC6.1, CC7.1, A.5.1, Art 2.2)
+	reqRows, err := r.db.Pool.Query(ctx, `
+		SELECT fr.id, fr.identifier, fr.title, f.name as framework_name
+		FROM framework_requirements fr
+		JOIN frameworks f ON fr.framework_id = f.id
+		WHERE fr.identifier ILIKE $1 OR fr.title ILIKE $1 OR fr.description ILIKE $1
+		ORDER BY fr.identifier ASC LIMIT 6;
+	`, searchPattern)
+	if err != nil {
+		log.Printf("[GlobalSearch Error] Requirements search failed: %v", err)
+	} else {
+		defer reqRows.Close()
+		for reqRows.Next() {
+			var id, identifier, title, frameworkName string
+			if err := reqRows.Scan(&id, &identifier, &title, &frameworkName); err == nil {
+				results = append(results, SearchResultItem{
+					ID:       id,
+					Type:     "requirement",
+					Title:    fmt.Sprintf("[%s] %s", identifier, title),
+					Subtitle: fmt.Sprintf("Requirement • %s Clause", frameworkName),
+					URL:      "/compliance/frameworks",
+				})
+			}
+		}
+		reqRows.Close()
+	}
+
+	// 3. Security Controls Catalog
 	ctrlRows, err := r.db.Pool.Query(ctx, `
 		SELECT id, ref_code, title, category, status
 		FROM controls
-		WHERE workspace_id = $1 AND (title ILIKE $2 OR ref_code ILIKE $2 OR category ILIKE $2)
+		WHERE workspace_id = $1 AND (title ILIKE $2 OR ref_code ILIKE $2 OR category ILIKE $2 OR description ILIKE $2)
 		ORDER BY title ASC LIMIT 8;
 	`, workspaceID, searchPattern)
-	if err == nil {
+	if err != nil {
+		log.Printf("[GlobalSearch Error] Controls search failed: %v", err)
+	} else {
 		defer ctrlRows.Close()
 		for ctrlRows.Next() {
 			var id, refCode, title, category, status string
@@ -47,39 +115,16 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 		ctrlRows.Close()
 	}
 
-	// 2. Frameworks
-	fwRows, err := r.db.Pool.Query(ctx, `
-		SELECT f.id, f.name, f.code, f.version
-		FROM frameworks f
-		JOIN workspace_frameworks wf ON f.id = wf.framework_id
-		WHERE wf.workspace_id = $1 AND (f.name ILIKE $2 OR f.code ILIKE $2)
-		ORDER BY f.name ASC LIMIT 5;
-	`, workspaceID, searchPattern)
-	if err == nil {
-		defer fwRows.Close()
-		for fwRows.Next() {
-			var id, name, code, version string
-			if err := fwRows.Scan(&id, &name, &code, &version); err == nil {
-				results = append(results, SearchResultItem{
-					ID:       id,
-					Type:     "framework",
-					Title:    name,
-					Subtitle: fmt.Sprintf("Framework • %s %s", code, version),
-					URL:      "/compliance/frameworks",
-				})
-			}
-		}
-		fwRows.Close()
-	}
-
-	// 3. Vendors
+	// 4. Vendors (TPRM)
 	vRows, err := r.db.Pool.Query(ctx, `
 		SELECT id, name, category, risk_tier
 		FROM vendors
 		WHERE workspace_id = $1 AND (name ILIKE $2 OR category ILIKE $2)
 		ORDER BY name ASC LIMIT 5;
 	`, workspaceID, searchPattern)
-	if err == nil {
+	if err != nil {
+		log.Printf("[GlobalSearch Error] Vendors search failed: %v", err)
+	} else {
 		defer vRows.Close()
 		for vRows.Next() {
 			var id, name, category, riskTier string
@@ -96,14 +141,16 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 		vRows.Close()
 	}
 
-	// 4. Policies
+	// 5. Policies
 	pRows, err := r.db.Pool.Query(ctx, `
 		SELECT id, title, category, status
 		FROM policies
 		WHERE workspace_id = $1 AND (title ILIKE $2 OR category ILIKE $2)
 		ORDER BY title ASC LIMIT 5;
 	`, workspaceID, searchPattern)
-	if err == nil {
+	if err != nil {
+		log.Printf("[GlobalSearch Error] Policies search failed: %v", err)
+	} else {
 		defer pRows.Close()
 		for pRows.Next() {
 			var id, title, category, status string
@@ -120,14 +167,16 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 		pRows.Close()
 	}
 
-	// 5. Products
+	// 6. Products
 	prodRows, err := r.db.Pool.Query(ctx, `
 		SELECT id, name, code
 		FROM products
 		WHERE workspace_id = $1 AND (name ILIKE $2 OR code ILIKE $2)
 		ORDER BY name ASC LIMIT 5;
 	`, workspaceID, searchPattern)
-	if err == nil {
+	if err != nil {
+		log.Printf("[GlobalSearch Error] Products search failed: %v", err)
+	} else {
 		defer prodRows.Close()
 		for prodRows.Next() {
 			var id, name, code string
@@ -144,14 +193,16 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 		prodRows.Close()
 	}
 
-	// 6. Incidents
+	// 7. Incidents
 	incRows, err := r.db.Pool.Query(ctx, `
 		SELECT id, title, severity, status
 		FROM incidents
 		WHERE workspace_id = $1 AND (title ILIKE $2 OR severity ILIKE $2)
 		ORDER BY created_at DESC LIMIT 5;
 	`, workspaceID, searchPattern)
-	if err == nil {
+	if err != nil {
+		log.Printf("[GlobalSearch Error] Incidents search failed: %v", err)
+	} else {
 		defer incRows.Close()
 		for incRows.Next() {
 			var id, title, severity, status string
