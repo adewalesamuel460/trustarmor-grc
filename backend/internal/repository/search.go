@@ -22,7 +22,7 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 		return results, nil
 	}
 
-	// Normalize common typos (e.g. "hippa" -> "hipaa")
+	// Normalize common acronyms & typos
 	cleanQuery := strings.ToLower(query)
 	if strings.Contains(cleanQuery, "hippa") {
 		cleanQuery = strings.ReplaceAll(cleanQuery, "hippa", "hipaa")
@@ -30,7 +30,7 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 
 	searchPattern := "%" + cleanQuery + "%"
 
-	// 1. Frameworks Catalog (Global catalog + active status in workspace)
+	// 1. Frameworks Catalog (e.g. NDPR, SOC 2, HIPAA, ISO 27001, NIST CSF, PCI DSS)
 	fwRows, err := r.db.Pool.Query(ctx, `
 		SELECT f.id, f.name, f.version, COALESCE(f.description, ''),
 		       EXISTS(SELECT 1 FROM workspace_frameworks wf WHERE wf.framework_id = f.id AND wf.workspace_id = $1) as is_active
@@ -62,13 +62,13 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 		fwRows.Close()
 	}
 
-	// 2. Framework Requirements / Clauses (e.g. CC6.1, CC7.1, A.5.1, Art 2.2)
+	// 2. Framework Requirements / Clauses (e.g. NDPR Art 2.1, CC6.1, A.5.1, 164.312)
 	reqRows, err := r.db.Pool.Query(ctx, `
 		SELECT fr.id, fr.identifier, fr.title, f.name as framework_name
 		FROM framework_requirements fr
 		JOIN frameworks f ON fr.framework_id = f.id
-		WHERE fr.identifier ILIKE $1 OR fr.title ILIKE $1 OR fr.description ILIKE $1
-		ORDER BY fr.identifier ASC LIMIT 6;
+		WHERE fr.identifier ILIKE $1 OR fr.title ILIKE $1 OR fr.description ILIKE $1 OR f.name ILIKE $1
+		ORDER BY fr.identifier ASC LIMIT 8;
 	`, searchPattern)
 	if err != nil {
 		log.Printf("[GlobalSearch Error] Requirements search failed: %v", err)
@@ -89,11 +89,11 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 		reqRows.Close()
 	}
 
-	// 3. Security Controls Catalog
+	// 3. Security Controls Catalog (Columns: id, title, description, type, frequency)
 	ctrlRows, err := r.db.Pool.Query(ctx, `
-		SELECT id, ref_code, title, category, status
+		SELECT id, title, COALESCE(description, ''), type
 		FROM controls
-		WHERE workspace_id = $1 AND (title ILIKE $2 OR ref_code ILIKE $2 OR category ILIKE $2 OR description ILIKE $2)
+		WHERE workspace_id = $1 AND (title ILIKE $2 OR description ILIKE $2 OR type ILIKE $2)
 		ORDER BY title ASC LIMIT 8;
 	`, workspaceID, searchPattern)
 	if err != nil {
@@ -101,13 +101,13 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 	} else {
 		defer ctrlRows.Close()
 		for ctrlRows.Next() {
-			var id, refCode, title, category, status string
-			if err := ctrlRows.Scan(&id, &refCode, &title, &category, &status); err == nil {
+			var id, title, desc, ctrlType string
+			if err := ctrlRows.Scan(&id, &title, &desc, &ctrlType); err == nil {
 				results = append(results, SearchResultItem{
 					ID:       id,
 					Type:     "control",
-					Title:    fmt.Sprintf("[%s] %s", refCode, title),
-					Subtitle: fmt.Sprintf("Control • %s • %s", category, status),
+					Title:    title,
+					Subtitle: fmt.Sprintf("Control • %s", ctrlType),
 					URL:      "/compliance/controls",
 				})
 			}
@@ -115,11 +115,11 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 		ctrlRows.Close()
 	}
 
-	// 4. Vendors (TPRM)
+	// 4. Vendors (TPRM) (Columns: id, name, domain, description, risk_tier, status)
 	vRows, err := r.db.Pool.Query(ctx, `
-		SELECT id, name, category, risk_tier
+		SELECT id, name, COALESCE(domain, ''), COALESCE(risk_tier, 'medium'), COALESCE(status, 'active')
 		FROM vendors
-		WHERE workspace_id = $1 AND (name ILIKE $2 OR category ILIKE $2)
+		WHERE workspace_id = $1 AND (name ILIKE $2 OR domain ILIKE $2 OR description ILIKE $2)
 		ORDER BY name ASC LIMIT 5;
 	`, workspaceID, searchPattern)
 	if err != nil {
@@ -127,13 +127,13 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 	} else {
 		defer vRows.Close()
 		for vRows.Next() {
-			var id, name, category, riskTier string
-			if err := vRows.Scan(&id, &name, &category, &riskTier); err == nil {
+			var id, name, domain, riskTier, status string
+			if err := vRows.Scan(&id, &name, &domain, &riskTier, &status); err == nil {
 				results = append(results, SearchResultItem{
 					ID:       id,
 					Type:     "vendor",
 					Title:    name,
-					Subtitle: fmt.Sprintf("Vendor • %s • %s Risk", category, riskTier),
+					Subtitle: fmt.Sprintf("Vendor • %s Risk • %s", riskTier, status),
 					URL:      "/compliance/vendors",
 				})
 			}
@@ -141,11 +141,11 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 		vRows.Close()
 	}
 
-	// 5. Policies
+	// 5. Policies (Columns: id, title, description, status, current_version)
 	pRows, err := r.db.Pool.Query(ctx, `
-		SELECT id, title, category, status
+		SELECT id, title, COALESCE(status, 'draft'), current_version
 		FROM policies
-		WHERE workspace_id = $1 AND (title ILIKE $2 OR category ILIKE $2)
+		WHERE workspace_id = $1 AND (title ILIKE $2 OR description ILIKE $2 OR content ILIKE $2)
 		ORDER BY title ASC LIMIT 5;
 	`, workspaceID, searchPattern)
 	if err != nil {
@@ -153,13 +153,14 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 	} else {
 		defer pRows.Close()
 		for pRows.Next() {
-			var id, title, category, status string
-			if err := pRows.Scan(&id, &title, &category, &status); err == nil {
+			var id, title, status string
+			var version int
+			if err := pRows.Scan(&id, &title, &status, &version); err == nil {
 				results = append(results, SearchResultItem{
 					ID:       id,
 					Type:     "policy",
 					Title:    title,
-					Subtitle: fmt.Sprintf("Policy • %s • %s", category, status),
+					Subtitle: fmt.Sprintf("Policy • v%d • %s", version, status),
 					URL:      "/compliance/policies",
 				})
 			}
@@ -167,11 +168,11 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 		pRows.Close()
 	}
 
-	// 6. Products
+	// 6. Products (Columns: id, suite, name, description)
 	prodRows, err := r.db.Pool.Query(ctx, `
-		SELECT id, name, code
+		SELECT id, name, suite
 		FROM products
-		WHERE workspace_id = $1 AND (name ILIKE $2 OR code ILIKE $2)
+		WHERE workspace_id = $1 AND (name ILIKE $2 OR suite ILIKE $2 OR description ILIKE $2)
 		ORDER BY name ASC LIMIT 5;
 	`, workspaceID, searchPattern)
 	if err != nil {
@@ -179,13 +180,13 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 	} else {
 		defer prodRows.Close()
 		for prodRows.Next() {
-			var id, name, code string
-			if err := prodRows.Scan(&id, &name, &code); err == nil {
+			var id, name, suite string
+			if err := prodRows.Scan(&id, &name, &suite); err == nil {
 				results = append(results, SearchResultItem{
 					ID:       id,
 					Type:     "product",
 					Title:    name,
-					Subtitle: fmt.Sprintf("Product • %s", code),
+					Subtitle: fmt.Sprintf("Product • Suite %s", suite),
 					URL:      fmt.Sprintf("/compliance/products/%s", id),
 				})
 			}
@@ -193,11 +194,11 @@ func (r *Repository) GlobalSearch(ctx context.Context, workspaceID string, query
 		prodRows.Close()
 	}
 
-	// 7. Incidents
+	// 7. Incidents (Columns: id, title, severity, status)
 	incRows, err := r.db.Pool.Query(ctx, `
 		SELECT id, title, severity, status
 		FROM incidents
-		WHERE workspace_id = $1 AND (title ILIKE $2 OR severity ILIKE $2)
+		WHERE workspace_id = $1 AND (title ILIKE $2 OR severity ILIKE $2 OR description ILIKE $2)
 		ORDER BY created_at DESC LIMIT 5;
 	`, workspaceID, searchPattern)
 	if err != nil {
