@@ -22,6 +22,11 @@ import {
   Search,
   Check,
 } from 'lucide-react';
+import Breadcrumb from '@/components/ui/Breadcrumb';
+import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
+import Tooltip from '@/components/ui/Tooltip';
+
 
 interface RequirementCoverageDetail {
   id: string;
@@ -197,6 +202,9 @@ export default function ProductDetailPage() {
         </div>
       ) : posture ? (
         <>
+          {/* Breadcrumb Navigation */}
+          <Breadcrumb customLabels={{ [productId as string]: posture.product_name }} />
+
           {/* Header Card */}
           <div className="bg-white dark:bg-gray-900/60 p-6 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm backdrop-blur-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
             <div className="space-y-2">
@@ -227,12 +235,9 @@ export default function ProductDetailPage() {
             </button>
           </div>
 
-          {error && (
-            <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 rounded-xl text-sm">
-              <AlertCircle className="w-5 h-5 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+          <ErrorState error={error} onRetry={fetchProductDetail} isCompact />
+
+
 
           {/* Framework Compliance Posture Cards */}
           <div className="space-y-3">
@@ -392,9 +397,11 @@ export default function ProductDetailPage() {
                     >
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="px-2 py-0.5 text-xs font-bold font-mono rounded bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20">
-                            {req.requirement_code}
-                          </span>
+                          <Tooltip termKey={req.requirement_code}>
+                            <span className="px-2 py-0.5 text-xs font-bold font-mono rounded bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20 cursor-help">
+                              {req.requirement_code}
+                            </span>
+                          </Tooltip>
                           {req.is_covered ? (
                             <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold rounded-md flex items-center gap-1">
                               <Check className="w-3 h-3" />

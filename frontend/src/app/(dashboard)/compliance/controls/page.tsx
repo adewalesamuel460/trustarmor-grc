@@ -7,6 +7,10 @@ import {
   Sliders, Plus, Search, Eye, AlertCircle, X, Check, Save, Loader2, User,
   FileText, Calendar, History, Shield, Play, Upload, ExternalLink, Database, AlertTriangle, FileUp, Trash
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
+import Tooltip from '@/components/ui/Tooltip';
+
 
 interface Control {
   id: string;
@@ -350,52 +354,58 @@ export default function ControlsPage() {
     const isNdpr = ident.startsWith('Art');
 
     return (
-      <span
-        key={ident}
-        className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
-          isSoc2
-            ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400'
-            : isNdpr
-            ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
-            : 'bg-slate-100 dark:bg-gray-500/10 border-slate-200 dark:border-gray-500/20 text-slate-600 dark:text-gray-400'
-        }`}
-      >
-        {ident}
-      </span>
+      <Tooltip key={ident} termKey={ident}>
+        <span
+          className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border cursor-help ${
+            isSoc2
+              ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400'
+              : isNdpr
+              ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400'
+              : 'bg-slate-100 dark:bg-gray-500/10 border-slate-200 dark:border-gray-500/20 text-slate-600 dark:text-gray-400'
+          }`}
+        >
+          {ident}
+        </span>
+      </Tooltip>
     );
   };
 
   const renderStatusBadge = (status: string) => {
+    let badgeContent = null;
     switch (status) {
       case 'passing':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-full text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
+        badgeContent = (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-full text-emerald-700 dark:text-emerald-400 text-xs font-semibold cursor-help">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
             Passing
           </span>
         );
+        break;
       case 'failing':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-full text-red-700 dark:text-red-400 text-xs font-semibold">
+        badgeContent = (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-full text-red-700 dark:text-red-400 text-xs font-semibold cursor-help">
             <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400" />
             Failing
           </span>
         );
+        break;
       case 'needs_attention':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-full text-amber-700 dark:text-amber-400 text-xs font-semibold">
+        badgeContent = (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-full text-amber-700 dark:text-amber-400 text-xs font-semibold cursor-help">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400" />
             Attention
           </span>
         );
+        break;
       default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-gray-500/10 border border-slate-200 dark:border-gray-500/20 rounded-full text-slate-600 dark:text-gray-400 text-xs font-semibold">
+        badgeContent = (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-gray-500/10 border border-slate-200 dark:border-gray-500/20 rounded-full text-slate-600 dark:text-gray-400 text-xs font-semibold cursor-help">
             <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-gray-400" />
             Untested
           </span>
         );
     }
+    return <Tooltip termKey={status}>{badgeContent}</Tooltip>;
   };
 
   return (
@@ -460,8 +470,13 @@ export default function ControlsPage() {
               </tr>
             ) : filteredControls.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-10 text-gray-500">
-                  No controls defined. Click "Create Control" to add one.
+                <td colSpan={7} className="p-8">
+                  <EmptyState
+                    title="No controls found"
+                    description="No security controls match your search criteria or workspace configuration."
+                    actionLabel="Create Control"
+                    onAction={() => setShowCreateModal(true)}
+                  />
                 </td>
               </tr>
             ) : (

@@ -20,19 +20,25 @@ func (s *Service) GetProfile(ctx context.Context, userID string) (map[string]any
 	adminInfo, _ := s.repo.GetGlobalAdminByUserID(ctx, userID)
 
 	profile := map[string]any{
-		"id":          user.ID,
-		"email":       user.Email,
-		"mfa_enabled": user.MFAEnabled,
-		"created_at":  user.CreatedAt,
-		"workspaces":  workspaces,
-		"is_admin":    adminInfo != nil,
-		"admin_role":  nil,
+		"id":                  user.ID,
+		"email":               user.Email,
+		"mfa_enabled":          user.MFAEnabled,
+		"has_seen_onboarding": user.HasSeenOnboarding,
+		"created_at":          user.CreatedAt,
+		"workspaces":          workspaces,
+		"is_admin":            adminInfo != nil,
+		"admin_role":          nil,
 	}
 	if adminInfo != nil {
 		profile["admin_role"] = adminInfo.Role
 	}
 
 	return profile, nil
+}
+
+// UpdateOnboarding updates the user's has_seen_onboarding flag
+func (s *Service) UpdateOnboarding(ctx context.Context, userID string, hasSeen bool) error {
+	return s.repo.UpdateUserOnboarding(ctx, userID, hasSeen)
 }
 
 // ChangePassword verifies the current password and updates to the new one

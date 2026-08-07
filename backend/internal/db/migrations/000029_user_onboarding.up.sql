@@ -1,0 +1,2 @@
+-- Add onboarding status tracking column to users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS has_seen_onboarding BOOLEAN NOT NULL DEFAULT FALSE;

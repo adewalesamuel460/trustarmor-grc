@@ -8,6 +8,10 @@ import {
   X, Loader2, ArrowLeft, Filter, AlertTriangle, AlertCircle, Save, Download, 
   Trash2, Upload, FileText, CheckCircle2, ShieldAlert, User
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
+import Tooltip from '@/components/ui/Tooltip';
+
 
 interface VendorDocument {
   id: string;
@@ -292,17 +296,8 @@ export default function VendorsPage() {
 
   return (
     <div className="space-y-8 pb-12 min-h-screen">
-      {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-between gap-3 text-red-400 text-sm">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <p>{error}</p>
-          </div>
-          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+      <ErrorState error={error} onRetry={fetchVendors} onDismiss={() => setError(null)} isCompact />
+
 
       {/* Page Title */}
       <div className="flex justify-between items-start">
@@ -341,10 +336,13 @@ export default function VendorsPage() {
             <span>Loading vendors catalog...</span>
           </div>
         ) : filteredVendors.length === 0 ? (
-          <div className="p-12 text-center border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-900/10 rounded-2xl shadow-sm dark:shadow-none">
-            <Building className="w-8 h-8 text-slate-400 dark:text-gray-600 mx-auto mb-2" />
-            <p className="text-xs text-slate-500 dark:text-gray-500">No vendors registered in workspace.</p>
-          </div>
+          <EmptyState
+            icon={Building}
+            title="No vendors registered"
+            description="No third-party vendors match your search parameters or have been registered in this workspace."
+            actionLabel="Register Vendor"
+            onAction={() => setIsCreating(true)}
+          />
         ) : (
           <div className="rounded-2xl border border-slate-200 dark:border-white/5 bg-white dark:bg-gray-950/40 overflow-hidden shadow-sm dark:shadow-none">
             <table className="w-full text-left border-collapse">

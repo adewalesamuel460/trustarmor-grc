@@ -6,8 +6,10 @@ import Link from 'next/link';
 import WorkspaceSwitcher from '@/components/WorkspaceSwitcher';
 import api from '@/lib/api';
 import { useTheme } from '@/context/ThemeContext';
-import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle, CheckSquare, Bell, Bug, User, Sun, Moon, Package } from 'lucide-react';
+import { Shield, LayoutDashboard, ShieldCheck, Users2, LogOut, Settings, ScrollText, Sliders, Layers, AlertTriangle, Building, Brain, HelpCircle, CheckSquare, Bell, Bug, User, Sun, Moon, Package, Search, Command } from 'lucide-react';
 import { isDemoMode, disableDemoMode, DEMO_USER, DEMO_WORKSPACE } from '@/lib/demo-mode';
+import GlobalSearchModal from '@/components/ui/GlobalSearchModal';
+import OnboardingTourModal from '@/components/ui/OnboardingTourModal';
 
 export default function DashboardLayout({
   children,
@@ -24,6 +26,10 @@ export default function DashboardLayout({
   const [userRole, setUserRole] = useState('');
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [isGlobalAdmin, setIsGlobalAdmin] = useState(false);
+
+  // Global UI Modals
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -54,6 +60,25 @@ export default function DashboardLayout({
     }
   };
 
+  // Keyboard shortcut listener for Cmd+K / Ctrl+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Listen for custom trigger to re-open onboarding tour anytime
+  useEffect(() => {
+    const handleOpenTour = () => setIsOnboardingOpen(true);
+    window.addEventListener('open-onboarding-tour', handleOpenTour);
+    return () => window.removeEventListener('open-onboarding-tour', handleOpenTour);
+  }, []);
+
   useEffect(() => {
     if (isDemoMode()) {
       setAuthenticated(true);
@@ -77,6 +102,11 @@ export default function DashboardLayout({
           setUserEmail(localStorage.getItem('user_email') || '');
         }
 
+        // Check if first-run user onboarding tour should pop up
+        if (res.data && res.data.has_seen_onboarding === false) {
+          setIsOnboardingOpen(true);
+        }
+
         api.get('/admin/tenants')
           .then(() => setIsGlobalAdmin(true))
           .catch(() => setIsGlobalAdmin(false));
@@ -98,18 +128,17 @@ export default function DashboardLayout({
   useEffect(() => {
     const fetchUserRole = async () => {
       const activeWorkspaceId = localStorage.getItem('active_workspace_id');
-      const email = localStorage.getItem('user_email');
-      const token = localStorage.getItem('access_token');
-      if (!activeWorkspaceId || !email || !token) return;
+      if (!activeWorkspaceId) return;
 
       try {
-        const { data } = await api.get(`/workspaces/${activeWorkspaceId}/members`);
-        const me = data.find((m: any) => m.user_email === email);
-        if (me) {
-          setUserRole(me.role_name);
+        const { data: members } = await api.get(`/workspaces/${activeWorkspaceId}/members`);
+        const userEmailLocal = localStorage.getItem('user_email');
+        const me = members?.find((m: any) => m.email === userEmailLocal || m.user_email === userEmailLocal);
+        if (me?.role || me?.role_name) {
+          setUserRole(me.role || me.role_name);
         }
       } catch (err) {
-        console.error('Failed to fetch user role:', err);
+        console.error('Failed to fetch workspace role:', err);
       }
     };
 
@@ -118,65 +147,49 @@ export default function DashboardLayout({
     return () => window.removeEventListener('workspace-changed', fetchUserRole);
   }, []);
 
-  useEffect(() => {
-    if (userRole === 'Auditor') {
-      if (pathname !== '/compliance/audits' && pathname !== '/login' && pathname !== '/register') {
-        router.push('/compliance/audits');
-      }
-    }
-  }, [userRole, pathname, router]);
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-[#090d16]" />
-    );
-  }
-
-  if (!authenticated) {
-    return null;
-  }
-
   const navGroups = [
     {
       title: 'Overview',
       items: [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-        { name: 'Tasks', path: '/tasks', icon: CheckSquare },
+        { name: 'Remediation Queue', path: '/tasks', icon: CheckSquare },
       ]
     },
     {
-      title: 'Compliance',
+      title: 'Compliance & Controls',
       items: [
         { name: 'Frameworks', path: '/compliance/frameworks', icon: ShieldCheck },
-        { name: 'Products', path: '/compliance/products', icon: Package },
-        { name: 'Controls', path: '/compliance/controls', icon: Sliders },
-
-        { name: 'Integrations', path: '/compliance/integrations', icon: Layers },
-        { name: 'Vulnerabilities', path: '/compliance/vulnerabilities', icon: Bug },
-        { name: 'Policies', path: '/compliance/policies', icon: ScrollText },
-        { name: 'Incidents', path: '/compliance/incidents', icon: AlertTriangle },
-        { name: 'Vendors / TPRM', path: '/compliance/vendors', icon: Building },
-        { name: 'Questionnaires', path: '/compliance/questionnaires', icon: HelpCircle },
-        { name: 'Trust Center', path: '/compliance/trust-center', icon: Shield },
-        { name: 'Audit Hub', path: '/compliance/audits', icon: ScrollText },
-        { name: 'Access Reviews', path: '/compliance/access-reviews', icon: Users2 },
-        { name: 'AI Governance', path: '/compliance/ai-governance', icon: Brain },
-        { name: 'Privacy & NDPR', path: '/compliance/privacy', icon: Shield },
+        { name: 'Controls Catalog', path: '/compliance/controls', icon: Sliders },
+        { name: 'Product Posture', path: '/compliance/products', icon: Package },
+        { name: 'Policy Center', path: '/compliance/policies', icon: ScrollText },
+        { name: 'Audits & Evidence', path: '/compliance/audits', icon: Layers },
       ]
     },
     {
-      title: 'Risk Management',
+      title: 'Risk & Governance',
       items: [
         { name: 'Risk Register', path: '/compliance/risks', icon: AlertTriangle },
+        { name: 'Vendor TPRM', path: '/compliance/vendors', icon: Building },
+        { name: 'Questionnaire RAG', path: '/compliance/questionnaires', icon: Brain },
+        { name: 'Access Reviews', path: '/compliance/access-reviews', icon: Users2 },
+        { name: 'AI Governance', path: '/compliance/ai-governance', icon: HelpCircle },
       ]
     },
     {
-      title: 'Settings',
+      title: 'Operations',
       items: [
-        { name: 'Profile', path: '/settings/profile', icon: User },
-        { name: 'Team Settings', path: '/settings/team', icon: Users2 },
-        { name: 'Knowledge Base', path: '/settings/knowledge-base', icon: Brain },
-        { name: 'Notification Rules', path: '/settings/notifications', icon: Bell },
+        { name: 'Integrations', path: '/compliance/integrations', icon: Settings },
+        { name: 'Incidents', path: '/compliance/incidents', icon: Bug },
+        { name: 'Vulnerabilities', path: '/compliance/vulnerabilities', icon: Shield },
+        { name: 'Trust Center', path: '/compliance/trust-center', icon: ShieldCheck },
+      ]
+    },
+    {
+      title: 'Settings & Admin',
+      items: [
+        { name: 'User Profile', path: '/settings/profile', icon: User },
+        { name: 'Team & Members', path: '/settings/team', icon: Users2 },
+        { name: 'Notifications', path: '/settings/notifications', icon: Bell },
         { name: 'Audit Logs', path: '/settings/audit-logs', icon: ScrollText },
       ]
     }
@@ -280,7 +293,7 @@ export default function DashboardLayout({
               className="flex items-center gap-3 px-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition py-1 group"
             >
               <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-600/20 border border-indigo-300 dark:border-indigo-500/30 flex items-center justify-center font-bold text-indigo-700 dark:text-indigo-300 group-hover:border-indigo-500/50 transition">
-                U
+                {userEmail ? userEmail.charAt(0).toUpperCase() : 'U'}
               </div>
               <div className="overflow-hidden">
                 <p className="text-xs text-slate-600 dark:text-gray-400 truncate group-hover:text-slate-900 dark:group-hover:text-white transition">{userEmail}</p>
@@ -301,9 +314,24 @@ export default function DashboardLayout({
         <div className="flex-1 flex flex-col min-h-screen">
           {/* Topbar */}
           <header className="h-16 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-gray-950/20 backdrop-blur-xl flex items-center justify-between px-8 transition-colors duration-200">
-            <h1 className="text-sm font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-widest">
-              {pathname === '/' ? 'Dashboard Overview' : pathname.split('/').pop()?.replace('-', ' ')}
-            </h1>
+            <div className="flex items-center gap-6">
+              <h1 className="text-sm font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-widest hidden md:block">
+                {pathname === '/' ? 'Dashboard Overview' : pathname.split('/').pop()?.replace('-', ' ')}
+              </h1>
+
+              {/* Global Search Button Trigger */}
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="flex items-center gap-3 px-4 py-2 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-gray-400 hover:border-indigo-500 transition text-xs shadow-sm"
+              >
+                <Search className="w-3.5 h-3.5 text-indigo-500" />
+                <span className="hidden sm:inline">Search controls, frameworks...</span>
+                <span className="sm:hidden">Search...</span>
+                <kbd className="hidden md:flex items-center gap-0.5 px-1.5 py-0.5 bg-white dark:bg-gray-800 border border-slate-300 dark:border-white/10 rounded text-[10px] font-mono text-slate-600 dark:text-gray-300">
+                  <Command className="w-2.5 h-2.5" /> K
+                </kbd>
+              </button>
+            </div>
 
             <div className="flex items-center gap-4">
               <button
@@ -334,6 +362,10 @@ export default function DashboardLayout({
           </main>
         </div>
       </div>
+
+      {/* Global Modals */}
+      <GlobalSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <OnboardingTourModal isOpen={isOnboardingOpen} onClose={() => setIsOnboardingOpen(false)} />
     </div>
   );
 }

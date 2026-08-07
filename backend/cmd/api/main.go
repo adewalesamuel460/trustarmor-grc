@@ -164,6 +164,10 @@ func main() {
 		// User profile
 		r.Get("/users/me", h.GetProfile)
 		r.Put("/users/me/password", h.ChangePassword)
+		r.Patch("/users/me/onboarding", h.UpdateOnboarding)
+
+		// Global Search
+		r.Get("/workspaces/{id}/search", h.GlobalSearch)
 
 		// MFA management
 		r.Post("/auth/mfa/setup", h.SetupMFA)

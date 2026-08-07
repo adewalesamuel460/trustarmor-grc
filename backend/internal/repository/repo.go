@@ -64,8 +64,8 @@ func (r *Repository) GetUserByEmail(ctx context.Context, email string) (models.U
 
 func (r *Repository) GetUserByID(ctx context.Context, id string) (models.User, error) {
 	var user models.User
-	query := `SELECT id, email, mfa_enabled, created_at FROM users WHERE id = $1`
-	err := r.db.Pool.QueryRow(ctx, query, id).Scan(&user.ID, &user.Email, &user.MFAEnabled, &user.CreatedAt)
+	query := `SELECT id, email, mfa_enabled, COALESCE(has_seen_onboarding, FALSE), created_at FROM users WHERE id = $1`
+	err := r.db.Pool.QueryRow(ctx, query, id).Scan(&user.ID, &user.Email, &user.MFAEnabled, &user.HasSeenOnboarding, &user.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return user, fmt.Errorf("user not found: %w", err)
@@ -73,6 +73,15 @@ func (r *Repository) GetUserByID(ctx context.Context, id string) (models.User, e
 		return user, fmt.Errorf("failed to get user by id: %w", err)
 	}
 	return user, nil
+}
+
+func (r *Repository) UpdateUserOnboarding(ctx context.Context, userID string, hasSeen bool) error {
+	query := `UPDATE users SET has_seen_onboarding = $1 WHERE id = $2`
+	_, err := r.db.Pool.Exec(ctx, query, hasSeen, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update user onboarding status: %w", err)
+	}
+	return nil
 }
 
 func (r *Repository) UpdateUserMFA(ctx context.Context, userID string, secret string, enabled bool) error {

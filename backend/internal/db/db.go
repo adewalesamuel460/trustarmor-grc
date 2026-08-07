@@ -96,6 +96,10 @@ var dedupeFrameworkRequirementsSQL string
 //go:embed migrations/000028_seed_expanded_framework_controls.up.sql
 var seedExpandedFrameworkControlsSQL string
 
+//go:embed migrations/000029_user_onboarding.up.sql
+var userOnboardingSQL string
+
+
 
 
 type PgxPoolIface interface {
@@ -321,12 +325,16 @@ func (db *DB) RunMigrations(ctx context.Context) error {
 		return fmt.Errorf("failed to execute migration 000028: %w", err)
 	}
 
-	log.Println("Migrations executed successfully")
+	log.Println("Running database migrations (000029)...")
+	_, err = db.Pool.Exec(ctx, userOnboardingSQL)
+	if err != nil {
+		return fmt.Errorf("failed to execute migration 000029: %w", err)
+	}
+
+	log.Println("Database migrations applied successfully!")
+
 	return nil
 }
-
-
-
 
 
 

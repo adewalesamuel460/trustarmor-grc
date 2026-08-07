@@ -20,12 +20,13 @@ type Workspace struct {
 }
 
 type User struct {
-	ID           string    `json:"id"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"`
-	MFASecret    string    `json:"-"`
-	MFAEnabled   bool      `json:"mfa_enabled"`
-	CreatedAt    time.Time `json:"created_at"`
+	ID                 string    `json:"id"`
+	Email              string    `json:"email"`
+	PasswordHash       string    `json:"-"`
+	MFASecret          string    `json:"-"`
+	MFAEnabled         bool      `json:"mfa_enabled"`
+	HasSeenOnboarding  bool      `json:"has_seen_onboarding"`
+	CreatedAt          time.Time `json:"created_at"`
 }
 
 type Role struct {

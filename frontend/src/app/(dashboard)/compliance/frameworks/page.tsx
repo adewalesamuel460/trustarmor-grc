@@ -25,6 +25,10 @@ import {
   ChevronRight,
   Sparkles,
 } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
+import Tooltip from '@/components/ui/Tooltip';
+
 
 interface Framework {
   id: string;
@@ -537,9 +541,11 @@ export default function FrameworksPage() {
                           className="p-4 bg-slate-50/50 dark:bg-gray-950/30 border border-slate-200 dark:border-white/10 rounded-xl space-y-2"
                         >
                           <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 text-xs font-bold font-mono rounded bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20">
-                              {req.identifier}
-                            </span>
+                            <Tooltip termKey={req.identifier}>
+                              <span className="px-2 py-0.5 text-xs font-bold font-mono rounded bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20 cursor-help">
+                                {req.identifier}
+                              </span>
+                            </Tooltip>
                           </div>
                           <h5 className="text-xs font-bold text-slate-900 dark:text-white">{req.title}</h5>
                           {req.description && (

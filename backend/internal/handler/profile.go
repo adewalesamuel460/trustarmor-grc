@@ -44,3 +44,32 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	h.respondJSON(w, http.StatusOK, map[string]string{"message": "Password changed successfully"})
 }
+
+// UpdateOnboarding handles PATCH /users/me/onboarding to set onboarding status
+func (h *Handler) UpdateOnboarding(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+	if userID == "" {
+		h.respondError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	var req struct {
+		HasSeenOnboarding bool `json:"has_seen_onboarding"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.respondError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	if err := h.svc.UpdateOnboarding(r.Context(), userID, req.HasSeenOnboarding); err != nil {
+		h.respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.respondJSON(w, http.StatusOK, map[string]any{
+		"message":             "Onboarding status updated",
+		"has_seen_onboarding": req.HasSeenOnboarding,
+	})
+}
+

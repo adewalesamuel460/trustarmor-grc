@@ -185,17 +185,31 @@ export default function ProfilePage() {
           {/* Workspace List */}
           {profile?.workspaces && profile.workspaces.length > 0 && (
             <div className="space-y-2">
-              <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Your Workspaces</p>
+              <p className="text-[10px] text-slate-500 dark:text-gray-500 uppercase tracking-wider font-semibold">Your Workspaces</p>
               <div className="space-y-1.5">
                 {profile.workspaces.map((ws) => (
-                  <div key={ws.id} className="flex items-center gap-3 bg-black/20 border border-white/5 rounded-xl px-4 py-3">
-                    <Building2 className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-300 font-medium">{ws.name}</span>
+                  <div key={ws.id} className="flex items-center gap-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-xl px-4 py-3">
+                    <Building2 className="w-4 h-4 text-slate-400 dark:text-gray-500 flex-shrink-0" />
+                    <span className="text-sm text-slate-800 dark:text-gray-300 font-medium">{ws.name}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
+
+          {/* Onboarding Tour Replay */}
+          <div className="pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">Platform Onboarding Tour</p>
+              <p className="text-xs text-slate-500 dark:text-gray-400">Re-launch the 5-step walkthrough explaining controls, coverage, and evidence collection.</p>
+            </div>
+            <button
+              onClick={() => window.dispatchEvent(new Event('open-onboarding-tour'))}
+              className="px-4 py-2 bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 font-bold text-xs rounded-xl transition"
+            >
+              Take the tour again
+            </button>
+          </div>
         </div>
       </div>
 
